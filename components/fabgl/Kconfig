@@ -1,0 +1,11 @@
+menu "FabGL"
+
+    config FABGL_ENABLE_ULP
+        bool
+        default y
+        select ULP_COPROC_ENABLED
+        help
+            The PS/2 controller of FabGL runs on the ULP FSM coprocessor.
+            CONFIG_ULP_COPROC_RESERVE_MEM must be at least 2112 bytes.
+
+endmenu

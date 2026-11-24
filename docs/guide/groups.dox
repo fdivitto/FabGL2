@@ -1,0 +1,59 @@
+/**
+ * @defgroup display Display controllers
+ * @brief VGA and composite video output drivers. See @ref guide_display.
+ */
+
+/**
+ * @defgroup graphics Graphics
+ * @brief Drawing primitives, colors, fonts and bitmaps. See @ref guide_canvas.
+ */
+
+/**
+ * @defgroup games Sprites and games
+ * @brief Sprites, scenes and collision detection. See @ref guide_sprites.
+ */
+
+/**
+ * @defgroup input Keyboard and mouse
+ * @brief PS/2 controller, keyboard, mouse and keyboard layouts. See @ref guide_input.
+ */
+
+/**
+ * @defgroup gui Graphical user interface
+ * @brief Application, windows, controls, styles and InputBox dialogs. See @ref guide_gui.
+ */
+
+/**
+ * @defgroup terminal Terminal
+ * @brief ANSI/VT terminal, terminal controller and line editor. See @ref guide_terminal.
+ */
+
+/**
+ * @defgroup audio Sound
+ * @brief Sound generator and waveform generators. See @ref guide_sound.
+ */
+
+/**
+ * @defgroup comm Communication
+ * @brief Streams, serial port, UART and I2C.
+ */
+
+/**
+ * @defgroup devices Peripheral drivers
+ * @brief Drivers for external chips (real-time clock, GPIO expander).
+ */
+
+/**
+ * @defgroup network Network
+ * @brief WiFi, HTTP, TCP and ICMP helpers.
+ */
+
+/**
+ * @defgroup storage Storage
+ * @brief File system helpers and non-volatile preferences.
+ */
+
+/**
+ * @defgroup emulation CPU and chip emulation
+ * @brief Emulators of CPUs and peripheral chips, used by the emulator examples.
+ */

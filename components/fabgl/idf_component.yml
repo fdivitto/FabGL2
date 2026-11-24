@@ -1,0 +1,19 @@
+version: "2.0.0"
+description: "FabGL2 - ESP32 Display Controller (VGA, PAL/NTSC Composite), PS/2 keyboard and mouse, Graphics Library, Sound Engine, GUI, Game/Emulation Engine and ANSI/VT Terminal"
+url: "https://github.com/fdivitto/FabGL"
+repository: "https://github.com/fdivitto/FabGL.git"
+documentation: "http://www.fabglib.org"
+license: "GPL-3.0-or-later"
+targets:
+  - esp32
+tags:
+  - vga
+  - graphics
+  - composite
+  - ps2
+  - terminal
+  - gui
+  - sound
+  - emulator
+dependencies:
+  idf: ">=6.1"

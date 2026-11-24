@@ -1,0 +1,5 @@
+<map id="VGA2Controller" name="VGA2Controller">
+<area shape="rect" id="Node000001" title="VGA bitmapped display controller with 2 colors." alt="" coords="26,79,138,105"/>
+<area shape="rect" id="Node000002" href="$classfabgl_1_1_v_g_a_paletted_controller.html" title="Base class for palette&#45;based bitmapped controllers, such as VGA16Controller, VGA8Controller,..." alt="" coords="5,5,159,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,45,85,79,79,78,80,48"/>
+</map>

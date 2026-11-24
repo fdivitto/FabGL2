@@ -1,0 +1,6 @@
+var kbdlayouts_8h =
+[
+    [ "AltVirtualKeyDef", "structfabgl_1_1_alt_virtual_key_def.html", "structfabgl_1_1_alt_virtual_key_def" ],
+    [ "KeyboardLayout", "structfabgl_1_1_keyboard_layout.html", "structfabgl_1_1_keyboard_layout" ],
+    [ "VirtualKeyDef", "structfabgl_1_1_virtual_key_def.html", "structfabgl_1_1_virtual_key_def" ]
+];

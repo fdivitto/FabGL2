@@ -1,0 +1,13 @@
+<map id="uiComboBox" name="uiComboBox">
+<area shape="rect" id="Node000001" title="This is a combination of a listbox and a single&#45;line editable textbox." alt="" coords="28,374,125,399"/>
+<area shape="rect" id="Node000002" href="$classfabgl_1_1ui_custom_combo_box.html" title="This is a combination of a listbox and another component, base of all combobox components." alt="" coords="5,300,148,326"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,339,79,374,74,372,75,343"/>
+<area shape="rect" id="Node000003" href="$classfabgl_1_1ui_control.html" title="This is the base class for all controls. A control can have focus and is not activable." alt="" coords="40,226,113,252"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="78,265,79,300,74,299,75,270"/>
+<area shape="rect" id="Node000004" href="$classfabgl_1_1ui_window.html" title="Base class for all visible UI elements (Frames and Controls)." alt="" coords="37,153,116,178"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="77,191,79,226,74,225,76,196"/>
+<area shape="rect" id="Node000005" href="$classfabgl_1_1ui_evt_handler.html" title="Base class of all UI elements that can receive events." alt="" coords="28,79,125,105"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="77,118,79,152,74,152,76,123"/>
+<area shape="rect" id="Node000006" href="$classfabgl_1_1ui_object.html" title="Base class of all UI elements like windows and controls." alt="" coords="42,5,111,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="77,44,79,79,74,78,76,49"/>
+</map>

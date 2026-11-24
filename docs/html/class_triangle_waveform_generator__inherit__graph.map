@@ -1,0 +1,5 @@
+<map id="TriangleWaveformGenerator" name="TriangleWaveformGenerator">
+<area shape="rect" id="Node000001" title="Triangle waveform generator." alt="" coords="5,79,189,105"/>
+<area shape="rect" id="Node000002" href="$classfabgl_1_1_waveform_generator.html" title="Abstract base class for waveform generators. A waveform generator is an audio channel that SoundGener..." alt="" coords="28,5,166,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,45,99,80,95,77,95,48"/>
+</map>

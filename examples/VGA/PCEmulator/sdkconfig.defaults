@@ -1,0 +1,29 @@
+# FabGL2 example - ESP-IDF configuration defaults
+CONFIG_IDF_TARGET="esp32"
+
+# Flash / partitions
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Performance
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+CONFIG_FREERTOS_HZ=1000
+
+# Run app_main() on CPU1 with a larger stack (FabGL video tasks are pinned to the core not used by WiFi)
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+CONFIG_ESP_MAIN_TASK_AFFINITY_CPU1=y
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+
+# PS/2 controller runs on ULP FSM coprocessor
+CONFIG_ULP_COPROC_ENABLED=y
+CONFIG_ULP_COPROC_TYPE_FSM=y
+CONFIG_ULP_COPROC_RESERVE_MEM=4096
+
+# PSRAM: mapped into the address space only (the app accesses it directly at SOC_EXTRAM_DATA_LOW).
+# The compiler workaround for ESP32 rev.1 PSRAM bug is disabled because it slows down the CPU too much.
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_USE_MEMMAP=y
+CONFIG_SPIRAM_CACHE_WORKAROUND=n
+CONFIG_SPIRAM_IGNORE_NOTFOUND=y

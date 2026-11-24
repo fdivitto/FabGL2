@@ -1,0 +1,43 @@
+<map id="cvbspalettedcontroller.h" name="cvbspalettedcontroller.h">
+<area shape="rect" id="Node000001" title="This file contains the fabgl::CVBSPalettedController definition." alt="" coords="430,5,588,31"/>
+<area shape="rect" id="Node000002" href="$cvbs16controller_8h.html" title="This file contains the fabgl::CVBS16Controller definition." alt="" coords="360,79,486,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="485,40,439,81,436,76,481,43"/>
+<area shape="rect" id="Node000021" href="$cvbspalettedcontroller_8cpp_source.html" title=" " alt="" coords="510,79,682,105"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="536,38,584,79,579,79,535,44"/>
+<area shape="rect" id="Node000003" href="$cvbs16controller_8cpp_source.html" title=" " alt="" coords="291,153,432,178"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="405,115,373,154,370,150,400,118"/>
+<area shape="rect" id="Node000004" href="$fabgl_8h.html" title="Single include file of the FabGL library." alt="" coords="455,153,516,178"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="444,114,477,153,472,152,442,119"/>
+<area shape="rect" id="Node000005" href="$_m_c146818_8h_source.html" title=" " alt="" coords="27,226,122,252"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="440,181,123,233,122,228,440,176"/>
+<area shape="rect" id="Node000007" href="$_p_c8250_8h.html" title="This file contains the fabgl::PC8250 definition." alt="" coords="160,226,240,252"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="438,181,241,231,240,226,442,178"/>
+<area shape="rect" id="Node000009" href="$_p_i_c8259_8h_source.html" title=" " alt="" coords="270,226,354,252"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="444,184,342,228,341,223,439,185"/>
+<area shape="rect" id="Node000011" href="$_p_i_t8253_8h_source.html" title=" " alt="" coords="389,226,470,252"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="469,189,440,228,437,224,464,192"/>
+<area shape="rect" id="Node000013" href="$_v_i_a6522_8h.html" title="This file contains the fabgl::VIA6522 definition." alt="" coords="500,226,582,252"/>
+<area shape="poly" id="edge12_Node000004_Node000013" title=" " alt="" coords="505,188,534,227,529,225,503,193"/>
+<area shape="rect" id="Node000015" href="$graphicsadapter_8h.html" title="This file contains the fabgl::GraphicsAdapter definition." alt="" coords="617,226,740,252"/>
+<area shape="poly" id="edge14_Node000004_Node000015" title=" " alt="" coords="531,181,648,226,643,226,530,186"/>
+<area shape="rect" id="Node000017" href="$i8042_8h_source.html" title=" " alt="" coords="778,226,841,252"/>
+<area shape="poly" id="edge16_Node000004_Node000017" title=" " alt="" coords="531,174,780,230,775,231,530,179"/>
+<area shape="rect" id="Node000019" href="$i8086_8h_source.html" title=" " alt="" coords="879,226,942,252"/>
+<area shape="poly" id="edge18_Node000004_Node000019" title=" " alt="" coords="531,171,854,224,881,231,876,231,853,229,531,176"/>
+<area shape="rect" id="Node000006" href="$_m_c146818_8cpp_source.html" title=" " alt="" coords="5,300,115,326"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="71,266,65,301,60,298,67,269"/>
+<area shape="rect" id="Node000008" href="$_p_c8250_8cpp_source.html" title=" " alt="" coords="139,300,232,326"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="197,265,190,301,186,298,192,269"/>
+<area shape="rect" id="Node000010" href="$_p_i_c8259_8cpp_source.html" title=" " alt="" coords="257,300,354,326"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="311,266,309,301,304,298,307,269"/>
+<area shape="rect" id="Node000012" href="$_p_i_t8253_8cpp_source.html" title=" " alt="" coords="378,300,473,326"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="430,266,428,301,424,298,426,269"/>
+<area shape="rect" id="Node000014" href="$_v_i_a6522_8cpp_source.html" title=" " alt="" coords="497,300,594,326"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="545,266,547,301,543,298,541,269"/>
+<area shape="rect" id="Node000016" href="$graphicsadapter_8cpp_source.html" title=" " alt="" coords="618,300,755,326"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="683,265,687,301,683,298,680,269"/>
+<area shape="rect" id="Node000018" href="$i8042_8cpp_source.html" title=" " alt="" coords="780,300,857,326"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="815,265,819,301,815,298,811,269"/>
+<area shape="rect" id="Node000020" href="$i8086_8cpp_source.html" title=" " alt="" coords="881,300,959,326"/>
+<area shape="poly" id="edge19_Node000019_Node000020" title=" " alt="" coords="916,265,921,301,916,298,912,269"/>
+</map>
