@@ -150,7 +150,7 @@ class MyApp : public uiApp {
     // download file button
     auto downloadBtn = new uiButton(frame, "Download", Point(260, 50), Size(90, 20));
     downloadBtn->onClick = [=, this]() {
-      char URL[128] = "http://";
+      char URL[128] = "https://";
       if (inputBox("Download File", "URL", URL, sizeof(URL), "OK", "Cancel") == uiMessageBoxResult::Button1) {
         download(URL);
         updateFreeSpaceLabel();
@@ -208,10 +208,18 @@ class MyApp : public uiApp {
         };
         int httpCode = http.GET(URL);
         fclose(f);
-        if (httpCode != 200)
+        if (httpCode != 200) {
           remove(fullpath);
+          char msg[64];
+          if (httpCode == 0)
+            snprintf(msg, sizeof(msg), "Connection failed");
+          else
+            snprintf(msg, sizeof(msg), "Server replied with HTTP code %d", httpCode);
+          messageBox("Download failed", msg, "OK", nullptr, nullptr, uiMessageBoxIcon::Error);
+        }
         updateBrowser();
-      }
+      } else
+        messageBox("Download failed", "Cannot create the file", "OK", nullptr, nullptr, uiMessageBoxIcon::Error);
     }
   }
 

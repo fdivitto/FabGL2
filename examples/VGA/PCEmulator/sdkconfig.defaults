@@ -14,6 +14,8 @@ CONFIG_FREERTOS_HZ=1000
 # Run app_main() on CPU1 with a larger stack (FabGL video tasks are pinned to the core not used by WiFi)
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
 CONFIG_ESP_MAIN_TASK_AFFINITY_CPU1=y
+# the CPU-intensive tasks of this example can keep the idle tasks from running
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0=n
 CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
 
 # PS/2 controller runs on ULP FSM coprocessor

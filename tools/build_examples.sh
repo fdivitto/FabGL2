@@ -30,9 +30,9 @@ while IFS= read -r dir; do
     fail=$((fail + 1)); failed+=("${rel}")
     echo "    FAILED (see ${bdir}.log)"
   fi
-done < <(find "${ROOT}/examples" -name sdkconfig.defaults -printf '%h\n' | sort)
+done < <(find "${ROOT}/examples" -name sdkconfig.defaults -not -path "*/build/*" -exec dirname {} \; | sort)
 
 echo
 echo "Succeeded: ${ok}   Failed: ${fail}"
-for f in "${failed[@]}"; do echo "  ${f}"; done
+for f in ${failed[@]+"${failed[@]}"}; do echo "  ${f}"; done
 [[ ${fail} -eq 0 ]]

@@ -756,6 +756,9 @@ int8_t         FileBrowser::s_SDCardCLK;
 int8_t         FileBrowser::s_SDCardCS;
 sdmmc_card_t * FileBrowser::s_SDCard = nullptr;
 
+// true when the SPI bus of the SD card has been initialized by mountSDCard() (and must be freed when unmounting)
+static bool s_SDCardSPIBusOwned = false;
+
 // slow down SD card. Using ESP32 core 2.0.0 may crash SD subsystem, having VGA output and WiFi enabled
 // @TODO: check again next versions
 int            FileBrowser::s_SDCardMaxFreqKHz = 19000;
@@ -1293,35 +1296,58 @@ bool FileBrowser::format(DriveType driveType, int drive)
 
 #else
 
+// restores the task watchdog configuration specified in sdkconfig
+static void restoreTaskWDT()
+{
+#if CONFIG_ESP_TASK_WDT_INIT
+  esp_task_wdt_config_t wdtConfig = { };
+  wdtConfig.timeout_ms     = CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000;
+  wdtConfig.idle_core_mask = 0;
+  #if CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0
+  wdtConfig.idle_core_mask |= 1 << 0;
+  #endif
+  #if CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1
+  wdtConfig.idle_core_mask |= 1 << 1;
+  #endif
+  #if CONFIG_ESP_TASK_WDT_PANIC
+  wdtConfig.trigger_panic  = true;
+  #endif
+  esp_task_wdt_reconfigure(&wdtConfig);
+#endif
+}
+
+
 bool FileBrowser::format(DriveType driveType, int drive)
 {
-  // formatting may take a long time: relax task watchdog
+  bool r = false;
+
+#if CONFIG_ESP_TASK_WDT_INIT
+  // formatting may take a long time: relax the task watchdog
   esp_task_wdt_config_t wdtConfig = { };
   wdtConfig.timeout_ms     = 45000;
   wdtConfig.idle_core_mask = 0;
   wdtConfig.trigger_panic  = false;
   esp_task_wdt_reconfigure(&wdtConfig);
+#endif
 
   if (driveType == DriveType::SDCard && s_SDCardMounted) {
 
     // create a single FAT partition and make filesystem
-    bool r = (esp_vfs_fat_sdcard_format(s_SDCardMountPath, s_SDCard) == ESP_OK);
+    r = (esp_vfs_fat_sdcard_format(s_SDCardMountPath, s_SDCard) == ESP_OK);
 
     remountSDCard();
 
-    return r;
-
   } else if (driveType == DriveType::SPIFFS && s_SPIFFSMounted) {
 
-    // driveType == DriveType::SPIFFS
-    bool r = (esp_spiffs_format(nullptr) == ESP_OK);
+    r = (esp_spiffs_format(nullptr) == ESP_OK);
 
     remountSPIFFS();
 
-    return r;
+  }
 
-  } else
-    return false;
+  restoreTaskWDT();
+
+  return r;
 }
 
 #endif
@@ -1338,6 +1364,9 @@ bool FileBrowser::mountSDCard(bool formatOnFail, char const * mountPath, size_t 
 
 bool FileBrowser::mountSDCard(bool formatOnFail, char const * mountPath, size_t maxFiles, int allocationUnitSize, int MISO, int MOSI, int CLK, int CS)
 {
+  // already mounted: unmount first
+  unmountSDCard();
+
   switch (getChipPackage()) {
     case ChipPackage::ESP32PICOD4:
       MISO = 2;
@@ -1358,7 +1387,6 @@ bool FileBrowser::mountSDCard(bool formatOnFail, char const * mountPath, size_t 
   s_SDCardMOSI               = MOSI;
   s_SDCardCLK                = CLK;
   s_SDCardCS                 = CS;
-  s_SDCardMounted            = false;
 
   sdmmc_host_t host = SDSPI_HOST_DEFAULT();
   host.slot = SPI2_HOST;
@@ -1377,9 +1405,13 @@ bool FileBrowser::mountSDCard(bool formatOnFail, char const * mountPath, size_t 
   bus_cfg.data6_io_num = -1;
   bus_cfg.data7_io_num = -1;
   bus_cfg.max_transfer_sz  = 4000;
-  auto r = spi_bus_initialize((spi_host_device_t)host.slot, &bus_cfg, SPI_DMA_CH_AUTO);
+  esp_err_t r = ESP_ERR_INVALID_STATE;  // bus already initialized by us (or by the application)
+  if (!s_SDCardSPIBusOwned) {
+    r = spi_bus_initialize((spi_host_device_t)host.slot, &bus_cfg, SPI_DMA_CH_AUTO);
+    s_SDCardSPIBusOwned = (r == ESP_OK);
+  }
 
-  if (r == ESP_OK || r == ESP_ERR_INVALID_STATE) {  // ESP_ERR_INVALID_STATE, maybe spi_bus_initialize already called
+  if (r == ESP_OK || r == ESP_ERR_INVALID_STATE) {  // ESP_ERR_INVALID_STATE: bus already initialized
     sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
     slot_config.gpio_cs = int2gpio(CS);
     slot_config.host_id = (spi_host_device_t) host.slot;
@@ -1392,6 +1424,11 @@ bool FileBrowser::mountSDCard(bool formatOnFail, char const * mountPath, size_t 
     r = esp_vfs_fat_sdspi_mount(mountPath, &host, &slot_config, &mount_config, &s_SDCard);
 
     s_SDCardMounted = (r == ESP_OK);
+  }
+
+  if (!s_SDCardMounted && s_SDCardSPIBusOwned) {
+    spi_bus_free((spi_host_device_t)host.slot);
+    s_SDCardSPIBusOwned = false;
   }
 
 
@@ -1414,6 +1451,10 @@ void FileBrowser::unmountSDCard()
   if (s_SDCardMounted) {
     esp_vfs_fat_sdcard_unmount(s_SDCardMountPath, s_SDCard);
     s_SDCardMounted = false;
+  }
+  if (s_SDCardSPIBusOwned) {
+    spi_bus_free(SPI2_HOST);
+    s_SDCardSPIBusOwned = false;
   }
 }
 

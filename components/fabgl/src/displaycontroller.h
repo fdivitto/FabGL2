@@ -743,10 +743,10 @@ protected:
   void setScreenSize(int width, int height)    { m_screenWidth = width; m_screenHeight = height; }
 
   // we store here these info to avoid to have virtual methods (due the -vtables in flash- problem)
-  int16_t          m_screenWidth;
-  int16_t          m_screenHeight;
-  volatile int16_t m_viewPortWidth;
-  volatile int16_t m_viewPortHeight;
+  int16_t          m_screenWidth    = 0;
+  int16_t          m_screenHeight   = 0;
+  volatile int16_t m_viewPortWidth  = 0;
+  volatile int16_t m_viewPortHeight = 0;
 };
 
 

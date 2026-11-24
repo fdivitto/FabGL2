@@ -36,7 +36,6 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_task_wdt.h"
 #include "esp_system.h"
 #include <memory>
 
@@ -358,9 +357,6 @@ void setup()
   vTaskDelay(pdMS_TO_TICKS(500)); printf("\n\n\nReset\n\n");// DEBUG ONLY
 
 
-  esp_task_wdt_delete(xTaskGetIdleTaskHandleForCore(0));
-  vTaskDelay(pdMS_TO_TICKS(100)); // experienced crashes without this delay!
-  esp_task_wdt_delete(xTaskGetIdleTaskHandleForCore(1));
 
   preferences.begin("PCEmulator", false);
 

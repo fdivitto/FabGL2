@@ -178,8 +178,10 @@ void VGATextController::setResolution(VGATimings const& timings)
 
   m_timings = timings;
 
-  // inform base class about screen size
+  // inform base class about screen size (a text controller has no separate viewport: it covers the whole screen)
   setScreenSize(m_timings.HVisibleArea, m_timings.VVisibleArea);
+  m_viewPortWidth  = m_timings.HVisibleArea;
+  m_viewPortHeight = m_timings.VVisibleArea;
 
   // font info
   s_charWidthInBytes = (m_font->width + 7) / 8;

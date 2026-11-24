@@ -318,8 +318,13 @@ esp_err_t HTTPRequest::httpEventHandler(esp_http_client_event_t * evt)
     case HTTP_EVENT_ON_CONNECTED:
       break;
     case HTTP_EVENT_ON_DATA:
-      obj->onData(evt->data, evt->data_len);
+    {
+      // deliver only the body of successful responses (not the body of redirects or error pages)
+      int status = esp_http_client_get_status_code(evt->client);
+      if (status >= 200 && status < 300)
+        obj->onData(evt->data, evt->data_len);
       break;
+    }
     case HTTP_EVENT_ON_FINISH:
       break;
     case HTTP_EVENT_DISCONNECTED:
@@ -342,8 +347,12 @@ int HTTPRequest::GET(char const * URL)
     config.event_handler     = httpEventHandler;
     config.user_data         = this;
     config.crt_bundle_attach = esp_crt_bundle_attach;
+    config.buffer_size       = 2048;   // the default (512) is too small for the headers of many servers
+    config.buffer_size_tx    = 1024;
     m_client = esp_http_client_init(&config);
-  }  
+    if (!m_client)
+      return 0;
+  }
   return esp_http_client_perform(m_client) == ESP_OK ? esp_http_client_get_status_code(m_client) : 0;
 }
 
@@ -357,6 +366,7 @@ int HTTPRequest::open(char const * URL)
   config.crt_bundle_attach     = esp_crt_bundle_attach;
   config.disable_auto_redirect = true;
   config.buffer_size           = 2048;
+  config.buffer_size_tx        = 1024;
   m_client = esp_http_client_init(&config);
   if (!m_client)
     return 0;

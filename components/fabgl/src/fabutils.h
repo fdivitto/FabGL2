@@ -37,12 +37,15 @@
 
 
 #include <cstring>
+#include <new>
+#include <utility>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
 #include "esp_system.h"
 #include "esp_timer.h"
+#include "esp_heap_caps.h"
 #include "esp_intr_alloc.h"
 #include "driver/gpio.h"
 #include "sdmmc_cmd.h"
@@ -546,9 +549,16 @@ struct Delegate {
   template <typename Func>
   void operator=(Func f) {
     cleanUp();
-    m_closure  = [] (void * func, const Params & ...params) -> void { (*(Func *)func)(params...); };
-    m_func     = heap_caps_malloc(sizeof(Func), MALLOC_CAP_32BIT | MALLOC_CAP_INTERNAL);
-    moveItems<uint32_t*>((uint32_t*)m_func, (uint32_t*)&f, sizeof(Func) / sizeof(uint32_t));
+    // the callable is move-constructed into a heap block (byte-addressable internal RAM): copying it as raw words
+    // would break C++ object semantics and strict aliasing rules, and the compiler may then skip the initialization
+    // of the captured variables
+    void * mem = heap_caps_aligned_alloc(alignof(Func) < 4 ? 4 : alignof(Func), sizeof(Func), MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+    if (mem) {
+      new (mem) Func(std::move(f));
+      m_closure = [] (void * func, const Params & ...params) -> void { (*(Func *)func)(params...); };
+      m_destroy = [] (void * func) { ((Func *)func)->~Func(); };
+      m_func    = mem;
+    }
   }
 
   // denied assignment from Delegate
@@ -562,11 +572,15 @@ struct Delegate {
 private:
 
   void (*m_closure)(void * func, const Params & ...params);
+  void (*m_destroy)(void * func);
   void * m_func;
 
   void cleanUp() {
-    if (m_func)
+    if (m_func) {
+      m_destroy(m_func);
       heap_caps_free(m_func);
+      m_func = nullptr;
+    }
   }
 };
 

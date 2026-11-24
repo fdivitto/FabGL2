@@ -16,6 +16,21 @@ is missing, check `DisplayController.getViewPortHeight()` and, if needed:
 - avoid double buffering;
 - initialize WiFi and other memory-hungry components before the display, or lower their buffers.
 
+WiFi and HTTPS also need a lot of internal RAM: a TLS handshake needs several tens of KB, and fails
+with errors such as "Failed to allocate memory" or "PSA signature verification failed" when memory is short.
+With a large frame buffer, reduce the memory used by TLS and WiFi in `sdkconfig.defaults`, as the
+`VGA/FileBrowser` example does:
+
+```
+CONFIG_MBEDTLS_DYNAMIC_BUFFER=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CONFIG_DATA=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CA_CERT=y
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=4
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=16
+CONFIG_ESP_WIFI_DYNAMIC_TX_BUFFER_NUM=16
+CONFIG_ESP_WIFI_RX_BA_WIN=4
+```
+
 Use `heap_caps_get_free_size(MALLOC_CAP_8BIT)` and `heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL)` to check
 the available memory. PSRAM cannot hold the frame buffer, but applications can use it for their own data
 (the `VGA/PCEmulator` example needs it).

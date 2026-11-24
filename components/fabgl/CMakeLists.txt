@@ -44,4 +44,5 @@ idf_component_register(
   PRIV_REQUIRES esp_mm esp_psram esp_hw_support esp_rom efuse
 )
 
-target_compile_options(${COMPONENT_LIB} PRIVATE -O2)
+# -fno-strict-aliasing: the library reinterprets pixel and buffer data through pointers of different types
+target_compile_options(${COMPONENT_LIB} PRIVATE -O2 -fno-strict-aliasing)

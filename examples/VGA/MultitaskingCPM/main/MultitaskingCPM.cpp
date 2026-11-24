@@ -35,7 +35,6 @@
 
 
 
-#include "esp_task_wdt.h"
 #include <string>
 
 #include "fabgl.h"
@@ -82,8 +81,6 @@ void setup()
   Console.begin();
 
 
-  esp_task_wdt_delete(xTaskGetIdleTaskHandleForCore(0));
-  esp_task_wdt_delete(xTaskGetIdleTaskHandleForCore(1));
 
   // Reduces some defaults to save RAM...
   fabgl::VGAController::queueSize                    = 128;
