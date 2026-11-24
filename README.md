@@ -141,7 +141,7 @@ tools/clean_examples.sh VGA/       # VGA examples only
 
 | Folder | Examples |
 |---|---|
-| `examples/VGA` | Altair8800, AnsiTerminal, Audio, ClassicRacer, CollisionDetection, DirectVGA, DirectVGA_ElMuro, DoubleBuffer, FileBrowser, GraphicalUserInterface, HardwareTest, InputBox, LoopbackTerminal, ModelineStudio, MouseOnScreen, MultitaskingCPM, NetworkTerminal, PCEmulator, SimpleTerminalOut, SimpleTextTerminalOut, Songs, SoundChipSimulator, SpaceInvaders, Sprites, TerminalCharSet, VIC20 |
+| `examples/VGA` | Altair8800, AnsiTerminal, Audio, ClassicRacer, CollisionDetection, DirectVGA, DirectVGA_ElMuro, DoubleBuffer, FileBrowser, GraphicalUserInterface, HardwareTest, InputBox, LoopbackTerminal, ModelineStudio, MouseOnScreen, MultitaskingCPM, NetworkTerminal, PCEmulator, SimpleTerminalOut, SimpleTextTerminalOut, Songs, SoundChipSimulator, SpaceInvaders, Sprites, Synth, TerminalCharSet, VIC20 |
 | `examples/Composite` | BaseExample |
 | `examples/Others` | KeyboardScanCodes, KeyboardVirtualKeys, MouseStudio |
 

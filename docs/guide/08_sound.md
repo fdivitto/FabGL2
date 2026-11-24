@@ -66,5 +66,5 @@ soundGenerator.play(false);         // stop the output
 ```
 
 Channels are disabled when created: call enable(true) to hear them. The overall volume is set with
-SoundGenerator::setVolume(). The `VGA/Audio`, `VGA/Songs` and `VGA/SoundChipSimulator` examples show more
+SoundGenerator::setVolume(). The `VGA/Audio`, `VGA/Songs`, `VGA/SoundChipSimulator` and `VGA/Synth` examples show more
 complete uses.

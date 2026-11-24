@@ -277,6 +277,7 @@
  * @example VGA/SpaceInvaders/main/SpaceInvaders.cpp Complete Space Invaders game
  * @example VGA/SoundChipSimulator/main/SoundChipSimulator.cpp Sound chip simulator, by Carles Oriol
  * @example VGA/Sprites/main/Sprites.cpp Simple sprite animation
+ * @example VGA/Synth/main/Synth.cpp FabGL Synth: polyphonic synthesizer played with the PS/2 keyboard or the mouse (resonant low-pass filter, ADSR envelope, GUI)
  * @example VGA/TerminalCharSet/main/TerminalCharSet.cpp Terminal character set
  * @example VGA/VIC20/main/VIC20.cpp Commodore VIC-20 emulator
  * @example VGA/InputBox/main/InputBox.cpp UI wizards using fabgl::InputBox
