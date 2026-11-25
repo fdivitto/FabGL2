@@ -128,8 +128,37 @@ class MyApp : public uiApp {
     // format button
     auto formatBtn = new uiButton(frame, "Format", Point(160, 125), Size(90, 20));
     formatBtn->onClick = [&]() {
-      if (messageBox("Format sdcard", "Are you sure?", "Yes", "Cancel") == uiMessageBoxResult::Button1) {
-        FileBrowser::format(fileBrowser->content().getCurrentDriveType(), 0);
+      // inside a drive format that drive, in the root directory format the selected drive
+      auto driveType = fileBrowser->content().getCurrentDriveType();
+      if (driveType == fabgl::DriveType::None && fileBrowser->filename()) {
+        char path[strlen(fileBrowser->filename()) + 2];
+        sprintf(path, "/%s", fileBrowser->filename());
+        driveType = FileBrowser::getDriveType(path);
+      }
+      if (driveType == fabgl::DriveType::None) {
+        messageBox("Format", "Select a drive to format", "OK", nullptr, nullptr, uiMessageBoxIcon::Warning);
+        return;
+      }
+      char const * driveName = driveType == fabgl::DriveType::SDCard ? "SD Card" : "SPIFFS";
+      char title[24];
+      sprintf(title, "Format %s", driveName);
+      if (messageBox(title, "All data will be lost. Are you sure?", "Yes", "Cancel") == uiMessageBoxResult::Button1) {
+        // show "Formatting..." while formatting (format() blocks the UI)
+        auto waitFrame = new uiFrame(rootWindow(), title, UIWINDOW_PARENTCENTER, Size(200, 60), false);
+        waitFrame->frameProps().resizeable        = false;
+        waitFrame->frameProps().moveable          = false;
+        waitFrame->frameProps().hasCloseButton    = false;
+        waitFrame->frameProps().hasMaximizeButton = false;
+        waitFrame->frameProps().hasMinimizeButton = false;
+        new uiLabel(waitFrame, "Formatting, please wait...", Point(20, 30));
+        auto modalState = initModalWindow(waitFrame);
+        processModalWindowEvents(modalState, 50);  // processes pending events (paints the dialog)
+        canvas()->waitCompletion();
+        bool formatted = FileBrowser::format(driveType, 0);
+        endModalWindow(modalState);
+        destroyWindow(waitFrame);
+        if (!formatted)
+          messageBox(title, "Format failed", "OK", nullptr, nullptr, uiMessageBoxIcon::Error);
         updateBrowser();
       }
     };

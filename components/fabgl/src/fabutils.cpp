@@ -860,6 +860,7 @@ void FileBrowser::changeDirectory(const char * subdir)
 int FileBrowser::countDirEntries(int * namesLength)
 {
   int c = 0;
+  *namesLength = 0;
   if (strcmp(m_dir, "/") == 0) {
 
     // root dir
@@ -870,7 +871,6 @@ int FileBrowser::countDirEntries(int * namesLength)
 
   } else {
 
-    *namesLength = 0;
     if (m_dir) {
       auto dirp = opendir(m_dir);
       while (dirp) {
@@ -1296,12 +1296,14 @@ bool FileBrowser::format(DriveType driveType, int drive)
 
 #else
 
-// restores the task watchdog configuration specified in sdkconfig
-static void restoreTaskWDT()
+// Reconfigures the task watchdog with the specified timeout (0 = timeout specified in sdkconfig).
+// The idle tasks mask is always the one specified in sdkconfig: changing it would unsubscribe and subscribe again
+// the idle tasks, racing with their idle hooks ("esp_task_wdt_reset: task not found").
+static void configTaskWDT(int timeout_ms)
 {
 #if CONFIG_ESP_TASK_WDT_INIT
   esp_task_wdt_config_t wdtConfig = { };
-  wdtConfig.timeout_ms     = CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000;
+  wdtConfig.timeout_ms     = timeout_ms ? timeout_ms : CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000;
   wdtConfig.idle_core_mask = 0;
   #if CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0
   wdtConfig.idle_core_mask |= 1 << 0;
@@ -1310,7 +1312,7 @@ static void restoreTaskWDT()
   wdtConfig.idle_core_mask |= 1 << 1;
   #endif
   #if CONFIG_ESP_TASK_WDT_PANIC
-  wdtConfig.trigger_panic  = true;
+  wdtConfig.trigger_panic  = (timeout_ms == 0);
   #endif
   esp_task_wdt_reconfigure(&wdtConfig);
 #endif
@@ -1321,14 +1323,8 @@ bool FileBrowser::format(DriveType driveType, int drive)
 {
   bool r = false;
 
-#if CONFIG_ESP_TASK_WDT_INIT
   // formatting may take a long time: relax the task watchdog
-  esp_task_wdt_config_t wdtConfig = { };
-  wdtConfig.timeout_ms     = 45000;
-  wdtConfig.idle_core_mask = 0;
-  wdtConfig.trigger_panic  = false;
-  esp_task_wdt_reconfigure(&wdtConfig);
-#endif
+  configTaskWDT(120000);
 
   if (driveType == DriveType::SDCard && s_SDCardMounted) {
 
@@ -1345,7 +1341,7 @@ bool FileBrowser::format(DriveType driveType, int drive)
 
   }
 
-  restoreTaskWDT();
+  configTaskWDT(0);
 
   return r;
 }
@@ -1412,6 +1408,10 @@ bool FileBrowser::mountSDCard(bool formatOnFail, char const * mountPath, size_t 
   }
 
   if (r == ESP_OK || r == ESP_ERR_INVALID_STATE) {  // ESP_ERR_INVALID_STATE: bus already initialized
+    // The SD card leaves MISO floating when it is not selected. The IDF SDSPI driver waits (up to 40 ms) for MISO
+    // to be high before each command: without a pull-up every command times out and every sector read takes ~80 ms.
+    gpio_pullup_en(int2gpio(MISO));
+
     sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
     slot_config.gpio_cs = int2gpio(CS);
     slot_config.host_id = (spi_host_device_t) host.slot;
