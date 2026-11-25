@@ -716,7 +716,7 @@ class Menu : public uiApp {
   // download specified filename from URL
   bool downloadURL(char const * URL, char const * filename)
   {
-    printf("Downloading %s from %s\n", filename, URL);
+    //printf("Downloading %s from %s\n", filename, URL);
     FileBrowser & dir = fileBrowser->content();
     if (dir.exists(filename, false)) {
       return true;
@@ -752,7 +752,7 @@ class Menu : public uiApp {
           remove(fullpath);   // don't leave a partial file, it would look already downloaded
       }
     }
-    printf("Download %s\n", success ? "OK" : "Failed");
+    //printf("Download %s\n", success ? "OK" : "Failed");
     return success;
   }
 
