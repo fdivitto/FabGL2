@@ -16,7 +16,7 @@ import re
 import sys
 
 # GitHub location of the repository files (used for links to files that are not part of the documentation)
-GITHUB_TREE = "https://github.com/fdivitto/FabGL/tree/fabgl2"
+GITHUB_TREE = "https://github.com/fdivitto/FabGL2/tree/master"
 
 path      = os.path.abspath(sys.argv[1])
 exampleDir = os.path.dirname(path)                                   # .../examples/<Category>/<Name>
