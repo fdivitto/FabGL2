@@ -52,6 +52,25 @@ def fixLink(m):
 text = re.sub(r"(?<!!)\[([^\]]*)\]\(([^)\s]+)\)", fixLink, text)
 text = text.replace("(@ref examples_build) in the main README", "(@ref examples_build)")
 
+# Double quotes in normal text: for Doxygen a '"' starts a quoted string that ends at the next '"', and an
+# unpaired one (as in: 8" floppy) disables the Markdown processing of the rest of the page (raw HTML shown).
+# Escape them outside code spans and code blocks.
+def escapeQuotes(line):
+  parts = line.split("`")
+  for i in range(0, len(parts), 2):          # even parts are outside code spans
+    parts[i] = parts[i].replace('"', '\\"')
+  return "`".join(parts)
+
+lines   = text.split("\n")
+inBlock = False
+for i, line in enumerate(lines):
+  if line.lstrip().startswith("```"):
+    inBlock = not inBlock
+  elif not inBlock:
+    lines[i] = escapeQuotes(line)
+text = "\n".join(lines)
+
+
 # source code of the main file at the end of the page (EXAMPLE_PATH = ../examples/), so the page about an
 # example shows both its explanation and its code
 category = os.path.basename(os.path.dirname(exampleDir))

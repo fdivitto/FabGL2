@@ -115,32 +115,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('example__altai
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md__2_users_2fdivitto_2sviluppo_2_fab_g_l_2examples_2_v_g_a_2_altair8800_2_r_e_a_d_m_e"></a></p>
-<p>Emulator of the <b>MITS Altair 8800</b> computer with Intel 8080 or Zilog Z80 CPU, 64 KB of RAM, up to four 88-DCDD 8" floppy disk drives and serial I/O boards. It boots &lt;strong&gt;CP/M&lt;/strong&gt; (1.4, 2.2, 3), Altair Disk BASIC or
-Altair DOS from the disk images included in the firmware. Watch it on
-&lt;a href="<a href="https://www.youtube.com/watch?v=y0opVifEyS8">https://www.youtube.com/watch?v=y0opVifEyS8</a>" &gt;YouTube&lt;/a&gt;.
-
-The video output is a 80x25 text terminal (ADM-31 emulation by default) on VGA; the keyboard is a PS/2 keyboard.
-
-&lt;h1&gt;Getting started&lt;/h1&gt;
-
-Flash the example and wait for the &lt;tt&gt;A\&gt;&lt;/tt&gt; prompt: drive A contains CP/M 2.2, drive B contains games.
-
-@icode 
-A&gt;DIR
-A&gt;B:
-B&gt;DIR
-B&gt;LADDER
-@endicode 
-
-Some programs to try:
-
-&lt;table class="markdownTable"&gt;
-  &lt;tr class="markdownTableHead"&gt;    &lt;th class="markdownTableHeadNone"&gt; Disk  </p>
-<p>Programs  </p>
-<p>A: CP/M 2.2 (<span class="tt">cpm22_dsk</span>)  </p>
-<p>MBASIC, ASM, MAC, M80/L80, DDT, ED, PIP, STAT, SUBMIT, DUMP, SURVEY, FORMAT, PCGET/PCPUT  </p>
-<p>B: Games (<span class="tt">games_dsk</span>)  </p>
-<p>LADDER, CATCHUM, ALIENS, OTHELLO, DUMPSTAR, and in MBASIC: STARTRK, LUNAR, CHASE, TICTAK (<span class="tt">MBASIC STARTRK</span>)  </p>
+<p>Emulator of the <b>MITS Altair 8800</b> computer with Intel 8080 or Zilog Z80 CPU, 64 KB of RAM, up to four 88-DCDD 8" floppy disk drives and serial I/O boards. It boots <b>CP/M</b> (1.4, 2.2, 3), Altair Disk BASIC or Altair DOS from the disk images included in the firmware. Watch it on <a href="https://www.youtube.com/watch?v=y0opVifEyS8">YouTube</a>.</p>
+<p>The video output is a 80x25 text terminal (ADM-31 emulation by default) on VGA; the keyboard is a PS/2 keyboard.</p>
+<h1>Getting started</h1>
+<p>Flash the example and wait for the <span class="tt">A&gt;</span> prompt: drive A contains CP/M 2.2, drive B contains games.</p>
+<div class="fragment"><div class="line">A&gt;DIR</div>
+<div class="line">A&gt;B:</div>
+<div class="line">B&gt;DIR</div>
+<div class="line">B&gt;LADDER</div>
+</div><!-- fragment --><p>Some programs to try:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Disk  </th><th class="markdownTableHeadNone">Programs  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">A: CP/M 2.2 (<span class="tt">cpm22_dsk</span>)  </td><td class="markdownTableBodyNone">MBASIC, ASM, MAC, M80/L80, DDT, ED, PIP, STAT, SUBMIT, DUMP, SURVEY, FORMAT, PCGET/PCPUT  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">B: Games (<span class="tt">games_dsk</span>)  </td><td class="markdownTableBodyNone">LADDER, CATCHUM, ALIENS, OTHELLO, DUMPSTAR, and in MBASIC: STARTRK, LUNAR, CHASE, TICTAK (<span class="tt">MBASIC STARTRK</span>)  </td></tr>
+</table>
 <p>If a game draws garbage, configure it for the terminal: <span class="tt">LADCONF</span> (Ladder) and <span class="tt">CATCONF</span> (Catchum) select the terminal type, or change the emulated terminal from the emulator menu.</p>
 <h1>Disk drives</h1>
 <table class="markdownTable">
@@ -163,59 +154,40 @@ Some programs to try:
 <div class="line"><span class="preprocessor">#define DRIVE_B games_dsk     </span><span class="comment">// image in flash</span></div>
 <div class="line"><span class="preprocessor">#define DRIVE_C &quot;diskC.dsk&quot;   </span><span class="comment">// file on SD card / SPIFFS</span></div>
 <div class="line"><span class="preprocessor">#define DRIVE_D &quot;diskD.dsk&quot;</span></div>
-</div><!-- fragment --><p>Available 8" images (&lt;tt&gt;DISKFORMAT Disk_338K&lt;/tt&gt;, folder &lt;tt&gt;main/disks&lt;/tt&gt;):
-
-&lt;table class="markdownTable"&gt;
-  &lt;tr class="markdownTableHead"&gt;    &lt;th class="markdownTableHeadNone"&gt; Image  </p>
-<p>Content  </p>
-<p>Use as  </p>
-<p><span class="tt">cpm22_dsk</span>  </p>
-<p>CP/M 2.2 system  </p>
-<p>A  </p>
-<p><span class="tt">games_dsk</span>  </p>
-<p>Games  </p>
-<p>B  </p>
-<p><span class="tt">turbopascal3_dsk</span>  </p>
-<p>Turbo Pascal 3  </p>
-<p>B  </p>
-<p><span class="tt">wordstar3_dsk</span>, <span class="tt">wordstar4_dsk</span>  </p>
-<p>WordStar 3 / 4  </p>
-<p>B  </p>
-<p><span class="tt">multiplan_dsk</span>  </p>
-<p>Multiplan (+ WordStar)  </p>
-<p>B  </p>
-<p><span class="tt">dbaseii_dsk</span>  </p>
-<p>dBase II (+ WordStar)  </p>
-<p>B  </p>
-<p><span class="tt">BDSC_dsk</span>  </p>
-<p>BDS C compiler  </p>
-<p>B  </p>
-<p><span class="tt">langs_dsk</span>  </p>
-<p>Languages: BBC BASIC, Forth 83, DX-Forth, XLISP, ...  </p>
-<p>B  </p>
-<p><span class="tt">cpm141_dsk</span>  </p>
-<p>CP/M 1.4 system  </p>
-<p>A  </p>
-<p><span class="tt">cpm3_disk1_dsk</span>  </p>
-<p>CP/M 3 system (requires the Z80 CPU)  </p>
-<p>A  </p>
-<p><span class="tt">cpm3_disk2_dsk</span>, <span class="tt">cpm3_build_dsk</span>  </p>
-<p>CP/M 3 utilities and system build files  </p>
-<p>B  </p>
-<p><span class="tt">DOS_1_dsk</span>, <span class="tt">DOS_2_dsk</span>  </p>
-<p>Altair DOS  </p>
-<p>A  </p>
-<p><span class="tt">basic5_dsk</span>  </p>
-<p>Altair Disk BASIC 5  </p>
-<p>A  </p>
-<p>Mini disk images (5.25", &lt;tt&gt;DISKFORMAT MiniDisk_76K&lt;/tt&gt;, folder &lt;tt&gt;main/minidisks&lt;/tt&gt;): &lt;tt&gt;cpm22_disk1_minidsk&lt;/tt&gt;,
-&lt;tt&gt;cpm22_disk2_minidsk&lt;/tt&gt;, &lt;tt&gt;basic300_5F_minidisk&lt;/tt&gt; (requires the i8080 CPU).
-
-Altair DOS and Disk BASIC ask some questions at boot. Suggested answers are in the comments next to their
-&lt;tt&gt;\#include&lt;/tt&gt; lines in &lt;tt&gt;Altair8800.cpp&lt;/tt&gt; (for example Disk BASIC: &lt;tt&gt;MEMORY SIZE?&lt;/tt&gt; Enter, &lt;tt&gt;LINEPRINTER?&lt;/tt&gt; &lt;tt&gt;C&lt;/tt&gt;, then
-Enter to the remaining questions).
-
-Each 8" image is 337568 bytes (77 tracks x 32 sectors x 137 bytes). To add your own image, convert the raw Altair <span class="tt">.dsk</span> file to a C header containing a <span class="tt">const uint8_t name[] = { ... };</span> array (for example with <span class="tt">xxd -i</span>), include it and assign it to a drive.</p>
+</div><!-- fragment --><p>Available 8" images (<span class="tt">DISKFORMAT Disk_338K</span>, folder <span class="tt">main/disks</span>):</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Image  </th><th class="markdownTableHeadNone">Content  </th><th class="markdownTableHeadNone">Use as  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">cpm22_dsk</span>  </td><td class="markdownTableBodyNone">CP/M 2.2 system  </td><td class="markdownTableBodyNone">A  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">games_dsk</span>  </td><td class="markdownTableBodyNone">Games  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">turbopascal3_dsk</span>  </td><td class="markdownTableBodyNone">Turbo Pascal 3  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">wordstar3_dsk</span>, <span class="tt">wordstar4_dsk</span>  </td><td class="markdownTableBodyNone">WordStar 3 / 4  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">multiplan_dsk</span>  </td><td class="markdownTableBodyNone">Multiplan (+ WordStar)  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">dbaseii_dsk</span>  </td><td class="markdownTableBodyNone">dBase II (+ WordStar)  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">BDSC_dsk</span>  </td><td class="markdownTableBodyNone">BDS C compiler  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">langs_dsk</span>  </td><td class="markdownTableBodyNone">Languages: BBC BASIC, Forth 83, DX-Forth, XLISP, ...  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">cpm141_dsk</span>  </td><td class="markdownTableBodyNone">CP/M 1.4 system  </td><td class="markdownTableBodyNone">A  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">cpm3_disk1_dsk</span>  </td><td class="markdownTableBodyNone">CP/M 3 system (requires the Z80 CPU)  </td><td class="markdownTableBodyNone">A  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">cpm3_disk2_dsk</span>, <span class="tt">cpm3_build_dsk</span>  </td><td class="markdownTableBodyNone">CP/M 3 utilities and system build files  </td><td class="markdownTableBodyNone">B  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">DOS_1_dsk</span>, <span class="tt">DOS_2_dsk</span>  </td><td class="markdownTableBodyNone">Altair DOS  </td><td class="markdownTableBodyNone">A  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><span class="tt">basic5_dsk</span>  </td><td class="markdownTableBodyNone">Altair Disk BASIC 5  </td><td class="markdownTableBodyNone">A  </td></tr>
+</table>
+<p>Mini disk images (5.25", <span class="tt">DISKFORMAT MiniDisk_76K</span>, folder <span class="tt">main/minidisks</span>): <span class="tt">cpm22_disk1_minidsk</span>, <span class="tt">cpm22_disk2_minidsk</span>, <span class="tt">basic300_5F_minidisk</span> (requires the i8080 CPU).</p>
+<p>Altair DOS and Disk BASIC ask some questions at boot. Suggested answers are in the comments next to their <span class="tt">#include</span> lines in <span class="tt">Altair8800.cpp</span> (for example Disk BASIC: <span class="tt">MEMORY SIZE?</span> Enter, <span class="tt">LINEPRINTER?</span> <span class="tt">C</span>, then Enter to the remaining questions).</p>
+<p>Each 8" image is 337568 bytes (77 tracks x 32 sectors x 137 bytes). To add your own image, convert the raw Altair <span class="tt">.dsk</span> file to a C header containing a <span class="tt">const uint8_t name[] = { ... };</span> array (for example with <span class="tt">xxd -i</span>), include it and assign it to a drive.</p>
 <h1>Emulator menu (<span class="tt">F12</span> or <span class="tt">Pause</span>)</h1>
 <p>Press <span class="tt">F12</span> or <span class="tt">Pause</span> at any time to open the emulator menu. Press the letter of an option, <span class="tt">Enter</span> to go back to the emulated machine.</p>
 <table class="markdownTable">
