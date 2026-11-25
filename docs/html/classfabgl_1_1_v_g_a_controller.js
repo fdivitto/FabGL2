@@ -3,7 +3,7 @@ var classfabgl_1_1_v_g_a_controller =
     [ "begin", "classfabgl_1_1_v_g_a_controller.html#ab0bdf5cca484fb2ba637c39384b27fb2", null ],
     [ "begin", "classfabgl_1_1_v_g_a_controller.html#ada2833a4d6b69eb90c28a273438735d6", null ],
     [ "begin", "classfabgl_1_1_v_g_a_controller.html#a406a206bc0e13ee2a48591fcfdae6e22", null ],
-    [ "colorsCount", "classfabgl_1_1_v_g_a_controller.html#a332051b311781945a020928d50825adc", null ],
+    [ "colorsCount", "classfabgl_1_1_v_g_a_controller.html#a811a555ee536c2845522b045cb63f713", null ],
     [ "controllerType", "classfabgl_1_1_v_g_a_controller.html#a2337a67770ebd18e0ced22ba40d79d24", null ],
     [ "createRawPixel", "classfabgl_1_1_v_g_a_controller.html#aaacdb5ed30e79800dfd5e6b7a1a00464", null ],
     [ "enableBackgroundPrimitiveExecution", "classfabgl_1_1_v_g_a_controller.html#abd0898e61591117a7b8dce2fa4b4c4d4", null ],
@@ -29,9 +29,10 @@ var classfabgl_1_1_v_g_a_controller =
     [ "setMouseCursor", "classfabgl_1_1_v_g_a_controller.html#a43a95ed39cce3e065407d1e7a30b2f4f", null ],
     [ "setMouseCursorPos", "classfabgl_1_1_v_g_a_controller.html#ae0897f2355f7462b5ab003083418e3b4", null ],
     [ "setRawPixel", "classfabgl_1_1_v_g_a_controller_a6922854f04ed5c95f625becd5ef59df2.html#a6922854f04ed5c95f625becd5ef59df2", null ],
-    [ "setResolution", "classfabgl_1_1_v_g_a_controller.html#a2ac60f74ade23bfba42ef0985635589d", null ],
+    [ "setResolution", "classfabgl_1_1_v_g_a_controller_a2ac60f74ade23bfba42ef0985635589d.html#a2ac60f74ade23bfba42ef0985635589d", null ],
     [ "setSprites", "classfabgl_1_1_v_g_a_controller.html#a75ba732cc6ae90f53757b588f6c75d7e", null ],
     [ "shrinkScreen", "classfabgl_1_1_v_g_a_controller.html#a770ea50d044c8c792185fbcb5b766736", null ],
     [ "suspendBackgroundPrimitiveExecution", "classfabgl_1_1_v_g_a_controller_a1837955f56453a1a351577c189bdfad6.html#a1837955f56453a1a351577c189bdfad6", null ],
+    [ "suspendDoubleBuffering", "classfabgl_1_1_v_g_a_controller.html#abcd394fa7a4ba17d39e8086ae358d751", null ],
     [ "writeScreen", "classfabgl_1_1_v_g_a_controller_aab70542bc1007b141bb2d6db3acbce02.html#aab70542bc1007b141bb2d6db3acbce02", null ]
 ];

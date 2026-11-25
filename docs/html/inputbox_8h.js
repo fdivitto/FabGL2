@@ -1,6 +1,5 @@
 var inputbox_8h =
 [
-    [ "InputBox", "classfabgl_1_1_input_box.html", "classfabgl_1_1_input_box" ],
     [ "fabgl::InputResult", "group___enumerations_ga25f6dff2b7711962b46d7c9313d28aa2.html#ga25f6dff2b7711962b46d7c9313d28aa2", [
       [ "None", "inputbox_8h.html#gga25f6dff2b7711962b46d7c9313d28aa2a6adf97f83acf6453d4a6a4b1070f3754", null ],
       [ "ButtonExt0", "inputbox_8h.html#gga25f6dff2b7711962b46d7c9313d28aa2ac66bc91f86413a150cb0c0af0b42c2d2", null ],

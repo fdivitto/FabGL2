@@ -1,6 +1,5 @@
 var _m_c_p23_s17_8h =
 [
-    [ "MCP23S17", "classfabgl_1_1_m_c_p23_s17.html", "classfabgl_1_1_m_c_p23_s17" ],
     [ "fabgl::MCPDir", "group___enumerations_ga8389ac8ebb8a33d21364f84ddfa64c00.html#ga8389ac8ebb8a33d21364f84ddfa64c00", [
       [ "Input", "_m_c_p23_s17_8h.html#gga8389ac8ebb8a33d21364f84ddfa64c00a324118a6721dd6b8a9b9f4e327df2bf5", null ],
       [ "Output", "_m_c_p23_s17_8h.html#gga8389ac8ebb8a33d21364f84ddfa64c00a29c2c02a361c9d7028472e5d92cd4a54", null ]

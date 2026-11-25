@@ -5,5 +5,7 @@ var searchData=
   ['coreusage_2',['CoreUsage',['../struct_core_usage.html',1,'CoreUsage'],['../structfabgl_1_1_core_usage.html',1,'CoreUsage']]],
   ['currentvideomode_3',['CurrentVideoMode',['../structfabgl_1_1_current_video_mode.html',1,'fabgl']]],
   ['cursor_4',['Cursor',['../structfabgl_1_1_cursor.html',1,'fabgl']]],
-  ['cvbs16controller_5',['CVBS16Controller',['../classfabgl_1_1_c_v_b_s16_controller.html',1,'fabgl']]]
+  ['cvbs16controller_5',['CVBS16Controller',['../classfabgl_1_1_c_v_b_s16_controller.html',1,'fabgl']]],
+  ['cvbsbasecontroller_6',['CVBSBaseController',['../classfabgl_1_1_c_v_b_s_base_controller.html',1,'fabgl']]],
+  ['cvbspalettedcontroller_7',['CVBSPalettedController',['../classfabgl_1_1_c_v_b_s_paletted_controller.html',1,'fabgl']]]
 ];

@@ -14,3 +14,4 @@ see the API reference (the "Classes" and "Topics" sections).
 - @subpage guide_terminal "Terminal"
 - @subpage guide_sound "Sound"
 - @subpage guide_tips "Memory, performance and troubleshooting"
+- @subpage guide_examples "Examples"

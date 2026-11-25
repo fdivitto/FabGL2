@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">CVBS16Controller Class Reference</div></div>
+  <div class="headertitle"><div class="title">CVBS16Controller Class Reference<div class="ingroups"><a class="el" href="group__display.html">Display controllers</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -119,46 +119,74 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="cvbs16controller_8h_source.html">cvbs16controller.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for CVBS16Controller:</div>
+<div class="dyncontent">
+<div class="center"><img src="classfabgl_1_1_c_v_b_s16_controller__inherit__graph.png" border="0" usemap="#a_c_v_b_s16_controller_inherit__map" loading="lazy" alt="Inheritance graph"/></div>
+<map name="a_c_v_b_s16_controller_inherit__map" id="a_c_v_b_s16_controller_inherit__map">
+<area shape="rect" title="Composite video (PAL/NTSC) bitmapped display controller with 16 colors." alt="" coords="55,374,184,399"/>
+<area shape="rect" href="classfabgl_1_1_c_v_b_s_paletted_controller.html" title="Base class of the palette&#45;based composite video display controllers." alt="" coords="38,300,201,326"/>
+<area shape="poly" title=" " alt="" coords="121,339,122,374,117,372,118,343"/>
+<area shape="rect" href="classfabgl_1_1_c_v_b_s_base_controller.html" title="Base class of the composite video (PAL/NTSC) display controllers." alt="" coords="47,226,192,252"/>
+<area shape="poly" title=" " alt="" coords="121,265,122,300,117,299,118,270"/>
+<area shape="rect" href="classfabgl_1_1_generic_bitmapped_display_controller.html" title="Base class of the bitmapped display controllers that implement drawing primitives in software." alt="" coords="5,153,234,178"/>
+<area shape="poly" title=" " alt="" coords="120,191,122,226,117,225,119,196"/>
+<area shape="rect" href="classfabgl_1_1_bitmapped_display_controller.html" title="Represents the base abstract class for bitmapped display controllers." alt="" coords="28,79,211,105"/>
+<area shape="poly" title=" " alt="" coords="120,118,122,153,117,152,119,123"/>
+<area shape="rect" href="classfabgl_1_1_base_display_controller.html" title="Represents the base abstract class for all display controllers." alt="" coords="44,5,195,31"/>
+<area shape="poly" title=" " alt="" coords="120,44,122,79,117,78,119,49"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2337a67770ebd18e0ced22ba40d79d24" id="r_a2337a67770ebd18e0ced22ba40d79d24"><td class="memItemLeft"><a class="el" href="group___enumerations_gadb8147abda8588ce7306a700532148e1.html#gadb8147abda8588ce7306a700532148e1">DisplayControllerType</a>&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a2337a67770ebd18e0ced22ba40d79d24.html#a2337a67770ebd18e0ced22ba40d79d24">controllerType</a> ()</td></tr>
+<tr class="memitem:a811a555ee536c2845522b045cb63f713" id="r_a811a555ee536c2845522b045cb63f713"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_c_v_b_s_paletted_controller_a811a555ee536c2845522b045cb63f713.html#a811a555ee536c2845522b045cb63f713">colorsCount</a> ()</td></tr>
+<tr class="memdesc:a811a555ee536c2845522b045cb63f713"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the number of colors this display provides.  <br /></td></tr>
+<tr class="memitem:a2337a67770ebd18e0ced22ba40d79d24" id="r_a2337a67770ebd18e0ced22ba40d79d24"><td class="memItemLeft"><a class="el" href="group___enumerations_gadb8147abda8588ce7306a700532148e1.html#gadb8147abda8588ce7306a700532148e1">DisplayControllerType</a>&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a2337a67770ebd18e0ced22ba40d79d24.html#a2337a67770ebd18e0ced22ba40d79d24">controllerType</a> ()</td></tr>
 <tr class="memdesc:a2337a67770ebd18e0ced22ba40d79d24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the display controller type.  <br /></td></tr>
-<tr class="memitem:abd0898e61591117a7b8dce2fa4b4c4d4" id="r_abd0898e61591117a7b8dce2fa4b4c4d4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_abd0898e61591117a7b8dce2fa4b4c4d4.html#abd0898e61591117a7b8dce2fa4b4c4d4">enableBackgroundPrimitiveExecution</a> (bool value)</td></tr>
+<tr class="memitem:abd0898e61591117a7b8dce2fa4b4c4d4" id="r_abd0898e61591117a7b8dce2fa4b4c4d4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_abd0898e61591117a7b8dce2fa4b4c4d4.html#abd0898e61591117a7b8dce2fa4b4c4d4">enableBackgroundPrimitiveExecution</a> (bool value)</td></tr>
 <tr class="memdesc:abd0898e61591117a7b8dce2fa4b4c4d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables or disables drawing during the vertical retrace.  <br /></td></tr>
-<tr class="memitem:a1a03e74ed2fb8e2af22e7fd0454ae828" id="r_a1a03e74ed2fb8e2af22e7fd0454ae828"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a1a03e74ed2fb8e2af22e7fd0454ae828.html#a1a03e74ed2fb8e2af22e7fd0454ae828">enableBackgroundPrimitiveTimeout</a> (bool value)</td></tr>
+<tr class="memitem:a1a03e74ed2fb8e2af22e7fd0454ae828" id="r_a1a03e74ed2fb8e2af22e7fd0454ae828"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a1a03e74ed2fb8e2af22e7fd0454ae828.html#a1a03e74ed2fb8e2af22e7fd0454ae828">enableBackgroundPrimitiveTimeout</a> (bool value)</td></tr>
 <tr class="memdesc:a1a03e74ed2fb8e2af22e7fd0454ae828"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables or disables the execution time limit of the vertical retrace interrupt.  <br /></td></tr>
-<tr class="memitem:a0872427e4a351bb3590e8d00096e9cba" id="r_a0872427e4a351bb3590e8d00096e9cba"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a0872427e4a351bb3590e8d00096e9cba.html#a0872427e4a351bb3590e8d00096e9cba">getScreenHeight</a> ()</td></tr>
+<tr class="memitem:a0872427e4a351bb3590e8d00096e9cba" id="r_a0872427e4a351bb3590e8d00096e9cba"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_base_display_controller_a0872427e4a351bb3590e8d00096e9cba.html#a0872427e4a351bb3590e8d00096e9cba">getScreenHeight</a> ()</td></tr>
 <tr class="memdesc:a0872427e4a351bb3590e8d00096e9cba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the screen height in pixels.  <br /></td></tr>
-<tr class="memitem:a749df909b39fd096bf6e2813f2f5324c" id="r_a749df909b39fd096bf6e2813f2f5324c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a749df909b39fd096bf6e2813f2f5324c.html#a749df909b39fd096bf6e2813f2f5324c">getScreenWidth</a> ()</td></tr>
+<tr class="memitem:a749df909b39fd096bf6e2813f2f5324c" id="r_a749df909b39fd096bf6e2813f2f5324c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_base_display_controller_a749df909b39fd096bf6e2813f2f5324c.html#a749df909b39fd096bf6e2813f2f5324c">getScreenWidth</a> ()</td></tr>
 <tr class="memdesc:a749df909b39fd096bf6e2813f2f5324c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the screen width in pixels.  <br /></td></tr>
-<tr class="memitem:a5308b6853d3778845649f08832e96535" id="r_a5308b6853d3778845649f08832e96535"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a5308b6853d3778845649f08832e96535.html#a5308b6853d3778845649f08832e96535">getViewPortHeight</a> ()</td></tr>
+<tr class="memitem:a5308b6853d3778845649f08832e96535" id="r_a5308b6853d3778845649f08832e96535"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_base_display_controller_a5308b6853d3778845649f08832e96535.html#a5308b6853d3778845649f08832e96535">getViewPortHeight</a> ()</td></tr>
 <tr class="memdesc:a5308b6853d3778845649f08832e96535"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the height of the viewport.  <br /></td></tr>
-<tr class="memitem:a69dd55b31e9c284aeec6f2b91a8da525" id="r_a69dd55b31e9c284aeec6f2b91a8da525"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a69dd55b31e9c284aeec6f2b91a8da525.html#a69dd55b31e9c284aeec6f2b91a8da525">getViewPortWidth</a> ()</td></tr>
+<tr class="memitem:a69dd55b31e9c284aeec6f2b91a8da525" id="r_a69dd55b31e9c284aeec6f2b91a8da525"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_base_display_controller_a69dd55b31e9c284aeec6f2b91a8da525.html#a69dd55b31e9c284aeec6f2b91a8da525">getViewPortWidth</a> ()</td></tr>
 <tr class="memdesc:a69dd55b31e9c284aeec6f2b91a8da525"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the width of the viewport.  <br /></td></tr>
-<tr class="memitem:a37da1545d5037b279fbb10c622121427" id="r_a37da1545d5037b279fbb10c622121427"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a37da1545d5037b279fbb10c622121427.html#a37da1545d5037b279fbb10c622121427">isDoubleBuffered</a> ()</td></tr>
+<tr class="memitem:a37da1545d5037b279fbb10c622121427" id="r_a37da1545d5037b279fbb10c622121427"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a37da1545d5037b279fbb10c622121427.html#a37da1545d5037b279fbb10c622121427">isDoubleBuffered</a> ()</td></tr>
 <tr class="memdesc:a37da1545d5037b279fbb10c622121427"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the display controller is in double buffered mode.  <br /></td></tr>
-<tr class="memitem:a15d6a17833353e05e7470e4c10824b98" id="r_a15d6a17833353e05e7470e4c10824b98"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a15d6a17833353e05e7470e4c10824b98.html#a15d6a17833353e05e7470e4c10824b98">isDoubleBufferedEnabled</a> ()</td></tr>
+<tr class="memitem:a15d6a17833353e05e7470e4c10824b98" id="r_a15d6a17833353e05e7470e4c10824b98"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a15d6a17833353e05e7470e4c10824b98.html#a15d6a17833353e05e7470e4c10824b98">isDoubleBufferedEnabled</a> ()</td></tr>
 <tr class="memdesc:a15d6a17833353e05e7470e4c10824b98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the display controller is in double buffered mode and double buffering is currently active.  <br /></td></tr>
-<tr class="memitem:a94887c6019244300620e71d52e61a554" id="r_a94887c6019244300620e71d52e61a554"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a94887c6019244300620e71d52e61a554.html#a94887c6019244300620e71d52e61a554">processPrimitives</a> ()</td></tr>
+<tr class="memitem:a4b34c94e321e3cdd1f027e93a11bec91" id="r_a4b34c94e321e3cdd1f027e93a11bec91"><td class="memItemLeft"><a class="el" href="group___enumerations_ga03403b592cc00776d70bc5ad6c177276.html#ga03403b592cc00776d70bc5ad6c177276">NativePixelFormat</a>&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_c_v_b_s_paletted_controller_a4b34c94e321e3cdd1f027e93a11bec91.html#a4b34c94e321e3cdd1f027e93a11bec91">nativePixelFormat</a> ()</td></tr>
+<tr class="memdesc:a4b34c94e321e3cdd1f027e93a11bec91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the native pixel format of this display.  <br /></td></tr>
+<tr class="memitem:a94887c6019244300620e71d52e61a554" id="r_a94887c6019244300620e71d52e61a554"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a94887c6019244300620e71d52e61a554.html#a94887c6019244300620e71d52e61a554">processPrimitives</a> ()</td></tr>
 <tr class="memdesc:a94887c6019244300620e71d52e61a554"><td class="mdescLeft">&#160;</td><td class="mdescRight">Immediately draws all primitives in the queue.  <br /></td></tr>
-<tr class="memitem:aeb689cfc2364a4d66e3ac3368146c70d" id="r_aeb689cfc2364a4d66e3ac3368146c70d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_aeb689cfc2364a4d66e3ac3368146c70d.html#aeb689cfc2364a4d66e3ac3368146c70d">refreshSprites</a> ()</td></tr>
+<tr class="memitem:aeb689cfc2364a4d66e3ac3368146c70d" id="r_aeb689cfc2364a4d66e3ac3368146c70d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_aeb689cfc2364a4d66e3ac3368146c70d.html#aeb689cfc2364a4d66e3ac3368146c70d">refreshSprites</a> ()</td></tr>
 <tr class="memdesc:aeb689cfc2364a4d66e3ac3368146c70d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forces the sprites to be updated.  <br /></td></tr>
-<tr class="memitem:ad968eec19f2e3663a5431b96894636df" id="r_ad968eec19f2e3663a5431b96894636df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_ad968eec19f2e3663a5431b96894636df.html#ad968eec19f2e3663a5431b96894636df">removeSprites</a> ()</td></tr>
+<tr class="memitem:ad968eec19f2e3663a5431b96894636df" id="r_ad968eec19f2e3663a5431b96894636df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_ad968eec19f2e3663a5431b96894636df.html#ad968eec19f2e3663a5431b96894636df">removeSprites</a> ()</td></tr>
 <tr class="memdesc:ad968eec19f2e3663a5431b96894636df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empties the list of active sprites.  <br /></td></tr>
+<tr class="memitem:a39c1a8fe6bcfa44007921d844ab7a353" id="r_a39c1a8fe6bcfa44007921d844ab7a353"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_c_v_b_s_base_controller_a39c1a8fe6bcfa44007921d844ab7a353.html#a39c1a8fe6bcfa44007921d844ab7a353">resumeBackgroundPrimitiveExecution</a> ()</td></tr>
+<tr class="memdesc:a39c1a8fe6bcfa44007921d844ab7a353"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resumes drawings after <a class="el" href="classfabgl_1_1_c_v_b_s_base_controller_a1837955f56453a1a351577c189bdfad6.html#a1837955f56453a1a351577c189bdfad6" title="Suspends drawings.">suspendBackgroundPrimitiveExecution()</a>.  <br /></td></tr>
 <tr class="memitem:a8f7afc76323c595aef69c18498ec9d61" id="r_a8f7afc76323c595aef69c18498ec9d61"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_c_v_b_s16_controller_a8f7afc76323c595aef69c18498ec9d61.html#a8f7afc76323c595aef69c18498ec9d61">setMonochrome</a> (bool value)</td></tr>
 <tr class="memdesc:a8f7afc76323c595aef69c18498ec9d61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables or disables monochrome output (no color burst).  <br /></td></tr>
-<tr class="memitem:a94fd39f8c9245ed51545f9dd6ce7f6ee" id="r_a94fd39f8c9245ed51545f9dd6ce7f6ee"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a94fd39f8c9245ed51545f9dd6ce7f6ee.html#a94fd39f8c9245ed51545f9dd6ce7f6ee">setMouseCursor</a> (<a class="el" href="structfabgl_1_1_cursor.html">Cursor</a> *cursor)</td></tr>
+<tr class="memitem:a94fd39f8c9245ed51545f9dd6ce7f6ee" id="r_a94fd39f8c9245ed51545f9dd6ce7f6ee"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a94fd39f8c9245ed51545f9dd6ce7f6ee.html#a94fd39f8c9245ed51545f9dd6ce7f6ee">setMouseCursor</a> (<a class="el" href="structfabgl_1_1_cursor.html">Cursor</a> *cursor)</td></tr>
 <tr class="memdesc:a94fd39f8c9245ed51545f9dd6ce7f6ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the mouse cursor and makes it visible.  <br /></td></tr>
-<tr class="memitem:a43a95ed39cce3e065407d1e7a30b2f4f" id="r_a43a95ed39cce3e065407d1e7a30b2f4f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a43a95ed39cce3e065407d1e7a30b2f4f.html#a43a95ed39cce3e065407d1e7a30b2f4f">setMouseCursor</a> (<a class="el" href="group___enumerations_gab91da6221ce0fc3b24f077fb4b775b2c.html#gab91da6221ce0fc3b24f077fb4b775b2c">CursorName</a> cursorName)</td></tr>
+<tr class="memitem:a43a95ed39cce3e065407d1e7a30b2f4f" id="r_a43a95ed39cce3e065407d1e7a30b2f4f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a43a95ed39cce3e065407d1e7a30b2f4f.html#a43a95ed39cce3e065407d1e7a30b2f4f">setMouseCursor</a> (<a class="el" href="group___enumerations_gab91da6221ce0fc3b24f077fb4b775b2c.html#gab91da6221ce0fc3b24f077fb4b775b2c">CursorName</a> cursorName)</td></tr>
 <tr class="memdesc:a43a95ed39cce3e065407d1e7a30b2f4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the mouse cursor from a set of predefined cursors.  <br /></td></tr>
-<tr class="memitem:ae0897f2355f7462b5ab003083418e3b4" id="r_ae0897f2355f7462b5ab003083418e3b4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_ae0897f2355f7462b5ab003083418e3b4.html#ae0897f2355f7462b5ab003083418e3b4">setMouseCursorPos</a> (int X, int Y)</td></tr>
+<tr class="memitem:ae0897f2355f7462b5ab003083418e3b4" id="r_ae0897f2355f7462b5ab003083418e3b4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_ae0897f2355f7462b5ab003083418e3b4.html#ae0897f2355f7462b5ab003083418e3b4">setMouseCursorPos</a> (int X, int Y)</td></tr>
 <tr class="memdesc:ae0897f2355f7462b5ab003083418e3b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the mouse cursor position.  <br /></td></tr>
 <tr class="memitem:a35a04bb9738fc5fc7f6e3fb4cbe90f37" id="r_a35a04bb9738fc5fc7f6e3fb4cbe90f37"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_c_v_b_s16_controller_a35a04bb9738fc5fc7f6e3fb4cbe90f37.html#a35a04bb9738fc5fc7f6e3fb4cbe90f37">setPaletteItem</a> (int index, <a class="el" href="struct_r_g_b888.html">RGB888</a> const &amp;color)</td></tr>
 <tr class="memdesc:a35a04bb9738fc5fc7f6e3fb4cbe90f37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the color of the specified palette item.  <br /></td></tr>
 <tr class="memitem:a75ba732cc6ae90f53757b588f6c75d7e" id="r_a75ba732cc6ae90f53757b588f6c75d7e"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
-<tr class="memitem:a75ba732cc6ae90f53757b588f6c75d7e template"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a75ba732cc6ae90f53757b588f6c75d7e.html#a75ba732cc6ae90f53757b588f6c75d7e">setSprites</a> (T *sprites, int count)</td></tr>
+<tr class="memitem:a75ba732cc6ae90f53757b588f6c75d7e template"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a75ba732cc6ae90f53757b588f6c75d7e.html#a75ba732cc6ae90f53757b588f6c75d7e">setSprites</a> (T *sprites, int count)</td></tr>
 <tr class="memdesc:a75ba732cc6ae90f53757b588f6c75d7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the list of active sprites.  <br /></td></tr>
+<tr class="memitem:a1837955f56453a1a351577c189bdfad6" id="r_a1837955f56453a1a351577c189bdfad6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_c_v_b_s_paletted_controller_a1837955f56453a1a351577c189bdfad6.html#a1837955f56453a1a351577c189bdfad6">suspendBackgroundPrimitiveExecution</a> ()</td></tr>
+<tr class="memdesc:a1837955f56453a1a351577c189bdfad6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Suspends drawings.  <br /></td></tr>
+<tr class="memitem:abcd394fa7a4ba17d39e8086ae358d751" id="r_abcd394fa7a4ba17d39e8086ae358d751"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_c_v_b_s_paletted_controller_abcd394fa7a4ba17d39e8086ae358d751.html#abcd394fa7a4ba17d39e8086ae358d751">suspendDoubleBuffering</a> (bool value)</td></tr>
+<tr class="memdesc:abcd394fa7a4ba17d39e8086ae358d751"><td class="mdescLeft">&#160;</td><td class="mdescRight">Suspends or resumes double buffering.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -167,7 +195,7 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a6b94fdf3692083a41291eec4920c62d2" id="r_a6b94fdf3692083a41291eec4920c62d2"><td class="memItemLeft">static int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_v_g_a_direct_controller_a6b94fdf3692083a41291eec4920c62d2.html#a6b94fdf3692083a41291eec4920c62d2">queueSize</a> = 1024</td></tr>
+<tr class="memitem:a6b94fdf3692083a41291eec4920c62d2" id="r_a6b94fdf3692083a41291eec4920c62d2"><td class="memItemLeft">static int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_bitmapped_display_controller_a6b94fdf3692083a41291eec4920c62d2.html#a6b94fdf3692083a41291eec4920c62d2">queueSize</a> = 1024</td></tr>
 <tr class="memdesc:a6b94fdf3692083a41291eec4920c62d2"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structfabgl_1_1_size.html" title="Represents a two-dimensional size.">Size</a> of the display controller primitives queue.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -176,10 +204,9 @@ Static Public Attributes</h2></td></tr>
 <p>Example: </p><pre class="fragment">fabgl::CVBS16Controller displayController;
 displayController.begin(GPIO_NUM_25);           // composite output on GPIO 25 (DAC)
 displayController.setResolution("P-PAL-B");     // progressive PAL-B
-</pre> <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_composite_2_base_example_2main_2_base_example_8cpp-example.html#_a1">Composite/BaseExample/main/BaseExample.cpp</a>.</dd>
-</dl>
+</pre><dl class="section see"><dt>See also</dt><dd><a class="el" href="guide_display.html" title="Choosing and configuring a display controller">Choosing and configuring a display controller</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="cvbs16controller_8h_source.html#l00067">67</a> of file <a class="el" href="cvbs16controller_8h_source.html">cvbs16controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cvbs16controller_8h_source.html#l00071">71</a> of file <a class="el" href="cvbs16controller_8h_source.html">cvbs16controller.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="cvbs16controller_8h_source.html">cvbs16controller.h</a></li>
 <li><a class="el" href="cvbs16controller_8cpp_source.html">cvbs16controller.cpp</a></li>

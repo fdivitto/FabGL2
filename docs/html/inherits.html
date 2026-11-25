@@ -124,13 +124,37 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('hierarchy.html
 </td></tr>
 <tr><td><img src="inherit_graph_1.png" border="0" usemap="#a_base_display_controller" loading="lazy" alt=""/>
 <map name="a_base_display_controller" id="a_base_display_controller">
-<area shape="rect" href="classfabgl_1_1_base_display_controller.html" title="Represents the base abstract class for all display controllers." alt="" coords="5,31,157,56"/>
-<area shape="rect" href="classfabgl_1_1_bitmapped_display_controller.html" title="Represents the base abstract class for bitmapped display controllers." alt="" coords="205,5,388,31"/>
-<area shape="poly" title=" " alt="" coords="172,30,207,28,202,30,173,35"/>
-<area shape="rect" href="classfabgl_1_1_textual_display_controller.html" title="Represents the base abstract class for textual display controllers." alt="" coords="215,55,378,80"/>
-<area shape="poly" title=" " alt="" coords="172,51,217,58,212,59,172,56"/>
-<area shape="rect" href="classfabgl_1_1_v_g_a_text_controller.html" title="VGA text&#45;only display controller." alt="" coords="436,55,565,80"/>
-<area shape="poly" title=" " alt="" coords="394,65,438,67,433,68,394,70"/>
+<area shape="rect" href="classfabgl_1_1_base_display_controller.html" title="Represents the base abstract class for all display controllers." alt="" coords="5,68,157,94"/>
+<area shape="rect" href="classfabgl_1_1_bitmapped_display_controller.html" title="Represents the base abstract class for bitmapped display controllers." alt="" coords="205,43,388,68"/>
+<area shape="poly" title=" " alt="" coords="171,68,207,65,202,68,174,73"/>
+<area shape="rect" href="classfabgl_1_1_textual_display_controller.html" title="Represents the base abstract class for textual display controllers." alt="" coords="215,92,378,118"/>
+<area shape="poly" title=" " alt="" coords="172,88,217,95,212,97,173,94"/>
+<area shape="rect" href="classfabgl_1_1_generic_bitmapped_display_controller.html" title="Base class of the bitmapped display controllers that implement drawing primitives in software." alt="" coords="436,43,664,68"/>
+<area shape="poly" title=" " alt="" coords="403,53,438,55,433,56,404,58"/>
+<area shape="rect" href="classfabgl_1_1_c_v_b_s_base_controller.html" title="Base class of the composite video (PAL/NTSC) display controllers." alt="" coords="712,19,857,44"/>
+<area shape="poly" title=" " alt="" coords="679,40,715,38,709,39,681,45"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a_base_controller.html" title="Base class of all VGA display controllers." alt="" coords="717,92,852,118"/>
+<area shape="poly" title=" " alt="" coords="629,69,665,77,723,91,718,92,664,82,629,75"/>
+<area shape="rect" href="classfabgl_1_1_c_v_b_s_paletted_controller.html" title="Base class of the palette&#45;based composite video display controllers." alt="" coords="905,5,1067,31"/>
+<area shape="poly" title=" " alt="" coords="872,23,907,23,901,24,873,28"/>
+<area shape="rect" href="classfabgl_1_1_c_v_b_s16_controller.html" title="Composite video (PAL/NTSC) bitmapped display controller with 16 colors." alt="" coords="1115,5,1243,31"/>
+<area shape="poly" title=" " alt="" coords="1082,16,1117,18,1112,18,1083,21"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a_controller.html" title="VGA bitmapped display controller (64 colors)." alt="" coords="933,55,1038,80"/>
+<area shape="poly" title=" " alt="" coords="867,87,935,77,930,78,868,92"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a_direct_controller.html" title="Base class for direct&#45;draw VGA controllers." alt="" coords="916,104,1056,130"/>
+<area shape="poly" title=" " alt="" coords="867,107,918,112,913,113,868,112"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a_paletted_controller.html" title="Base class for palette&#45;based bitmapped controllers, such as VGA16Controller, VGA8Controller,..." alt="" coords="909,153,1062,179"/>
+<area shape="poly" title=" " alt="" coords="843,120,905,140,942,153,937,152,904,145,842,125"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a16_controller.html" title="VGA bitmapped display controller with 16 colors." alt="" coords="1120,79,1239,104"/>
+<area shape="poly" title=" " alt="" coords="1052,145,1066,140,1114,113,1138,106,1143,104,1116,118,1068,145,1053,150"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a2_controller.html" title="VGA bitmapped display controller with 2 colors." alt="" coords="1123,128,1235,154"/>
+<area shape="poly" title=" " alt="" coords="1078,151,1120,148,1125,148,1078,157"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a4_controller.html" title="VGA bitmapped display controller with 4 colors." alt="" coords="1123,177,1235,203"/>
+<area shape="poly" title=" " alt="" coords="1078,175,1125,183,1120,183,1078,180"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a8_controller.html" title="VGA bitmapped display controller with 8 colors." alt="" coords="1123,227,1235,252"/>
+<area shape="poly" title=" " alt="" coords="1036,182,1116,213,1145,226,1140,226,1114,218,1035,188"/>
+<area shape="rect" href="classfabgl_1_1_v_g_a_text_controller.html" title="VGA text&#45;only display controller." alt="" coords="486,92,615,118"/>
+<area shape="poly" title=" " alt="" coords="393,102,487,104,482,105,394,107"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_2.png" border="0" usemap="#a_bitmap" loading="lazy" alt=""/>
@@ -208,137 +232,153 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('hierarchy.html
 <area shape="rect" href="class_file_browser.html" title="FileBrowser provides basic file system operations (directory listing, mkdir, remove and rename)." alt="" coords="5,5,96,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_17.png" border="0" usemap="#a_glyph" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_17.png" border="0" usemap="#a_font_info" loading="lazy" alt=""/>
+<map name="a_font_info" id="a_font_info">
+<area shape="rect" href="structfabgl_1_1_font_info.html" title="Describes a bitmapped font." alt="" coords="5,5,75,31"/>
+</map>
+</td></tr>
+<tr><td><img src="inherit_graph_18.png" border="0" usemap="#a_glyph" loading="lazy" alt=""/>
 <map name="a_glyph" id="a_glyph">
 <area shape="rect" href="structfabgl_1_1_glyph.html" title="Represents the position, size and binary data of a glyph." alt="" coords="5,5,61,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_18.png" border="0" usemap="#a_glyph_options" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_19.png" border="0" usemap="#a_glyph_options" loading="lazy" alt=""/>
 <map name="a_glyph_options" id="a_glyph_options">
 <area shape="rect" href="unionfabgl_1_1_glyph_options.html" title="Specifies glyph painting options." alt="" coords="5,5,106,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_19.png" border="0" usemap="#a_glyph_options" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_20.png" border="0" usemap="#a_glyph_options" loading="lazy" alt=""/>
 <map name="a_glyph_options" id="a_glyph_options">
 <area shape="rect" href="union_glyph_options.html" title="Specifies glyph painting options." alt="" coords="5,5,106,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_20.png" border="0" usemap="#a_h_t_t_p_request" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_21.png" border="0" usemap="#a_h_t_t_p_request" loading="lazy" alt=""/>
 <map name="a_h_t_t_p_request" id="a_h_t_t_p_request">
 <area shape="rect" href="classfabgl_1_1_h_t_t_p_request.html" title="HTTP connection and request helper." alt="" coords="5,5,111,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_21.png" border="0" usemap="#a_i2_c" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_22.png" border="0" usemap="#a_i2_c" loading="lazy" alt=""/>
 <map name="a_i2_c" id="a_i2_c">
 <area shape="rect" href="classfabgl_1_1_i2_c.html" title="I2C lets multiple tasks communicate with I2C devices, serializing read and write operations." alt="" coords="5,5,48,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_22.png" border="0" usemap="#ai8080" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_23.png" border="0" usemap="#ai8080" loading="lazy" alt=""/>
 <map name="ai8080" id="ai8080">
 <area shape="rect" href="classfabgl_1_1i8080.html" title="Intel 8080 CPU emulator." alt="" coords="5,5,58,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_23.png" border="0" usemap="#a_i_c_m_p" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_24.png" border="0" usemap="#a_i_c_m_p" loading="lazy" alt=""/>
 <map name="a_i_c_m_p" id="a_i_c_m_p">
 <area shape="rect" href="classfabgl_1_1_i_c_m_p.html" title="ICMP echo (ping) helper class." alt="" coords="5,5,61,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_24.png" border="0" usemap="#a_input_box" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_25.png" border="0" usemap="#a_input_box" loading="lazy" alt=""/>
 <map name="a_input_box" id="a_input_box">
 <area shape="rect" href="classfabgl_1_1_input_box.html" title="InputBox is a helper class to build simple user interfaces, such as wizards and input boxes." alt="" coords="5,5,79,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_25.png" border="0" usemap="#a_input_box" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_26.png" border="0" usemap="#a_input_box" loading="lazy" alt=""/>
 <map name="a_input_box" id="a_input_box">
 <area shape="rect" href="class_input_box.html" title="InputBox is a helper class to build simple user interfaces, such as wizards and input boxes." alt="" coords="5,5,79,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_26.png" border="0" usemap="#a_keyboard_layout" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_27.png" border="0" usemap="#a_keyboard_layout" loading="lazy" alt=""/>
 <map name="a_keyboard_layout" id="a_keyboard_layout">
 <area shape="rect" href="structfabgl_1_1_keyboard_layout.html" title="All&#45;in&#45;one structure that fully describes a keyboard layout." alt="" coords="5,5,121,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_27.png" border="0" usemap="#a_line_editor" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_28.png" border="0" usemap="#a_line_editor" loading="lazy" alt=""/>
 <map name="a_line_editor" id="a_line_editor">
 <area shape="rect" href="classfabgl_1_1_line_editor.html" title="LineEditor is a single&#45;line editor, spanning multiple rows if needed, that uses a Terminal object for..." alt="" coords="5,5,85,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_28.png" border="0" usemap="#a_line_editor" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_29.png" border="0" usemap="#a_line_editor" loading="lazy" alt=""/>
 <map name="a_line_editor" id="a_line_editor">
 <area shape="rect" href="class_line_editor.html" title="LineEditor is a single&#45;line editor, spanning multiple rows if needed, that uses a Terminal object for..." alt="" coords="5,5,85,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_29.png" border="0" usemap="#a_m_c_p23_s17" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_30.png" border="0" usemap="#a_m_c_p23_s17" loading="lazy" alt=""/>
 <map name="a_m_c_p23_s17" id="a_m_c_p23_s17">
 <area shape="rect" href="classfabgl_1_1_m_c_p23_s17.html" title="MCP23S17 driver." alt="" coords="5,5,94,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_30.png" border="0" usemap="#a_m_o_s6502" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_31.png" border="0" usemap="#a_m_o_s6502" loading="lazy" alt=""/>
 <map name="a_m_o_s6502" id="a_m_o_s6502">
 <area shape="rect" href="classfabgl_1_1_m_o_s6502.html" title="MOS 6502 CPU emulator." alt="" coords="5,5,85,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_31.png" border="0" usemap="#a_mouse_buttons" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_32.png" border="0" usemap="#a_mouse_buttons" loading="lazy" alt=""/>
 <map name="a_mouse_buttons" id="a_mouse_buttons">
 <area shape="rect" href="structfabgl_1_1_mouse_buttons.html" title="Describes the state of the mouse buttons." alt="" coords="5,5,111,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_32.png" border="0" usemap="#a_mouse_delta" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_33.png" border="0" usemap="#a_mouse_delta" loading="lazy" alt=""/>
 <map name="a_mouse_delta" id="a_mouse_delta">
 <area shape="rect" href="structfabgl_1_1_mouse_delta.html" title="Describes a mouse movement and the state of the buttons." alt="" coords="5,5,97,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_33.png" border="0" usemap="#a_mouse_delta" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_34.png" border="0" usemap="#a_mouse_delta" loading="lazy" alt=""/>
 <map name="a_mouse_delta" id="a_mouse_delta">
 <area shape="rect" href="struct_mouse_delta.html" title="Describes a mouse movement and the state of the buttons." alt="" coords="5,5,97,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_34.png" border="0" usemap="#a_mouse_packet" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_35.png" border="0" usemap="#a_mouse_packet" loading="lazy" alt=""/>
 <map name="a_mouse_packet" id="a_mouse_packet">
 <area shape="rect" href="structfabgl_1_1_mouse_packet.html" title="Contains the raw data received from the mouse." alt="" coords="5,5,107,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_35.png" border="0" usemap="#a_mouse_status" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_36.png" border="0" usemap="#a_mouse_status" loading="lazy" alt=""/>
 <map name="a_mouse_status" id="a_mouse_status">
 <area shape="rect" href="structfabgl_1_1_mouse_status.html" title="Describes the absolute mouse position, the scroll wheel delta and the state of the buttons." alt="" coords="5,5,104,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_36.png" border="0" usemap="#a_mouse_status" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_37.png" border="0" usemap="#a_mouse_status" loading="lazy" alt=""/>
 <map name="a_mouse_status" id="a_mouse_status">
 <area shape="rect" href="struct_mouse_status.html" title="Describes the absolute mouse position, the scroll wheel delta and the state of the buttons." alt="" coords="5,5,104,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_37.png" border="0" usemap="#a_paint_options" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_38.png" border="0" usemap="#a_paint_options" loading="lazy" alt=""/>
 <map name="a_paint_options" id="a_paint_options">
 <area shape="rect" href="structfabgl_1_1_paint_options.html" title="Specifies general paint options." alt="" coords="5,5,102,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_38.png" border="0" usemap="#a_point" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_39.png" border="0" usemap="#a_point" loading="lazy" alt=""/>
 <map name="a_point" id="a_point">
 <area shape="rect" href="structfabgl_1_1_point.html" title="Represents the coordinates of a point." alt="" coords="5,5,57,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_39.png" border="0" usemap="#a_point" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_40.png" border="0" usemap="#a_point" loading="lazy" alt=""/>
 <map name="a_point" id="a_point">
 <area shape="rect" href="struct_point.html" title="Represents the coordinates of a point." alt="" coords="5,5,57,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_40.png" border="0" usemap="#a_preferences" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_41.png" border="0" usemap="#a_preferences" loading="lazy" alt=""/>
 <map name="a_preferences" id="a_preferences">
 <area shape="rect" href="classfabgl_1_1_preferences.html" title="Simple key/value storage in non&#45;volatile flash (NVS)." alt="" coords="5,5,97,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_41.png" border="0" usemap="#a_preferences" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_42.png" border="0" usemap="#a_preferences" loading="lazy" alt=""/>
 <map name="a_preferences" id="a_preferences">
 <area shape="rect" href="class_preferences.html" title="Simple key/value storage in non&#45;volatile flash (NVS)." alt="" coords="5,5,97,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_42.png" border="0" usemap="#a_p_s2_controller" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_43.png" border="0" usemap="#a_print" loading="lazy" alt=""/>
+<map name="a_print" id="a_print">
+<area shape="rect" href="structfabgl_1_1_print.html" title="Abstract output class with Arduino&#45;like print methods." alt="" coords="5,31,54,56"/>
+<area shape="rect" href="structfabgl_1_1_stream.html" title="Abstract byte stream with Arduino&#45;like read and print methods." alt="" coords="102,31,165,56"/>
+<area shape="poly" title=" " alt="" coords="69,41,104,42,99,45,70,46"/>
+<area shape="rect" href="classfabgl_1_1_terminal.html" title="An ANSI&#45;VT100 compatible display terminal." alt="" coords="228,5,298,31"/>
+<area shape="poly" title=" " alt="" coords="180,32,230,24,225,26,181,37"/>
+<area shape="rect" href="classfabgl_1_1_u_a_r_t_stream.html" title="A Stream implemented on top of the ESP&#45;IDF UART driver." alt="" coords="213,55,313,80"/>
+<area shape="poly" title=" " alt="" coords="181,49,215,58,210,58,180,55"/>
+</map>
+</td></tr>
+<tr><td><img src="inherit_graph_44.png" border="0" usemap="#a_p_s2_controller" loading="lazy" alt=""/>
 <map name="a_p_s2_controller" id="a_p_s2_controller">
 <area shape="rect" href="classfabgl_1_1_p_s2_controller.html" title="PS/2 device controller." alt="" coords="5,5,108,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_43.png" border="0" usemap="#a_p_s2_device" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_45.png" border="0" usemap="#a_p_s2_device" loading="lazy" alt=""/>
 <map name="a_p_s2_device" id="a_p_s2_device">
 <area shape="rect" href="classfabgl_1_1_p_s2_device.html" title="Base class for PS/2 devices (such as mice and keyboards)." alt="" coords="5,31,93,56"/>
 <area shape="rect" href="classfabgl_1_1_keyboard.html" title="PS/2 keyboard driver." alt="" coords="141,5,217,31"/>
@@ -347,252 +387,237 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('hierarchy.html
 <area shape="poly" title=" " alt="" coords="108,52,151,62,146,62,108,57"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_44.png" border="0" usemap="#a_rect" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_46.png" border="0" usemap="#a_rect" loading="lazy" alt=""/>
 <map name="a_rect" id="a_rect">
 <area shape="rect" href="structfabgl_1_1_rect.html" title="Represents a rectangle." alt="" coords="5,5,55,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_45.png" border="0" usemap="#a_rect" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_47.png" border="0" usemap="#a_rect" loading="lazy" alt=""/>
 <map name="a_rect" id="a_rect">
 <area shape="rect" href="struct_rect.html" title="Represents a rectangle." alt="" coords="5,5,55,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_46.png" border="0" usemap="#a_r_g_b222" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_48.png" border="0" usemap="#a_r_g_b222" loading="lazy" alt=""/>
 <map name="a_r_g_b222" id="a_r_g_b222">
 <area shape="rect" href="structfabgl_1_1_r_g_b222.html" title="Represents a 6&#45;bit RGB color." alt="" coords="5,5,77,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_47.png" border="0" usemap="#a_r_g_b222" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_49.png" border="0" usemap="#a_r_g_b222" loading="lazy" alt=""/>
 <map name="a_r_g_b222" id="a_r_g_b222">
 <area shape="rect" href="struct_r_g_b222.html" title="Represents a 6&#45;bit RGB color." alt="" coords="5,5,77,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_48.png" border="0" usemap="#a_r_g_b888" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_50.png" border="0" usemap="#a_r_g_b888" loading="lazy" alt=""/>
 <map name="a_r_g_b888" id="a_r_g_b888">
 <area shape="rect" href="structfabgl_1_1_r_g_b888.html" title="Represents a 24&#45;bit RGB color." alt="" coords="5,5,77,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_49.png" border="0" usemap="#a_r_g_b888" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_51.png" border="0" usemap="#a_r_g_b888" loading="lazy" alt=""/>
 <map name="a_r_g_b888" id="a_r_g_b888">
 <area shape="rect" href="struct_r_g_b888.html" title="Represents a 24&#45;bit RGB color." alt="" coords="5,5,77,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_50.png" border="0" usemap="#a_r_g_b_a2222" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_52.png" border="0" usemap="#a_r_g_b_a2222" loading="lazy" alt=""/>
 <map name="a_r_g_b_a2222" id="a_r_g_b_a2222">
 <area shape="rect" href="structfabgl_1_1_r_g_b_a2222.html" title="Represents an 8&#45;bit ABGR color." alt="" coords="5,5,93,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_51.png" border="0" usemap="#a_r_g_b_a2222" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_53.png" border="0" usemap="#a_r_g_b_a2222" loading="lazy" alt=""/>
 <map name="a_r_g_b_a2222" id="a_r_g_b_a2222">
 <area shape="rect" href="struct_r_g_b_a2222.html" title="Represents an 8&#45;bit ABGR color." alt="" coords="5,5,93,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_52.png" border="0" usemap="#a_r_g_b_a8888" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_54.png" border="0" usemap="#a_r_g_b_a8888" loading="lazy" alt=""/>
 <map name="a_r_g_b_a8888" id="a_r_g_b_a8888">
 <area shape="rect" href="structfabgl_1_1_r_g_b_a8888.html" title="Represents a 32&#45;bit RGBA color." alt="" coords="5,5,93,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_53.png" border="0" usemap="#a_r_g_b_a8888" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_55.png" border="0" usemap="#a_r_g_b_a8888" loading="lazy" alt=""/>
 <map name="a_r_g_b_a8888" id="a_r_g_b_a8888">
 <area shape="rect" href="struct_r_g_b_a8888.html" title="Represents a 32&#45;bit RGBA color." alt="" coords="5,5,93,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_54.png" border="0" usemap="#a_scene" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_56.png" border="0" usemap="#a_scene" loading="lazy" alt=""/>
 <map name="a_scene" id="a_scene">
 <area shape="rect" href="classfabgl_1_1_scene.html" title="Scene is an abstract class that encapsulates the functionality of a scene (sprites,..." alt="" coords="5,5,64,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_55.png" border="0" usemap="#a_scene" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_57.png" border="0" usemap="#a_scene" loading="lazy" alt=""/>
 <map name="a_scene" id="a_scene">
 <area shape="rect" href="class_scene.html" title="Scene is an abstract class that encapsulates the functionality of a scene (sprites,..." alt="" coords="5,5,64,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_56.png" border="0" usemap="#a_serial_port" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_58.png" border="0" usemap="#a_serial_port" loading="lazy" alt=""/>
 <map name="a_serial_port" id="a_serial_port">
 <area shape="rect" href="classfabgl_1_1_serial_port.html" title="SerialPort handles UART configuration and communication." alt="" coords="5,5,84,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_57.png" border="0" usemap="#a_serial_port_terminal_connector" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_59.png" border="0" usemap="#a_serial_port_terminal_connector" loading="lazy" alt=""/>
 <map name="a_serial_port_terminal_connector" id="a_serial_port_terminal_connector">
 <area shape="rect" href="classfabgl_1_1_serial_port_terminal_connector.html" title="SerialPortTerminalConnector is a helper class that connects a Terminal to a SerialPort." alt="" coords="5,5,193,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_58.png" border="0" usemap="#a_size" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_60.png" border="0" usemap="#a_size" loading="lazy" alt=""/>
 <map name="a_size" id="a_size">
 <area shape="rect" href="structfabgl_1_1_size.html" title="Represents a two&#45;dimensional size." alt="" coords="5,5,53,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_59.png" border="0" usemap="#a_size" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_61.png" border="0" usemap="#a_size" loading="lazy" alt=""/>
 <map name="a_size" id="a_size">
 <area shape="rect" href="struct_size.html" title="Represents a two&#45;dimensional size." alt="" coords="5,5,53,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_60.png" border="0" usemap="#a_sound_generator" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_62.png" border="0" usemap="#a_sound_generator" loading="lazy" alt=""/>
 <map name="a_sound_generator" id="a_sound_generator">
 <area shape="rect" href="classfabgl_1_1_sound_generator.html" title="SoundGenerator handles audio output." alt="" coords="5,5,121,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_61.png" border="0" usemap="#a_sound_generator" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_63.png" border="0" usemap="#a_sound_generator" loading="lazy" alt=""/>
 <map name="a_sound_generator" id="a_sound_generator">
 <area shape="rect" href="class_sound_generator.html" title="SoundGenerator handles audio output." alt="" coords="5,5,121,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_62.png" border="0" usemap="#a_sprite" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_64.png" border="0" usemap="#a_sprite" loading="lazy" alt=""/>
 <map name="a_sprite" id="a_sprite">
 <area shape="rect" href="structfabgl_1_1_sprite.html" title="Represents a sprite." alt="" coords="5,5,61,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_63.png" border="0" usemap="#a_sprite" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_65.png" border="0" usemap="#a_sprite" loading="lazy" alt=""/>
 <map name="a_sprite" id="a_sprite">
 <area shape="rect" href="struct_sprite.html" title="Represents a sprite." alt="" coords="5,5,61,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_64.png" border="0" usemap="#a_t_c_p_client" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_66.png" border="0" usemap="#a_t_c_p_client" loading="lazy" alt=""/>
 <map name="a_t_c_p_client" id="a_t_c_p_client">
 <area shape="rect" href="classfabgl_1_1_t_c_p_client.html" title="Simple TCP client based on BSD sockets (lwIP)." alt="" coords="5,5,88,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_65.png" border="0" usemap="#a_terminal" loading="lazy" alt=""/>
-<map name="a_terminal" id="a_terminal">
-<area shape="rect" href="classfabgl_1_1_terminal.html" title="An ANSI&#45;VT100 compatible display terminal." alt="" coords="5,5,76,31"/>
-</map>
-</td></tr>
-<tr><td><img src="inherit_graph_66.png" border="0" usemap="#a_terminal_controller" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_67.png" border="0" usemap="#a_terminal_controller" loading="lazy" alt=""/>
 <map name="a_terminal_controller" id="a_terminal_controller">
 <area shape="rect" href="classfabgl_1_1_terminal_controller.html" title="TerminalController controls a Terminal object directly, without the application having to send escape..." alt="" coords="5,5,132,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_67.png" border="0" usemap="#a_terminal_controller" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_68.png" border="0" usemap="#a_terminal_controller" loading="lazy" alt=""/>
 <map name="a_terminal_controller" id="a_terminal_controller">
 <area shape="rect" href="class_terminal_controller.html" title="TerminalController controls a Terminal object directly, without the application having to send escape..." alt="" coords="5,5,132,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_68.png" border="0" usemap="#a_u_a_r_t_stream" loading="lazy" alt=""/>
-<map name="a_u_a_r_t_stream" id="a_u_a_r_t_stream">
-<area shape="rect" href="classfabgl_1_1_u_a_r_t_stream.html" title="A Stream implemented on top of the ESP&#45;IDF UART driver." alt="" coords="5,5,106,31"/>
-</map>
-</td></tr>
-<tr><td><img src="inherit_graph_69.png" border="0" usemap="#a_u_a_r_t_stream" loading="lazy" alt=""/>
-<map name="a_u_a_r_t_stream" id="a_u_a_r_t_stream">
-<area shape="rect" href="class_u_a_r_t_stream.html" title="A Stream implemented on top of the ESP&#45;IDF UART driver." alt="" coords="5,5,106,31"/>
-</map>
-</td></tr>
-<tr><td><img src="inherit_graph_70.png" border="0" usemap="#aui_anchors" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_69.png" border="0" usemap="#aui_anchors" loading="lazy" alt=""/>
 <map name="aui_anchors" id="aui_anchors">
 <area shape="rect" href="structfabgl_1_1ui_anchors.html" title="Contains anchors enable/disable switches." alt="" coords="5,5,85,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_71.png" border="0" usemap="#aui_app_props" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_70.png" border="0" usemap="#aui_app_props" loading="lazy" alt=""/>
 <map name="aui_app_props" id="aui_app_props">
 <area shape="rect" href="structfabgl_1_1ui_app_props.html" title="Properties of the application." alt="" coords="5,5,94,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_72.png" border="0" usemap="#aui_button_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_71.png" border="0" usemap="#aui_button_style" loading="lazy" alt=""/>
 <map name="aui_button_style" id="aui_button_style">
 <area shape="rect" href="structfabgl_1_1ui_button_style.html" title="Contains the button style." alt="" coords="5,5,105,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_73.png" border="0" usemap="#aui_button_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_72.png" border="0" usemap="#aui_button_style" loading="lazy" alt=""/>
 <map name="aui_button_style" id="aui_button_style">
 <area shape="rect" href="structui_button_style.html" title="Contains the button style." alt="" coords="5,5,105,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_74.png" border="0" usemap="#aui_check_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_73.png" border="0" usemap="#aui_check_box_style" loading="lazy" alt=""/>
 <map name="aui_check_box_style" id="aui_check_box_style">
 <area shape="rect" href="structfabgl_1_1ui_check_box_style.html" title="Contains the checkbox style." alt="" coords="5,5,128,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_75.png" border="0" usemap="#aui_check_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_74.png" border="0" usemap="#aui_check_box_style" loading="lazy" alt=""/>
 <map name="aui_check_box_style" id="aui_check_box_style">
 <area shape="rect" href="structui_check_box_style.html" title="Contains the checkbox style." alt="" coords="5,5,128,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_76.png" border="0" usemap="#aui_combo_box_props" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_75.png" border="0" usemap="#aui_combo_box_props" loading="lazy" alt=""/>
 <map name="aui_combo_box_props" id="aui_combo_box_props">
 <area shape="rect" href="structfabgl_1_1ui_combo_box_props.html" title="Properties of the combobox." alt="" coords="5,5,136,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_77.png" border="0" usemap="#aui_combo_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_76.png" border="0" usemap="#aui_combo_box_style" loading="lazy" alt=""/>
 <map name="aui_combo_box_style" id="aui_combo_box_style">
 <area shape="rect" href="structfabgl_1_1ui_combo_box_style.html" title="Contains the listbox style." alt="" coords="5,5,132,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_78.png" border="0" usemap="#aui_combo_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_77.png" border="0" usemap="#aui_combo_box_style" loading="lazy" alt=""/>
 <map name="aui_combo_box_style" id="aui_combo_box_style">
 <area shape="rect" href="structui_combo_box_style.html" title="Contains the listbox style." alt="" coords="5,5,132,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_79.png" border="0" usemap="#aui_frame_props" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_78.png" border="0" usemap="#aui_frame_props" loading="lazy" alt=""/>
 <map name="aui_frame_props" id="aui_frame_props">
 <area shape="rect" href="structfabgl_1_1ui_frame_props.html" title="Properties of the frame." alt="" coords="5,5,108,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_80.png" border="0" usemap="#aui_frame_state" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_79.png" border="0" usemap="#aui_frame_state" loading="lazy" alt=""/>
 <map name="aui_frame_state" id="aui_frame_state">
 <area shape="rect" href="structfabgl_1_1ui_frame_state.html" title="Specifies current frame state." alt="" coords="5,5,105,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_81.png" border="0" usemap="#aui_frame_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_80.png" border="0" usemap="#aui_frame_style" loading="lazy" alt=""/>
 <map name="aui_frame_style" id="aui_frame_style">
 <area shape="rect" href="structfabgl_1_1ui_frame_style.html" title=" " alt="" coords="5,5,104,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_82.png" border="0" usemap="#aui_frame_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_81.png" border="0" usemap="#aui_frame_style" loading="lazy" alt=""/>
 <map name="aui_frame_style" id="aui_frame_style">
 <area shape="rect" href="structui_frame_style.html" title=" " alt="" coords="5,5,104,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_83.png" border="0" usemap="#aui_image_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_82.png" border="0" usemap="#aui_image_style" loading="lazy" alt=""/>
 <map name="aui_image_style" id="aui_image_style">
 <area shape="rect" href="structfabgl_1_1ui_image_style.html" title="Contains the image style." alt="" coords="5,5,103,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_84.png" border="0" usemap="#aui_image_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_83.png" border="0" usemap="#aui_image_style" loading="lazy" alt=""/>
 <map name="aui_image_style" id="aui_image_style">
 <area shape="rect" href="structui_image_style.html" title="Contains the image style." alt="" coords="5,5,103,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_85.png" border="0" usemap="#aui_key_event_info" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_84.png" border="0" usemap="#aui_key_event_info" loading="lazy" alt=""/>
 <map name="aui_key_event_info" id="aui_key_event_info">
 <area shape="rect" href="structfabgl_1_1ui_key_event_info.html" title="Contains details about the key event." alt="" coords="5,5,116,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_86.png" border="0" usemap="#aui_key_event_info" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_85.png" border="0" usemap="#aui_key_event_info" loading="lazy" alt=""/>
 <map name="aui_key_event_info" id="aui_key_event_info">
 <area shape="rect" href="structui_key_event_info.html" title="Contains details about the key event." alt="" coords="5,5,116,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_87.png" border="0" usemap="#aui_label_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_86.png" border="0" usemap="#aui_label_style" loading="lazy" alt=""/>
 <map name="aui_label_style" id="aui_label_style">
 <area shape="rect" href="structfabgl_1_1ui_label_style.html" title="Contains the label style." alt="" coords="5,5,98,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_88.png" border="0" usemap="#aui_label_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_87.png" border="0" usemap="#aui_label_style" loading="lazy" alt=""/>
 <map name="aui_label_style" id="aui_label_style">
 <area shape="rect" href="structui_label_style.html" title="Contains the label style." alt="" coords="5,5,98,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_89.png" border="0" usemap="#aui_list_box_props" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_88.png" border="0" usemap="#aui_list_box_props" loading="lazy" alt=""/>
 <map name="aui_list_box_props" id="aui_list_box_props">
 <area shape="rect" href="structfabgl_1_1ui_list_box_props.html" title="Properties of the list box." alt="" coords="5,5,115,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_90.png" border="0" usemap="#aui_list_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_89.png" border="0" usemap="#aui_list_box_style" loading="lazy" alt=""/>
 <map name="aui_list_box_style" id="aui_list_box_style">
 <area shape="rect" href="structfabgl_1_1ui_list_box_style.html" title="Contains the listbox style." alt="" coords="5,5,111,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_91.png" border="0" usemap="#aui_list_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_90.png" border="0" usemap="#aui_list_box_style" loading="lazy" alt=""/>
 <map name="aui_list_box_style" id="aui_list_box_style">
 <area shape="rect" href="structui_list_box_style.html" title="Contains the listbox style." alt="" coords="5,5,111,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_92.png" border="0" usemap="#aui_mouse_event_info" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_91.png" border="0" usemap="#aui_mouse_event_info" loading="lazy" alt=""/>
 <map name="aui_mouse_event_info" id="aui_mouse_event_info">
 <area shape="rect" href="structfabgl_1_1ui_mouse_event_info.html" title="Contains details about the mouse event." alt="" coords="5,5,132,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_93.png" border="0" usemap="#aui_object" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_92.png" border="0" usemap="#aui_object" loading="lazy" alt=""/>
 <map name="aui_object" id="aui_object">
 <area shape="rect" href="classfabgl_1_1ui_object.html" title="Base class of all UI elements like windows and controls." alt="" coords="5,253,75,279"/>
 <area shape="rect" href="classfabgl_1_1ui_evt_handler.html" title="Base class of all UI elements that can receive events." alt="" coords="123,279,219,304"/>
@@ -651,127 +676,137 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('hierarchy.html
 <area shape="poly" title=" " alt="" coords="88,304,124,299,120,302,91,309"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_94.png" border="0" usemap="#aui_object_type" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_93.png" border="0" usemap="#aui_object_type" loading="lazy" alt=""/>
 <map name="aui_object_type" id="aui_object_type">
 <area shape="rect" href="structfabgl_1_1ui_object_type.html" title="Specifies the object type." alt="" coords="5,5,103,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_95.png" border="0" usemap="#aui_paint_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_94.png" border="0" usemap="#aui_paint_box_style" loading="lazy" alt=""/>
 <map name="aui_paint_box_style" id="aui_paint_box_style">
 <area shape="rect" href="structfabgl_1_1ui_paint_box_style.html" title="Contains the paintbox style." alt="" coords="5,5,120,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_96.png" border="0" usemap="#aui_paint_box_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_95.png" border="0" usemap="#aui_paint_box_style" loading="lazy" alt=""/>
 <map name="aui_paint_box_style" id="aui_paint_box_style">
 <area shape="rect" href="structui_paint_box_style.html" title="Contains the paintbox style." alt="" coords="5,5,120,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_97.png" border="0" usemap="#aui_panel_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_96.png" border="0" usemap="#aui_panel_style" loading="lazy" alt=""/>
 <map name="aui_panel_style" id="aui_panel_style">
 <area shape="rect" href="structfabgl_1_1ui_panel_style.html" title="Contains the panel style." alt="" coords="5,5,100,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_98.png" border="0" usemap="#aui_panel_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_97.png" border="0" usemap="#aui_panel_style" loading="lazy" alt=""/>
 <map name="aui_panel_style" id="aui_panel_style">
 <area shape="rect" href="structui_panel_style.html" title="Contains the panel style." alt="" coords="5,5,100,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_99.png" border="0" usemap="#aui_progress_bar_props" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_98.png" border="0" usemap="#aui_progress_bar_props" loading="lazy" alt=""/>
 <map name="aui_progress_bar_props" id="aui_progress_bar_props">
 <area shape="rect" href="structfabgl_1_1ui_progress_bar_props.html" title="Properties of the progress bar." alt="" coords="5,5,143,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_100.png" border="0" usemap="#aui_progress_bar_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_99.png" border="0" usemap="#aui_progress_bar_style" loading="lazy" alt=""/>
 <map name="aui_progress_bar_style" id="aui_progress_bar_style">
 <area shape="rect" href="structfabgl_1_1ui_progress_bar_style.html" title="Contains the progress bar style." alt="" coords="5,5,139,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_101.png" border="0" usemap="#aui_scrollable_control_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_100.png" border="0" usemap="#aui_scrollable_control_style" loading="lazy" alt=""/>
 <map name="aui_scrollable_control_style" id="aui_scrollable_control_style">
 <area shape="rect" href="structfabgl_1_1ui_scrollable_control_style.html" title="Contains the scrollable control style." alt="" coords="5,5,166,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_102.png" border="0" usemap="#aui_scrollable_control_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_101.png" border="0" usemap="#aui_scrollable_control_style" loading="lazy" alt=""/>
 <map name="aui_scrollable_control_style" id="aui_scrollable_control_style">
 <area shape="rect" href="structui_scrollable_control_style.html" title="Contains the scrollable control style." alt="" coords="5,5,166,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_103.png" border="0" usemap="#aui_slider_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_102.png" border="0" usemap="#aui_slider_style" loading="lazy" alt=""/>
 <map name="aui_slider_style" id="aui_slider_style">
 <area shape="rect" href="structfabgl_1_1ui_slider_style.html" title="Contains the slider style." alt="" coords="5,5,100,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_104.png" border="0" usemap="#aui_slider_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_103.png" border="0" usemap="#aui_slider_style" loading="lazy" alt=""/>
 <map name="aui_slider_style" id="aui_slider_style">
 <area shape="rect" href="structui_slider_style.html" title="Contains the slider style." alt="" coords="5,5,100,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_105.png" border="0" usemap="#aui_static_label_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_104.png" border="0" usemap="#aui_static_label_style" loading="lazy" alt=""/>
 <map name="aui_static_label_style" id="aui_static_label_style">
 <area shape="rect" href="structfabgl_1_1ui_static_label_style.html" title="Contains the label style." alt="" coords="5,5,132,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_106.png" border="0" usemap="#aui_text_edit_props" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_105.png" border="0" usemap="#aui_style" loading="lazy" alt=""/>
+<map name="aui_style" id="aui_style">
+<area shape="rect" href="structfabgl_1_1ui_style.html" title="Base class for application styles." alt="" coords="5,5,67,31"/>
+</map>
+</td></tr>
+<tr><td><img src="inherit_graph_106.png" border="0" usemap="#aui_style" loading="lazy" alt=""/>
+<map name="aui_style" id="aui_style">
+<area shape="rect" href="structui_style.html" title="Base class for application styles." alt="" coords="5,5,67,31"/>
+</map>
+</td></tr>
+<tr><td><img src="inherit_graph_107.png" border="0" usemap="#aui_text_edit_props" loading="lazy" alt=""/>
 <map name="aui_text_edit_props" id="aui_text_edit_props">
 <area shape="rect" href="structfabgl_1_1ui_text_edit_props.html" title="Properties of the text edit." alt="" coords="5,5,119,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_107.png" border="0" usemap="#aui_text_edit_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_108.png" border="0" usemap="#aui_text_edit_style" loading="lazy" alt=""/>
 <map name="aui_text_edit_style" id="aui_text_edit_style">
 <area shape="rect" href="structfabgl_1_1ui_text_edit_style.html" title="Represents text edit style." alt="" coords="5,5,115,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_108.png" border="0" usemap="#aui_text_edit_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_109.png" border="0" usemap="#aui_text_edit_style" loading="lazy" alt=""/>
 <map name="aui_text_edit_style" id="aui_text_edit_style">
 <area shape="rect" href="structui_text_edit_style.html" title="Represents text edit style." alt="" coords="5,5,115,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_109.png" border="0" usemap="#aui_window_props" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_110.png" border="0" usemap="#aui_window_props" loading="lazy" alt=""/>
 <map name="aui_window_props" id="aui_window_props">
 <area shape="rect" href="structfabgl_1_1ui_window_props.html" title="Contains some window options." alt="" coords="5,5,118,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_110.png" border="0" usemap="#aui_window_state" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_111.png" border="0" usemap="#aui_window_state" loading="lazy" alt=""/>
 <map name="aui_window_state" id="aui_window_state">
 <area shape="rect" href="structfabgl_1_1ui_window_state.html" title="Specifies current window state." alt="" coords="5,5,115,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_111.png" border="0" usemap="#aui_window_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_112.png" border="0" usemap="#aui_window_style" loading="lazy" alt=""/>
 <map name="aui_window_style" id="aui_window_style">
 <area shape="rect" href="structfabgl_1_1ui_window_style.html" title="Contains the window style." alt="" coords="5,5,114,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_112.png" border="0" usemap="#aui_window_style" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_113.png" border="0" usemap="#aui_window_style" loading="lazy" alt=""/>
 <map name="aui_window_style" id="aui_window_style">
 <area shape="rect" href="structui_window_style.html" title="Contains the window style." alt="" coords="5,5,114,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_113.png" border="0" usemap="#a_v_g_a_timings" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_114.png" border="0" usemap="#a_v_g_a_timings" loading="lazy" alt=""/>
 <map name="a_v_g_a_timings" id="a_v_g_a_timings">
 <area shape="rect" href="structfabgl_1_1_v_g_a_timings.html" title="Specifies the VGA timings (a decoded modeline)." alt="" coords="5,5,99,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_114.png" border="0" usemap="#a_v_i_a6522" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_115.png" border="0" usemap="#a_v_i_a6522" loading="lazy" alt=""/>
 <map name="a_v_i_a6522" id="a_v_i_a6522">
 <area shape="rect" href="classfabgl_1_1_v_i_a6522.html" title="VIA 6522 emulator." alt="" coords="5,5,77,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_115.png" border="0" usemap="#a_virtual_key_def" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_116.png" border="0" usemap="#a_virtual_key_def" loading="lazy" alt=""/>
 <map name="a_virtual_key_def" id="a_virtual_key_def">
 <area shape="rect" href="structfabgl_1_1_virtual_key_def.html" title="Associates a scancode with a virtual key." alt="" coords="5,5,108,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_116.png" border="0" usemap="#a_virtual_key_item" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_117.png" border="0" usemap="#a_virtual_key_item" loading="lazy" alt=""/>
 <map name="a_virtual_key_item" id="a_virtual_key_item">
 <area shape="rect" href="structfabgl_1_1_virtual_key_item.html" title="Contains a virtual key, its state and the associated scancode." alt="" coords="5,5,113,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_117.png" border="0" usemap="#a_virtual_key_item" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_118.png" border="0" usemap="#a_virtual_key_item" loading="lazy" alt=""/>
 <map name="a_virtual_key_item" id="a_virtual_key_item">
 <area shape="rect" href="struct_virtual_key_item.html" title="Contains a virtual key, its state and the associated scancode." alt="" coords="5,5,113,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_118.png" border="0" usemap="#a_waveform_generator" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_119.png" border="0" usemap="#a_waveform_generator" loading="lazy" alt=""/>
 <map name="a_waveform_generator" id="a_waveform_generator">
 <area shape="rect" href="classfabgl_1_1_waveform_generator.html" title="Abstract base class for waveform generators. A waveform generator is an audio channel that SoundGener..." alt="" coords="5,129,143,155"/>
 <area shape="rect" href="classfabgl_1_1_noise_waveform_generator.html" title="Noise generator." alt="" coords="201,301,372,327"/>
@@ -798,17 +833,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('hierarchy.html
 <area shape="poly" title=" " alt="" coords="117,208,192,238,229,251,224,252,190,243,116,214"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_119.png" border="0" usemap="#a_wi_fi_connection" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_120.png" border="0" usemap="#a_wi_fi_connection" loading="lazy" alt=""/>
 <map name="a_wi_fi_connection" id="a_wi_fi_connection">
 <area shape="rect" href="classfabgl_1_1_wi_fi_connection.html" title="WiFi connection helper class." alt="" coords="5,5,120,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_120.png" border="0" usemap="#a_wi_fi_scanner" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_121.png" border="0" usemap="#a_wi_fi_scanner" loading="lazy" alt=""/>
 <map name="a_wi_fi_scanner" id="a_wi_fi_scanner">
 <area shape="rect" href="classfabgl_1_1_wi_fi_scanner.html" title="WiFi scanner helper class." alt="" coords="5,5,102,31"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_121.png" border="0" usemap="#a_z80" loading="lazy" alt=""/>
+<tr><td><img src="inherit_graph_122.png" border="0" usemap="#a_z80" loading="lazy" alt=""/>
 <map name="a_z80" id="a_z80">
 <area shape="rect" href="classfabgl_1_1_z80.html" title="Zilog Z80 CPU emulator." alt="" coords="5,5,49,31"/>
 </map>

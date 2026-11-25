@@ -1,18 +1,5 @@
 var displaycontroller_8h =
 [
-    [ "BaseDisplayController", "classfabgl_1_1_base_display_controller.html", "classfabgl_1_1_base_display_controller" ],
-    [ "Bitmap", "structfabgl_1_1_bitmap.html", "structfabgl_1_1_bitmap" ],
-    [ "BitmappedDisplayController", "classfabgl_1_1_bitmapped_display_controller.html", "classfabgl_1_1_bitmapped_display_controller" ],
-    [ "Cursor", "structfabgl_1_1_cursor.html", "structfabgl_1_1_cursor" ],
-    [ "Glyph", "structfabgl_1_1_glyph.html", "structfabgl_1_1_glyph" ],
-    [ "GlyphOptions", "unionfabgl_1_1_glyph_options.html", "unionfabgl_1_1_glyph_options" ],
-    [ "PaintOptions", "structfabgl_1_1_paint_options.html", "structfabgl_1_1_paint_options" ],
-    [ "RGB222", "structfabgl_1_1_r_g_b222.html", "structfabgl_1_1_r_g_b222" ],
-    [ "RGB888", "structfabgl_1_1_r_g_b888.html", "structfabgl_1_1_r_g_b888" ],
-    [ "RGBA2222", "structfabgl_1_1_r_g_b_a2222.html", "structfabgl_1_1_r_g_b_a2222" ],
-    [ "RGBA8888", "structfabgl_1_1_r_g_b_a8888.html", "structfabgl_1_1_r_g_b_a8888" ],
-    [ "Sprite", "structfabgl_1_1_sprite.html", null ],
-    [ "TextualDisplayController", "classfabgl_1_1_textual_display_controller.html", "classfabgl_1_1_textual_display_controller" ],
     [ "fabgl::Color", "group___enumerations_gab87bacfdad76e61b9412d7124be44c1c.html#gab87bacfdad76e61b9412d7124be44c1c", [
       [ "fabgl::Black", "group___enumerations_gab87bacfdad76e61b9412d7124be44c1c.html#ggab87bacfdad76e61b9412d7124be44c1cac1e9bce8242f443c54c7405223d616cd", null ],
       [ "fabgl::Red", "group___enumerations_gab87bacfdad76e61b9412d7124be44c1c.html#ggab87bacfdad76e61b9412d7124be44c1cad3163c1fcda01965b692ec2c3122b743", null ],

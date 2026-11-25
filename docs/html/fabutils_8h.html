@@ -118,10 +118,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabutils_8h.ht
 <p>This file contains utility classes and functions.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;cstring&gt;</code><br />
+<code>#include &lt;new&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 <code>#include &quot;freertos/FreeRTOS.h&quot;</code><br />
 <code>#include &quot;freertos/semphr.h&quot;</code><br />
 <code>#include &quot;esp_system.h&quot;</code><br />
 <code>#include &quot;esp_timer.h&quot;</code><br />
+<code>#include &quot;esp_heap_caps.h&quot;</code><br />
 <code>#include &quot;esp_intr_alloc.h&quot;</code><br />
 <code>#include &quot;driver/gpio.h&quot;</code><br />
 <code>#include &quot;sdmmc_cmd.h&quot;</code><br />
@@ -138,39 +141,45 @@ Include dependency graph for fabutils.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="fabutils_8h__incl.png" border="0" usemap="#afabutils_8h" loading="lazy" alt=""/></div>
 <map name="afabutils_8h" id="afabutils_8h">
-<area shape="rect" title="This file contains utility classes and functions." alt="" coords="972,5,1046,31"/>
+<area shape="rect" title="This file contains utility classes and functions." alt="" coords="1082,5,1157,31"/>
 <area shape="rect" title=" " alt="" coords="5,79,66,105"/>
-<area shape="poly" title=" " alt="" coords="969,19,829,23,611,30,351,48,215,62,82,81,81,76,215,57,351,42,611,24,829,17,974,19"/>
-<area shape="rect" title=" " alt="" coords="89,79,232,105"/>
-<area shape="poly" title=" " alt="" coords="968,22,676,44,248,81,247,76,676,39,974,21"/>
-<area shape="rect" title=" " alt="" coords="257,79,379,105"/>
-<area shape="poly" title=" " alt="" coords="969,23,733,45,395,81,394,76,732,40,974,22"/>
-<area shape="rect" title=" " alt="" coords="404,79,507,105"/>
-<area shape="poly" title=" " alt="" coords="974,23,783,47,523,81,522,76,783,42,969,24"/>
-<area shape="rect" title=" " alt="" coords="531,79,620,105"/>
-<area shape="poly" title=" " alt="" coords="974,25,635,81,634,76,969,25"/>
-<area shape="rect" title=" " alt="" coords="643,79,756,105"/>
-<area shape="poly" title=" " alt="" coords="974,28,768,78,767,72,969,28"/>
-<area shape="rect" title=" " alt="" coords="780,79,872,105"/>
-<area shape="poly" title=" " alt="" coords="980,31,872,76,871,70,975,32"/>
-<area shape="rect" title=" " alt="" coords="896,79,1004,105"/>
-<area shape="poly" title=" " alt="" coords="1002,30,971,69,968,65,997,32"/>
-<area shape="rect" title=" " alt="" coords="1028,79,1107,105"/>
-<area shape="poly" title=" " alt="" coords="1020,29,1051,68,1046,66,1017,34"/>
-<area shape="rect" title=" " alt="" coords="1130,79,1264,105"/>
-<area shape="poly" title=" " alt="" coords="1041,29,1153,73,1148,73,1040,34"/>
-<area shape="rect" title=" " alt="" coords="1287,79,1418,105"/>
-<area shape="poly" title=" " alt="" coords="1047,25,1282,75,1277,75,1046,30"/>
-<area shape="rect" title=" " alt="" coords="1443,79,1556,105"/>
-<area shape="poly" title=" " alt="" coords="1047,22,1430,79,1425,79,1046,27"/>
-<area shape="rect" title=" " alt="" coords="1580,79,1691,105"/>
-<area shape="poly" title=" " alt="" coords="1046,20,1263,40,1568,79,1563,79,1262,46,1046,25"/>
-<area shape="rect" title=" " alt="" coords="1715,79,1852,105"/>
-<area shape="poly" title=" " alt="" coords="1047,19,1315,39,1702,79,1697,79,1314,45,1046,25"/>
-<area shape="rect" title=" " alt="" coords="1876,79,2000,105"/>
-<area shape="poly" title=" " alt="" coords="1047,18,1377,36,1614,53,1863,79,1858,79,1614,58,1377,41,1046,24"/>
-<area shape="rect" title=" " alt="" coords="2024,79,2148,105"/>
-<area shape="poly" title=" " alt="" coords="1046,18,1433,33,1716,50,2012,79,2007,79,1715,56,1433,38,1046,23"/>
+<area shape="poly" title=" " alt="" coords="1079,19,925,21,680,27,386,46,233,61,81,82,80,76,232,56,386,40,680,22,925,16,1085,19"/>
+<area shape="rect" title=" " alt="" coords="90,79,136,105"/>
+<area shape="poly" title=" " alt="" coords="1079,21,638,40,364,58,245,69,152,82,151,76,245,64,363,52,638,35,1084,20"/>
+<area shape="rect" title=" " alt="" coords="160,79,212,105"/>
+<area shape="poly" title=" " alt="" coords="1079,19,944,22,735,28,486,46,356,61,228,81,227,76,356,56,486,41,735,23,944,17,1085,19"/>
+<area shape="rect" title=" " alt="" coords="236,79,379,105"/>
+<area shape="poly" title=" " alt="" coords="1079,22,801,44,395,81,394,76,800,39,1085,22"/>
+<area shape="rect" title=" " alt="" coords="404,79,526,105"/>
+<area shape="poly" title=" " alt="" coords="1084,22,857,46,541,81,541,76,857,41,1079,23"/>
+<area shape="rect" title=" " alt="" coords="550,79,654,105"/>
+<area shape="poly" title=" " alt="" coords="1084,24,908,48,670,81,669,76,908,43,1079,24"/>
+<area shape="rect" title=" " alt="" coords="678,79,766,105"/>
+<area shape="poly" title=" " alt="" coords="1085,25,782,81,781,76,1079,26"/>
+<area shape="rect" title=" " alt="" coords="790,79,913,105"/>
+<area shape="poly" title=" " alt="" coords="1084,29,912,77,911,72,1079,30"/>
+<area shape="rect" title=" " alt="" coords="937,79,1049,105"/>
+<area shape="poly" title=" " alt="" coords="1101,31,1028,74,1027,69,1095,32"/>
+<area shape="rect" title=" " alt="" coords="1073,79,1166,105"/>
+<area shape="poly" title=" " alt="" coords="1121,29,1121,65,1118,61,1118,33"/>
+<area shape="rect" title=" " alt="" coords="1190,79,1297,105"/>
+<area shape="poly" title=" " alt="" coords="1141,29,1212,72,1207,71,1140,34"/>
+<area shape="rect" title=" " alt="" coords="1322,79,1400,105"/>
+<area shape="poly" title=" " alt="" coords="1158,28,1309,75,1304,74,1157,33"/>
+<area shape="rect" title=" " alt="" coords="1424,79,1557,105"/>
+<area shape="poly" title=" " alt="" coords="1157,24,1415,76,1410,76,1157,29"/>
+<area shape="rect" title=" " alt="" coords="1580,79,1712,105"/>
+<area shape="poly" title=" " alt="" coords="1157,22,1568,78,1562,79,1157,27"/>
+<area shape="rect" title=" " alt="" coords="1736,79,1850,105"/>
+<area shape="poly" title=" " alt="" coords="1157,20,1391,40,1724,79,1718,79,1390,45,1157,25"/>
+<area shape="rect" title=" " alt="" coords="1874,79,1984,105"/>
+<area shape="poly" title=" " alt="" coords="1157,19,1444,37,1647,53,1861,79,1856,79,1647,59,1444,42,1157,24"/>
+<area shape="rect" title=" " alt="" coords="2008,79,2146,105"/>
+<area shape="poly" title=" " alt="" coords="1157,18,1495,36,1739,53,1996,79,1990,79,1739,59,1495,42,1157,24"/>
+<area shape="rect" title=" " alt="" coords="2169,79,2294,105"/>
+<area shape="poly" title=" " alt="" coords="1157,18,1557,32,1849,50,2157,79,2151,79,1849,55,1556,38,1157,23"/>
+<area shape="rect" title=" " alt="" coords="2318,79,2441,105"/>
+<area shape="poly" title=" " alt="" coords="1157,17,1333,21,1612,30,1950,48,2305,79,2300,79,1950,53,1612,35,1333,26,1157,23"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -386,16 +395,24 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classfabgl_1_1_file_browser.html" title="FileBrowser provides basic file system operations (directory listing, mkdir, remove and rename).">FileBrowser</a> item specifier.  <a href="structfabgl_1_1_dir_item.html#details">More...</a><br /></td></tr>
 <tr class="memitem:FileBrowser" id="r_FileBrowser"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_file_browser.html">FileBrowser</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classfabgl_1_1_file_browser.html" title="FileBrowser provides basic file system operations (directory listing, mkdir, remove and rename).">FileBrowser</a> provides basic file system operations (directory listing, mkdir, remove and rename).  <a href="classfabgl_1_1_file_browser.html#details">More...</a><br /></td></tr>
+<tr class="memitem:FontInfo" id="r_FontInfo"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_font_info.html">FontInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes a bitmapped font.  <a href="structfabgl_1_1_font_info.html#details">More...</a><br /></td></tr>
 <tr class="memitem:MouseButtons" id="r_MouseButtons"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_mouse_buttons.html">MouseButtons</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the state of the mouse buttons.  <a href="structfabgl_1_1_mouse_buttons.html#details">More...</a><br /></td></tr>
 <tr class="memitem:MouseStatus" id="r_MouseStatus"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_mouse_status.html">MouseStatus</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes the absolute mouse position, the scroll wheel delta and the state of the buttons.  <a href="structfabgl_1_1_mouse_status.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Point" id="r_Point"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_point.html">Point</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents the coordinates of a point.  <a href="structfabgl_1_1_point.html#details">More...</a><br /></td></tr>
+<tr class="memitem:Print" id="r_Print"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_print.html">Print</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Abstract output class with Arduino-like print methods.  <a href="structfabgl_1_1_print.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Rect" id="r_Rect"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_rect.html">Rect</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a rectangle.  <a href="structfabgl_1_1_rect.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Size" id="r_Size"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_size.html">Size</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a two-dimensional size.  <a href="structfabgl_1_1_size.html#details">More...</a><br /></td></tr>
+<tr class="memitem:Stream" id="r_Stream"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_stream.html">Stream</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Abstract byte stream with Arduino-like read and print methods.  <a href="structfabgl_1_1_stream.html#details">More...</a><br /></td></tr>
+<tr class="memitem:Stream" id="r_Stream"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_stream.html">Stream</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Abstract byte stream with Arduino-like read and print methods.  <a href="struct_stream.html#details">More...</a><br /></td></tr>
 <tr class="memitem:VirtualKeyItem" id="r_VirtualKeyItem"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_virtual_key_item.html">VirtualKeyItem</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains a virtual key, its state and the associated scancode.  <a href="structfabgl_1_1_virtual_key_item.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">

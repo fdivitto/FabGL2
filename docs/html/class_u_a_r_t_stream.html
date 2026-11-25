@@ -115,10 +115,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_u_a_r_t_
 </div><!--header-->
 <div class="contents">
 
-<p>A Stream implemented on top of the ESP-IDF UART driver.  
+<p>A <a class="el" href="struct_stream.html" title="Abstract byte stream with Arduino-like read and print methods.">Stream</a> implemented on top of the ESP-IDF UART driver.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="uartstream_8h_source.html">uartstream.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for UARTStream:</div>
+<div class="dyncontent">
+<div class="center"><img src="class_u_a_r_t_stream__inherit__graph.png" border="0" usemap="#a_u_a_r_t_stream_inherit__map" loading="lazy" alt="Inheritance graph"/></div>
+<map name="a_u_a_r_t_stream_inherit__map" id="a_u_a_r_t_stream_inherit__map">
+<area shape="rect" title="A Stream implemented on top of the ESP&#45;IDF UART driver." alt="" coords="5,153,106,178"/>
+<area shape="rect" href="structfabgl_1_1_stream.html" title="Abstract byte stream with Arduino&#45;like read and print methods." alt="" coords="24,79,87,105"/>
+<area shape="poly" title=" " alt="" coords="57,118,58,153,53,152,54,122"/>
+<area shape="rect" href="structfabgl_1_1_print.html" title="Abstract output class with Arduino&#45;like print methods." alt="" coords="31,5,80,31"/>
+<area shape="poly" title=" " alt="" coords="56,44,58,79,53,78,55,49"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -128,14 +140,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aaf81d3fdaf258088d7692fa70cece087"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uninstalls the UART driver.  <br /></td></tr>
 <tr class="memitem:adac116554b543b7c4228c018a85882f5" id="r_adac116554b543b7c4228c018a85882f5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_u_a_r_t_stream_adac116554b543b7c4228c018a85882f5.html#adac116554b543b7c4228c018a85882f5">flush</a> ()</td></tr>
 <tr class="memdesc:adac116554b543b7c4228c018a85882f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits until all data has been transmitted.  <br /></td></tr>
-<tr class="memitem:a4ef72b9bae2f35c08ddc4292e5ac1df4" id="r_a4ef72b9bae2f35c08ddc4292e5ac1df4"><td class="memItemLeft">size_t&#160;</td><td class="memItemRight"><a class="el" href="class_u_a_r_t_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4">readBytes</a> (uint8_t *buffer, size_t length)</td></tr>
+<tr class="memitem:a4ef72b9bae2f35c08ddc4292e5ac1df4" id="r_a4ef72b9bae2f35c08ddc4292e5ac1df4"><td class="memItemLeft">size_t&#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4">readBytes</a> (uint8_t *buffer, size_t length)</td></tr>
 <tr class="memdesc:a4ef72b9bae2f35c08ddc4292e5ac1df4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads up to length bytes, waiting until all bytes have been received or the timeout expires.  <br /></td></tr>
-<tr class="memitem:af0cf6bbdfd009a5fac46d80752d43f5f" id="r_af0cf6bbdfd009a5fac46d80752d43f5f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_u_a_r_t_stream_af0cf6bbdfd009a5fac46d80752d43f5f.html#af0cf6bbdfd009a5fac46d80752d43f5f">setTimeout</a> (int timeOutMS)</td></tr>
-<tr class="memdesc:af0cf6bbdfd009a5fac46d80752d43f5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the timeout used by <a class="el" href="class_u_a_r_t_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4" title="Reads up to length bytes, waiting until all bytes have been received or the timeout expires.">readBytes()</a>.  <br /></td></tr>
+<tr class="memitem:af0cf6bbdfd009a5fac46d80752d43f5f" id="r_af0cf6bbdfd009a5fac46d80752d43f5f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_stream_af0cf6bbdfd009a5fac46d80752d43f5f.html#af0cf6bbdfd009a5fac46d80752d43f5f">setTimeout</a> (int timeOutMS)</td></tr>
+<tr class="memdesc:af0cf6bbdfd009a5fac46d80752d43f5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the timeout used by <a class="el" href="structfabgl_1_1_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4" title="Reads up to length bytes, waiting until all bytes have been received or the timeout expires.">readBytes()</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A Stream implemented on top of the ESP-IDF UART driver. </p>
-<p>It can be used wherever FabGL requires a Stream object (e.g. Terminal::setLogStream()). On UART 0 it shares the ESP-IDF console (the one used by printf() and "idf.py monitor").</p>
+<div class="textblock"><p>A <a class="el" href="struct_stream.html" title="Abstract byte stream with Arduino-like read and print methods.">Stream</a> implemented on top of the ESP-IDF UART driver. </p>
+<p>It can be used wherever FabGL requires a <a class="el" href="struct_stream.html" title="Abstract byte stream with Arduino-like read and print methods.">Stream</a> object (e.g. Terminal::setLogStream()). On UART 0 it shares the ESP-IDF console (the one used by printf() and "idf.py monitor").</p>
 <p>Example: </p><pre class="fragment">fabgl::UARTStream Console;
 
 extern "C" void app_main() {
@@ -146,7 +158,7 @@ extern "C" void app_main() {
     int c = Console.read();
 }
 </pre> 
-<p class="definition">Definition at line <a class="el" href="uartstream_8h_source.html#l00066">66</a> of file <a class="el" href="uartstream_8h_source.html">uartstream.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="uartstream_8h_source.html#l00068">68</a> of file <a class="el" href="uartstream_8h_source.html">uartstream.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="uartstream_8h_source.html">uartstream.h</a></li>
 <li><a class="el" href="uartstream_8cpp_source.html">uartstream.cpp</a></li>

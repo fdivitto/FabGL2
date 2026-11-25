@@ -26,6 +26,8 @@ var NAVTREE =
 [
   [ "FabGL2", "index.html", [
     [ "FabGL Library", "index.html", null ],
+    [ "User Guide", "guide.html", "guide" ],
+    [ "Migrating from FabGL 1.x (Arduino) to FabGL2 (ESP-IDF 6.1)", "md__m_i_g_r_a_t_i_o_n.html", null ],
     [ "VGA output schema", "conf_v_g_a.html", null ],
     [ "PS/2 ports schema", "conf_p_s2.html", null ],
     [ "Configuring the audio port", "conf_audio.html", null ],
@@ -52,30 +54,31 @@ var NAVTREE =
         [ "Macros", "globals_defs.html", null ]
       ] ]
     ] ],
-    [ "Examples", "examples.html", "examples" ]
+    [ "Examples", "guide_examples.html#guide_examples", null ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"_composite_2_base_example_2main_2_base_example_8cpp-example.html",
-"class_sine_waveform_generator.html#a85fa2eb2cf3e487be53c8b2625bdce69",
-"classfabgl_1_1_h_t_t_p_request_a687f5f926905182a11e2f67cdda57027.html#a687f5f926905182a11e2f67cdda57027",
-"classfabgl_1_1_sine_waveform_generator_a52c1060c5ab1219386569f2cc39991b9.html#a52c1060c5ab1219386569f2cc39991b9",
-"classfabgl_1_1_v_g_a8_controller.html#a5308b6853d3778845649f08832e96535",
-"classfabgl_1_1ui_button.html#a9a4c32403766cd16ca4e3a5479f075bd",
-"classfabgl_1_1ui_control.html",
-"classfabgl_1_1ui_image.html#a0d1e25c73ddd3eb742807fd2f06bcda9",
-"classfabgl_1_1ui_progress_bar.html#acbfaf08686b51f8772f88625a3b269b1",
-"classfabgl_1_1ui_text_edit.html#a3a5d411895de42d3fc0dfa1c63cf87c9",
-"classui_color_combo_box.html#a86cf22137a7e0c4231e28275d76ffd43",
-"classui_frame_aaa4260c51f15d6781af112019dc5c632.html#aaa4260c51f15d6781af112019dc5c632",
-"classui_progress_bar.html#ac3d1dccf0a57449b783d613d017bfa9e",
-"cvbs16controller_8h_source.html",
-"group___enumerations_ga1743e3458e6f97a06488133ec83ba679.html#gga1743e3458e6f97a06488133ec83ba679ad1e80c506f4c89e3c4fb1c1b4867a03c",
-"group___enumerations_gad0e6e31d5953384be4ea987eb3923e02.html#ggad0e6e31d5953384be4ea987eb3923e02a3738dc6e4ca145354030c2db2c202994",
-"pages.html",
-"structfabgl_1_1ui_frame_state_a1a57be4a7336000792a73537dc277576.html#a1a57be4a7336000792a73537dc277576"
+"_d_s3231_8cpp_source.html",
+"class_square_waveform_generator_a52c1060c5ab1219386569f2cc39991b9.html#a52c1060c5ab1219386569f2cc39991b9",
+"classfabgl_1_1_file_browser_a735bef30b9975fce75c682f0170fe748.html#a735bef30b9975fce75c682f0170fe748",
+"classfabgl_1_1_scene_a67a0997183f24da19b776d96c1052998.html#a67a0997183f24da19b776d96c1052998",
+"classfabgl_1_1_v_g_a4_controller.html#a0872427e4a351bb3590e8d00096e9cba",
+"classfabgl_1_1_waveform_generator_acafb7271189f6d844921794d61cd608a.html#acafb7271189f6d844921794d61cd608a",
+"classfabgl_1_1ui_color_list_box.html#a4610b49a13217bc61f731b6e2d75a114",
+"classfabgl_1_1ui_file_browser.html#a9a4c32403766cd16ca4e3a5479f075bd",
+"classfabgl_1_1ui_paint_box.html#ac3d1dccf0a57449b783d613d017bfa9e",
+"classfabgl_1_1ui_split_button.html#a356b0115416ab71902f3a92bcac4411f",
+"classui_check_box.html#a49030071385647e7e0333cc5edbb1601",
+"classui_file_browser.html#a7900599c996fc166ec37cdd14add2e47",
+"classui_paint_box.html#a9a4c32403766cd16ca4e3a5479f075bd",
+"classui_static_label.html#a341b0b54b224cb81b4dfc86c3a7ff215",
+"fabui_8h_aabef129474b75f60ee5d3ee1ee1f8890.html#aabef129474b75f60ee5d3ee1ee1f8890",
+"group___enumerations_gab1e29a3412c837d0e4e7599473e8948f.html#ggab1e29a3412c837d0e4e7599473e8948fa896a8d33d48700b0acaeb7d8fd0f58a0",
+"group___enumerations_gad0e6e31d5953384be4ea987eb3923e02.html#ggad0e6e31d5953384be4ea987eb3923e02ac1665caa31fbbf3632eade6b76367d24",
+"struct_sprite.html",
+"structfabgl_1_1ui_slider_style_a0f60611a19c7ff026d39c7156e392489.html#a0f60611a19c7ff026d39c7156e392489"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

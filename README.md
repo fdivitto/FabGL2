@@ -39,6 +39,19 @@ FabGL2 runs on ESP32 revision 1 or later (target `esp32`). See [**Compatible Boa
 - **Composite video** requires no external components (a 5 MHz low-pass filter may improve the picture).
 - **PS/2** keyboard and mouse connect to the ESP32 GPIOs; see the schematics of the compatible boards for the interface circuit.
 
+Default pins (as on the TTGO VGA32 board), used by all the examples:
+
+| Signal | GPIO |
+|---|---|
+| VGA Red (MSB, LSB) | 22, 21 |
+| VGA Green (MSB, LSB) | 19, 18 |
+| VGA Blue (MSB, LSB) | 5, 4 |
+| VGA HSync, VSync | 23, 15 |
+| PS/2 port 0 (keyboard) CLK, DATA | 33, 32 |
+| PS/2 port 1 (mouse) CLK, DATA | 26, 27 |
+| Audio output (DAC) | 25 (23 with composite video, sigma-delta) |
+| Composite video output | 25 |
+
 
 ## Requirements
 
@@ -139,23 +152,71 @@ tools/clean_examples.sh            # all examples (-k keeps sdkconfig, -n shows 
 tools/clean_examples.sh VGA/       # VGA examples only
 ```
 
-| Folder | Examples |
+
+## Examples
+
+Every example has its own README with the purpose of the demo, what it demonstrates, the required hardware and
+how to use it (commands, keys, disk images...):
+
+### VGA
+
+| Example | Description |
 |---|---|
-| `examples/VGA` | Altair8800, AnsiTerminal, Audio, ClassicRacer, CollisionDetection, DirectVGA, DirectVGA_ElMuro, DoubleBuffer, FileBrowser, GraphicalUserInterface, HardwareTest, InputBox, LoopbackTerminal, ModelineStudio, MouseOnScreen, MultitaskingCPM, NetworkTerminal, PCEmulator, SimpleTerminalOut, SimpleTextTerminalOut, Songs, SoundChipSimulator, SpaceInvaders, Sprites, Synth, TerminalCharSet, VIC20 |
-| `examples/Composite` | BaseExample |
-| `examples/Others` | KeyboardScanCodes, KeyboardVirtualKeys, MouseStudio |
+| [Altair8800](examples/VGA/Altair8800) | Altair 8800 emulator (i8080/Z80) running CP/M 1.4, 2.2, 3, Altair BASIC and DOS from the included disk images |
+| [AnsiTerminal](examples/VGA/AnsiTerminal) | Serial VT/ANSI terminal with on-screen configuration (emulations, fonts, resolutions, serial parameters) |
+| [Audio](examples/VGA/Audio) | Multi-channel sound mixer GUI: waveform generators and sampled sounds |
+| [ClassicRacer](examples/VGA/ClassicRacer) | Two-player retro racing game (keyboard, mouse or joystick) |
+| [CollisionDetection](examples/VGA/CollisionDetection) | Sprites and pixel-precise collision detection with `Scene` |
+| [DirectVGA](examples/VGA/DirectVGA) | Minimal direct scanline rendering with `VGADirectController` |
+| [DirectVGA_ElMuro](examples/VGA/DirectVGA_ElMuro) | Brick-breaker game rendered line by line with `VGADirectController` |
+| [DoubleBuffer](examples/VGA/DoubleBuffer) | Double-buffered animation benchmark (balls, polygons, sprites, FPS) |
+| [FileBrowser](examples/VGA/FileBrowser) | File manager for SPIFFS and SD card, with WiFi setup and HTTP/HTTPS downloads |
+| [GraphicalUserInterface](examples/VGA/GraphicalUserInterface) | Tour of the GUI: windows, controls, modal dialogs, message boxes, timers |
+| [HardwareTest](examples/VGA/HardwareTest) | Board test: colors, keyboard, sound, SD card, GPIOs, MCP23S17, WiFi |
+| [InputBox](examples/VGA/InputBox) | Ready-made dialogs: messages, menus, text input, progress bars, file selector, WiFi wizard |
+| [LoopbackTerminal](examples/VGA/LoopbackTerminal) | Terminal connected to itself, to try the escape sequences from the keyboard |
+| [ModelineStudio](examples/VGA/ModelineStudio) | Find and tune VGA modelines from the serial console |
+| [MouseOnScreen](examples/VGA/MouseOnScreen) | Mouse pointer, cursor shapes and drawing with the mouse |
+| [MultitaskingCPM](examples/VGA/MultitaskingCPM) | Up to 12 concurrent CP/M 3 compatible Z80 sessions, with WiFi, telnet and ping |
+| [NetworkTerminal](examples/VGA/NetworkTerminal) | WiFi command shell with telnet client, ping and network scan |
+| [PCEmulator](examples/VGA/PCEmulator) | IBM PC/XT emulator (8086, CGA/Hercules) running DOS, Windows 3.0, ELKS, GEM... (requires PSRAM and SD card) |
+| [SimpleTerminalOut](examples/VGA/SimpleTerminalOut) | Terminal output showcase: colors, styles, graphics, animations |
+| [SimpleTextTerminalOut](examples/VGA/SimpleTextTerminalOut) | The same showcase with the text-only VGA controller |
+| [Songs](examples/VGA/Songs) | Songs written as text strings, played with a software ADSR sound chip |
+| [SoundChipSimulator](examples/VGA/SoundChipSimulator) | Catalog of retro sound effects (ADSR envelope + frequency sweep) |
+| [SpaceInvaders](examples/VGA/SpaceInvaders) | Arcade shoot-'em-up game with sprites and sampled sounds |
+| [Sprites](examples/VGA/Sprites) | The simplest sprite example, with the supported bitmap formats |
+| [Synth](examples/VGA/Synth) | 8-voice polyphonic synthesizer with ADSR and resonant filter, played from the PS/2 keyboard |
+| [TerminalCharSet](examples/VGA/TerminalCharSet) | Shows the terminal character set with codes |
+| [VIC20](examples/VGA/VIC20) | Commodore VIC-20 emulator with included games, cartridges and Internet downloads |
+
+### Composite
+
+| Example | Description |
+|---|---|
+| [BaseExample](examples/Composite/BaseExample) | PAL/NTSC composite video test screen with mode selection |
+
+### Others
+
+| Example | Description |
+|---|---|
+| [KeyboardScanCodes](examples/Others/KeyboardScanCodes) | Shows the raw PS/2 keyboard scancodes |
+| [KeyboardVirtualKeys](examples/Others/KeyboardVirtualKeys) | Shows the virtual keys and ASCII codes generated by the keyboard, for each layout |
+| [MouseStudio](examples/Others/MouseStudio) | PS/2 mouse diagnostics on the serial console |
 
 
 ## Building the documentation
 
-The API documentation is generated with [Doxygen](https://www.doxygen.nl) and Graphviz:
+The documentation (API reference, User Guide and one page per example) is generated with
+[Doxygen](https://www.doxygen.nl), Graphviz and Python 3 (on macOS: `brew install doxygen graphviz`):
 
 ```
-cd docs
-doxygen Doxyfile
+tools/build_docs.sh          # regenerate docs/html (fails on Doxygen warnings)
+tools/build_docs.sh -z       # also create build_docs/fabgl-docs-<version>.zip
+tools/build_docs.sh -s       # then preview it on http://localhost:8000
 ```
 
-The HTML output is written to `docs/html`.
+The content of `docs/html` is the www.fabglib.org site.
 
 
 ## License

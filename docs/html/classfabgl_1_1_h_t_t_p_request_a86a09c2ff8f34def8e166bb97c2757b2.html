@@ -130,7 +130,8 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
       </table>
 </div><div class="memdoc">
 
-<p>Reads content after a successful <a class="el" href="classfabgl_1_1_h_t_t_p_request_a4d90bca5d1a8478da80992b40c11581c.html#a4d90bca5d1a8478da80992b40c11581c" title="Opens a streaming GET request (follows redirects).">open()</a>. </p>
+<p>Reads content after a successful <a class="el" href="classfabgl_1_1_h_t_t_p_request_a000f94dbd179a5e3d5cdc126fdc4aa1c.html#a000f94dbd179a5e3d5cdc126fdc4aa1c" title="Opens a streaming GET request (follows redirects).">open()</a>. </p>
+<p>A connection closed by the server before the end of the content also returns 0: compare the received bytes with <a class="el" href="classfabgl_1_1_h_t_t_p_request_a00493e01037c52bf0c68e4fc6d526cd4.html#a00493e01037c52bf0c68e4fc6d526cd4" title="Gets the content length.">contentLength()</a> to know whether the content is complete.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">buffer</td><td>Destination buffer </td></tr>
@@ -138,11 +139,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Number of bytes read, 0 when the whole content has been received, -1 on error </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_v_g_a_2_p_c_emulator_2main_2_p_c_emulator_8cpp-example.html#a22">VGA/PCEmulator/main/PCEmulator.cpp</a>, and <a class="el" href="_v_g_a_2_v_i_c20_2main_2_v_i_c20_8cpp-example.html#a45">VGA/VIC20/main/VIC20.cpp</a>.</dd>
-</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes read, 0 when no more data is available, negative on error or when no data arrives within the timeout (see <a class="el" href="classfabgl_1_1_h_t_t_p_request_a7b805f7fd7fce1cb370a880cc4b0447f.html#a7b805f7fd7fce1cb370a880cc4b0447f" title="Sets the network timeout of the next open() and GET().">setTimeout()</a>) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="netutils_8cpp_source.html#l00381">381</a> of file <a class="el" href="netutils_8cpp_source.html">netutils.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="netutils_8cpp_source.html#l00519">519</a> of file <a class="el" href="netutils_8cpp_source.html">netutils.cpp</a>.</p>
 
 </div>
 </div>

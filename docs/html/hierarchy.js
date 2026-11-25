@@ -2,7 +2,25 @@ var hierarchy =
 [
     [ "AltVirtualKeyDef", "structfabgl_1_1_alt_virtual_key_def.html", null ],
     [ "BaseDisplayController", "classfabgl_1_1_base_display_controller.html", [
-      [ "BitmappedDisplayController", "classfabgl_1_1_bitmapped_display_controller.html", null ],
+      [ "BitmappedDisplayController", "classfabgl_1_1_bitmapped_display_controller.html", [
+        [ "GenericBitmappedDisplayController", "classfabgl_1_1_generic_bitmapped_display_controller.html", [
+          [ "CVBSBaseController", "classfabgl_1_1_c_v_b_s_base_controller.html", [
+            [ "CVBSPalettedController", "classfabgl_1_1_c_v_b_s_paletted_controller.html", [
+              [ "CVBS16Controller", "classfabgl_1_1_c_v_b_s16_controller.html", null ]
+            ] ]
+          ] ],
+          [ "VGABaseController", "classfabgl_1_1_v_g_a_base_controller.html", [
+            [ "VGAController", "classfabgl_1_1_v_g_a_controller.html", null ],
+            [ "VGADirectController", "classfabgl_1_1_v_g_a_direct_controller.html", null ],
+            [ "VGAPalettedController", "classfabgl_1_1_v_g_a_paletted_controller.html", [
+              [ "VGA16Controller", "classfabgl_1_1_v_g_a16_controller.html", null ],
+              [ "VGA2Controller", "classfabgl_1_1_v_g_a2_controller.html", null ],
+              [ "VGA4Controller", "classfabgl_1_1_v_g_a4_controller.html", null ],
+              [ "VGA8Controller", "classfabgl_1_1_v_g_a8_controller.html", null ]
+            ] ]
+          ] ]
+        ] ]
+      ] ],
       [ "TextualDisplayController", "classfabgl_1_1_textual_display_controller.html", [
         [ "VGATextController", "classfabgl_1_1_v_g_a_text_controller.html", null ]
       ] ]
@@ -22,6 +40,7 @@ var hierarchy =
     [ "DS3231", "classfabgl_1_1_d_s3231.html", null ],
     [ "FileBrowser", "classfabgl_1_1_file_browser.html", null ],
     [ "FileBrowser", "class_file_browser.html", null ],
+    [ "FontInfo", "structfabgl_1_1_font_info.html", null ],
     [ "Glyph", "structfabgl_1_1_glyph.html", null ],
     [ "GlyphOptions", "unionfabgl_1_1_glyph_options.html", null ],
     [ "GlyphOptions", "union_glyph_options.html", null ],
@@ -47,6 +66,12 @@ var hierarchy =
     [ "Point", "struct_point.html", null ],
     [ "Preferences", "classfabgl_1_1_preferences.html", null ],
     [ "Preferences", "class_preferences.html", null ],
+    [ "Print", "structfabgl_1_1_print.html", [
+      [ "Stream", "structfabgl_1_1_stream.html", [
+        [ "Terminal", "classfabgl_1_1_terminal.html", null ],
+        [ "UARTStream", "classfabgl_1_1_u_a_r_t_stream.html", null ]
+      ] ]
+    ] ],
     [ "PS2Controller", "classfabgl_1_1_p_s2_controller.html", null ],
     [ "PS2Device", "classfabgl_1_1_p_s2_device.html", [
       [ "Keyboard", "classfabgl_1_1_keyboard.html", null ],
@@ -73,11 +98,8 @@ var hierarchy =
     [ "Sprite", "structfabgl_1_1_sprite.html", null ],
     [ "Sprite", "struct_sprite.html", null ],
     [ "TCPClient", "classfabgl_1_1_t_c_p_client.html", null ],
-    [ "Terminal", "classfabgl_1_1_terminal.html", null ],
     [ "TerminalController", "classfabgl_1_1_terminal_controller.html", null ],
     [ "TerminalController", "class_terminal_controller.html", null ],
-    [ "UARTStream", "classfabgl_1_1_u_a_r_t_stream.html", null ],
-    [ "UARTStream", "class_u_a_r_t_stream.html", null ],
     [ "uiAnchors", "structfabgl_1_1ui_anchors.html", null ],
     [ "uiAppProps", "structfabgl_1_1ui_app_props.html", null ],
     [ "uiButtonStyle", "structfabgl_1_1ui_button_style.html", null ],
@@ -150,6 +172,8 @@ var hierarchy =
     [ "uiSliderStyle", "structfabgl_1_1ui_slider_style.html", null ],
     [ "uiSliderStyle", "structui_slider_style.html", null ],
     [ "uiStaticLabelStyle", "structfabgl_1_1ui_static_label_style.html", null ],
+    [ "uiStyle", "structfabgl_1_1ui_style.html", null ],
+    [ "uiStyle", "structui_style.html", null ],
     [ "uiTextEditProps", "structfabgl_1_1ui_text_edit_props.html", null ],
     [ "uiTextEditStyle", "structfabgl_1_1ui_text_edit_style.html", null ],
     [ "uiTextEditStyle", "structui_text_edit_style.html", null ],

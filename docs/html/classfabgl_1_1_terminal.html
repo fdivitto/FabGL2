@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">Terminal Class Reference</div></div>
+  <div class="headertitle"><div class="title">Terminal Class Reference<div class="ingroups"><a class="el" href="group__terminal.html">Terminal</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -119,6 +119,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="terminal_8h_source.html">terminal.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for Terminal:</div>
+<div class="dyncontent">
+<div class="center"><img src="classfabgl_1_1_terminal__inherit__graph.png" border="0" usemap="#a_terminal_inherit__map" loading="lazy" alt="Inheritance graph"/></div>
+<map name="a_terminal_inherit__map" id="a_terminal_inherit__map">
+<area shape="rect" title="An ANSI&#45;VT100 compatible display terminal." alt="" coords="5,153,76,178"/>
+<area shape="rect" href="structfabgl_1_1_stream.html" title="Abstract byte stream with Arduino&#45;like read and print methods." alt="" coords="9,79,72,105"/>
+<area shape="poly" title=" " alt="" coords="43,118,43,153,38,152,38,122"/>
+<area shape="rect" href="structfabgl_1_1_print.html" title="Abstract output class with Arduino&#45;like print methods." alt="" coords="16,5,65,31"/>
+<area shape="poly" title=" " alt="" coords="41,44,43,79,38,78,40,49"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -158,7 +170,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa1f512ab0fcc05612f8e3d6a4664ce9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether this terminal is active.  <br /></td></tr>
 <tr class="memitem:a844f2486fd3a16ee4e5e2f16bf0a0943" id="r_a844f2486fd3a16ee4e5e2f16bf0a0943"><td class="memItemLeft"><a class="el" href="classfabgl_1_1_keyboard.html">Keyboard</a> *&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_a844f2486fd3a16ee4e5e2f16bf0a0943.html#a844f2486fd3a16ee4e5e2f16bf0a0943">keyboard</a> ()</td></tr>
 <tr class="memdesc:a844f2486fd3a16ee4e5e2f16bf0a0943"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the associated keyboard object.  <br /></td></tr>
-<tr class="memitem:a72770033c3a06f499a251909efba87c7" id="r_a72770033c3a06f499a251909efba87c7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_a72770033c3a06f499a251909efba87c7.html#a72770033c3a06f499a251909efba87c7">loadFont</a> (FontInfo const *font)</td></tr>
+<tr class="memitem:a72770033c3a06f499a251909efba87c7" id="r_a72770033c3a06f499a251909efba87c7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_a72770033c3a06f499a251909efba87c7.html#a72770033c3a06f499a251909efba87c7">loadFont</a> (<a class="el" href="structfabgl_1_1_font_info.html">FontInfo</a> const *font)</td></tr>
 <tr class="memdesc:a72770033c3a06f499a251909efba87c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the font to use.  <br /></td></tr>
 <tr class="memitem:a7f30b1de2931fbb091221076c8d6d4f0" id="r_a7f30b1de2931fbb091221076c8d6d4f0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_a7f30b1de2931fbb091221076c8d6d4f0.html#a7f30b1de2931fbb091221076c8d6d4f0">localInsert</a> (uint8_t c)</td></tr>
 <tr class="memdesc:a7f30b1de2931fbb091221076c8d6d4f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a key at the head of the keyboard queue.  <br /></td></tr>
@@ -172,7 +184,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aaab5dab5b969a87f538242e524431637"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads codes from keyboard.  <br /></td></tr>
 <tr class="memitem:abebbdf8f8248aa120af95dbf92c64ee5" id="r_abebbdf8f8248aa120af95dbf92c64ee5"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_abebbdf8f8248aa120af95dbf92c64ee5.html#abebbdf8f8248aa120af95dbf92c64ee5">read</a> (int timeOutMS)</td></tr>
 <tr class="memdesc:abebbdf8f8248aa120af95dbf92c64ee5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads codes from the keyboard, with a timeout.  <br /></td></tr>
-<tr class="memitem:a4ef72b9bae2f35c08ddc4292e5ac1df4" id="r_a4ef72b9bae2f35c08ddc4292e5ac1df4"><td class="memItemLeft">size_t&#160;</td><td class="memItemRight"><a class="el" href="class_u_a_r_t_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4">readBytes</a> (uint8_t *buffer, size_t length)</td></tr>
+<tr class="memitem:a4ef72b9bae2f35c08ddc4292e5ac1df4" id="r_a4ef72b9bae2f35c08ddc4292e5ac1df4"><td class="memItemLeft">size_t&#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4">readBytes</a> (uint8_t *buffer, size_t length)</td></tr>
 <tr class="memdesc:a4ef72b9bae2f35c08ddc4292e5ac1df4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads up to length bytes, waiting until all bytes have been received or the timeout expires.  <br /></td></tr>
 <tr class="memitem:ad725948423717030f8c688d9cf3a688c" id="r_ad725948423717030f8c688d9cf3a688c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_ad725948423717030f8c688d9cf3a688c.html#ad725948423717030f8c688d9cf3a688c">send</a> (char const *str)</td></tr>
 <tr class="memdesc:ad725948423717030f8c688d9cf3a688c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Like <a class="el" href="classfabgl_1_1_terminal_a80440833b3e2b77b011b46da8529199f.html#a80440833b3e2b77b011b46da8529199f" title="Appends a key to the keyboard queue.">localWrite()</a>, but also sends the data to the serial port, if connected.  <br /></td></tr>
@@ -186,12 +198,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ae14dcf743cee53855ef05cc98b7a9e43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects a color for the specified attribute.  <br /></td></tr>
 <tr class="memitem:afad23f091c4bb07a71963f5f7aa1831d" id="r_afad23f091c4bb07a71963f5f7aa1831d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_afad23f091c4bb07a71963f5f7aa1831d.html#afad23f091c4bb07a71963f5f7aa1831d">setForegroundColor</a> (<a class="el" href="group___enumerations_gab87bacfdad76e61b9412d7124be44c1c.html#gab87bacfdad76e61b9412d7124be44c1c">Color</a> color, bool setAsDefault=true)</td></tr>
 <tr class="memdesc:afad23f091c4bb07a71963f5f7aa1831d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the foreground color.  <br /></td></tr>
-<tr class="memitem:a4b5a116dd0c23f47197ff61b5d9d7f41" id="r_a4b5a116dd0c23f47197ff61b5d9d7f41"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_a4b5a116dd0c23f47197ff61b5d9d7f41.html#a4b5a116dd0c23f47197ff61b5d9d7f41">setLogStream</a> (Stream &amp;stream)</td></tr>
+<tr class="memitem:a4b5a116dd0c23f47197ff61b5d9d7f41" id="r_a4b5a116dd0c23f47197ff61b5d9d7f41"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_a4b5a116dd0c23f47197ff61b5d9d7f41.html#a4b5a116dd0c23f47197ff61b5d9d7f41">setLogStream</a> (<a class="el" href="struct_stream.html">Stream</a> &amp;stream)</td></tr>
 <tr class="memdesc:a4b5a116dd0c23f47197ff61b5d9d7f41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the stream that receives debug logs.  <br /></td></tr>
 <tr class="memitem:ae338b7372e1272a016ee97143d7351f8" id="r_ae338b7372e1272a016ee97143d7351f8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_ae338b7372e1272a016ee97143d7351f8.html#ae338b7372e1272a016ee97143d7351f8">setTerminalType</a> (<a class="el" href="group___enumerations_ga67edd9a04814c247a553dfde047e6f62.html#ga67edd9a04814c247a553dfde047e6f62">TermType</a> value)</td></tr>
 <tr class="memdesc:ae338b7372e1272a016ee97143d7351f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the terminal type to emulate.  <br /></td></tr>
-<tr class="memitem:af0cf6bbdfd009a5fac46d80752d43f5f" id="r_af0cf6bbdfd009a5fac46d80752d43f5f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_u_a_r_t_stream_af0cf6bbdfd009a5fac46d80752d43f5f.html#af0cf6bbdfd009a5fac46d80752d43f5f">setTimeout</a> (int timeOutMS)</td></tr>
-<tr class="memdesc:af0cf6bbdfd009a5fac46d80752d43f5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the timeout used by <a class="el" href="class_u_a_r_t_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4" title="Reads up to length bytes, waiting until all bytes have been received or the timeout expires.">readBytes()</a>.  <br /></td></tr>
+<tr class="memitem:af0cf6bbdfd009a5fac46d80752d43f5f" id="r_af0cf6bbdfd009a5fac46d80752d43f5f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="structfabgl_1_1_stream_af0cf6bbdfd009a5fac46d80752d43f5f.html#af0cf6bbdfd009a5fac46d80752d43f5f">setTimeout</a> (int timeOutMS)</td></tr>
+<tr class="memdesc:af0cf6bbdfd009a5fac46d80752d43f5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the timeout used by <a class="el" href="structfabgl_1_1_stream_a4ef72b9bae2f35c08ddc4292e5ac1df4.html#a4ef72b9bae2f35c08ddc4292e5ac1df4" title="Reads up to length bytes, waiting until all bytes have been received or the timeout expires.">readBytes()</a>.  <br /></td></tr>
 <tr class="memitem:ac737f68a707c256b2cdb0997a4cbb362" id="r_ac737f68a707c256b2cdb0997a4cbb362"><td class="memItemLeft"><a class="el" href="class_sound_generator.html">SoundGenerator</a> *&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_ac737f68a707c256b2cdb0997a4cbb362.html#ac737f68a707c256b2cdb0997a4cbb362">soundGenerator</a> ()</td></tr>
 <tr class="memdesc:ac737f68a707c256b2cdb0997a4cbb362"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the embedded sound generator.  <br /></td></tr>
 <tr class="memitem:a070bc4462f824ad885969c19d32bdd8e" id="r_a070bc4462f824ad885969c19d32bdd8e"><td class="memItemLeft">TermInfo const &amp;&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_terminal_a070bc4462f824ad885969c19d32bdd8e.html#a070bc4462f824ad885969c19d32bdd8e">terminalType</a> ()</td></tr>
@@ -241,7 +253,7 @@ Static Public Attributes</h2></td></tr>
 <p>By default it supports 80x25 or 132x25 characters at 640x350. Any other resolution and text buffer size is supported by specifying a custom font.<br  />
 </p>
 <p>Three cursor styles are available (block, underline and bar), each either blinking or steady.</p>
-<p><a class="el" href="classfabgl_1_1_terminal.html" title="An ANSI-VT100 compatible display terminal.">Terminal</a> derives from Stream, so applications can use all the Stream and Print input and output methods.</p>
+<p><a class="el" href="classfabgl_1_1_terminal.html" title="An ANSI-VT100 compatible display terminal.">Terminal</a> derives from <a class="el" href="structfabgl_1_1_stream.html" title="Abstract byte stream with Arduino-like read and print methods.">Stream</a>, so applications can use all the <a class="el" href="structfabgl_1_1_stream.html" title="Abstract byte stream with Arduino-like read and print methods.">Stream</a> and <a class="el" href="structfabgl_1_1_print.html" title="Abstract output class with Arduino-like print methods.">Print</a> input and output methods.</p>
 <p><a class="el" href="classfabgl_1_1_terminal.html" title="An ANSI-VT100 compatible display terminal.">Terminal</a> passes 95 of the 110 tests of the VTTEST VT100/VT102 Compatibility Test Score Sheet.</p>
 <p>Example: </p><pre class="fragment">fabgl::VGAController VGAController;
 fabgl::PS2Controller PS2Controller;
@@ -274,10 +286,9 @@ extern "C" void app_main()
     }
   }
 }
-</pre> <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_others_2_keyboard_scan_codes_2main_2_keyboard_scan_codes_8cpp-example.html#_a2">Others/KeyboardScanCodes/main/KeyboardScanCodes.cpp</a>, <a class="el" href="_others_2_keyboard_virtual_keys_2main_2_keyboard_virtual_keys_8cpp-example.html#_a2">Others/KeyboardVirtualKeys/main/KeyboardVirtualKeys.cpp</a>, <a class="el" href="_v_g_a_2_altair8800_2main_2_altair8800_8cpp-example.html#_a5">VGA/Altair8800/main/Altair8800.cpp</a>, <a class="el" href="_v_g_a_2_ansi_terminal_2main_2_ansi_terminal_8cpp-example.html#_a2">VGA/AnsiTerminal/main/AnsiTerminal.cpp</a>, <a class="el" href="_v_g_a_2_loopback_terminal_2main_2_loopback_terminal_8cpp-example.html#_a2">VGA/LoopbackTerminal/main/LoopbackTerminal.cpp</a>, <a class="el" href="_v_g_a_2_multitasking_c_p_m_2main_2_multitasking_c_p_m_8cpp-example.html#_a12">VGA/MultitaskingCPM/main/MultitaskingCPM.cpp</a>, <a class="el" href="_v_g_a_2_network_terminal_2main_2_network_terminal_8cpp-example.html#_a4">VGA/NetworkTerminal/main/NetworkTerminal.cpp</a>, <a class="el" href="_v_g_a_2_simple_terminal_out_2main_2_simple_terminal_out_8cpp-example.html#_a1">VGA/SimpleTerminalOut/main/SimpleTerminalOut.cpp</a>, <a class="el" href="_v_g_a_2_simple_text_terminal_out_2main_2_simple_text_terminal_out_8cpp-example.html#_a1">VGA/SimpleTextTerminalOut/main/SimpleTextTerminalOut.cpp</a>, <a class="el" href="_v_g_a_2_songs_2main_2_songs_8cpp-example.html#_a4">VGA/Songs/main/Songs.cpp</a>, <a class="el" href="_v_g_a_2_sound_chip_simulator_2main_2_sound_chip_simulator_8cpp-example.html#_a4">VGA/SoundChipSimulator/main/SoundChipSimulator.cpp</a>, and <a class="el" href="_v_g_a_2_terminal_char_set_2main_2_terminal_char_set_8cpp-example.html#_a1">VGA/TerminalCharSet/main/TerminalCharSet.cpp</a>.</dd>
-</dl>
+</pre><dl class="section see"><dt>See also</dt><dd><a class="el" href="guide_terminal.html" title="Terminal">Terminal</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="terminal_8h_source.html#l00880">880</a> of file <a class="el" href="terminal_8h_source.html">terminal.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="terminal_8h_source.html#l00883">883</a> of file <a class="el" href="terminal_8h_source.html">terminal.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="terminal_8h_source.html">terminal.h</a></li>
 <li><a class="el" href="terminal_8cpp_source.html">terminal.cpp</a></li>

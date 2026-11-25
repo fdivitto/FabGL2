@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['schema_0',['schema',['../conf_p_s2.html',1,'PS/2 ports schema'],['../conf_v_g_a.html',1,'VGA output schema']]],
-  ['score_20sheet_1',['VTTEST VT100/VT102 Compatibility Test Score Sheet',['../vttest.html',1,'']]],
-  ['sequences_2',['FabGL Specific Terminal Sequences',['../special_term_escapes.html',1,'']]],
-  ['sheet_3',['VTTEST VT100/VT102 Compatibility Test Score Sheet',['../vttest.html',1,'']]],
-  ['specific_20terminal_20sequences_4',['FabGL Specific Terminal Sequences',['../special_term_escapes.html',1,'']]]
+  ['emulations_20and_20fabgl_20sequences_0',['Emulations and FabGL sequences',['../guide_terminal.html#terminal_emulation',1,'']]],
+  ['esp_20idf_206_201_1',['Migrating from FabGL 1.x (Arduino) to FabGL2 (ESP-IDF 6.1)',['../md__m_i_g_r_a_t_i_o_n.html',1,'']]],
+  ['events_2',['Events',['../guide_gui.html#gui_events',1,'']]],
+  ['examples_3',['Examples',['../guide_examples.html',1,'guide']]],
+  ['examples_4',['examples',['../guide_examples.html#examples_build',1,'Building the examples'],['../guide_examples.html#examples_composite',1,'Composite video examples'],['../guide_examples.html#examples_others',1,'Other examples'],['../guide_examples.html#examples_vga',1,'VGA examples']]]
 ];

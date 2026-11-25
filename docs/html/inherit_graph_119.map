@@ -1,3 +1,25 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classfabgl_1_1_wi_fi_connection.html" title="WiFi connection helper class." alt="" coords="5,5,120,31"/>
+<area shape="rect" id="Node000000" href="$classfabgl_1_1_waveform_generator.html" title="Abstract base class for waveform generators. A waveform generator is an audio channel that SoundGener..." alt="" coords="5,129,143,155"/>
+<area shape="rect" id="Node000001" href="$classfabgl_1_1_noise_waveform_generator.html" title="Noise generator." alt="" coords="201,301,372,327"/>
+<area shape="poly" id="edge48_Node000000_Node000001" title=" " alt="" coords="140,161,145,164,157,180,164,197,169,229,173,259,180,274,192,288,209,301,204,300,189,292,175,277,168,261,163,229,159,198,153,183,141,168,140,167"/>
+<area shape="rect" id="Node000003" href="$classfabgl_1_1_samples_generator.html" title="Samples generator." alt="" coords="222,5,352,31"/>
+<area shape="poly" id="edge49_Node000000_Node000003" title=" " alt="" coords="95,116,136,77,189,40,224,28,220,32,192,45,139,81,99,120"/>
+<area shape="rect" id="Node000004" href="$classfabgl_1_1_sawtooth_waveform_generator.html" title="Sawtooth waveform generator." alt="" coords="191,55,383,80"/>
+<area shape="poly" id="edge50_Node000000_Node000004" title=" " alt="" coords="114,120,190,89,228,79,224,83,192,94,117,125"/>
+<area shape="rect" id="Node000005" href="$classfabgl_1_1_sine_waveform_generator.html" title="Sine waveform generator." alt="" coords="205,104,368,130"/>
+<area shape="poly" id="edge51_Node000000_Node000005" title=" " alt="" coords="157,130,207,125,203,128,159,135"/>
+<area shape="rect" id="Node000006" href="$classfabgl_1_1_square_waveform_generator.html" title="Square waveform generator." alt="" coords="198,153,376,179"/>
+<area shape="poly" id="edge52_Node000000_Node000006" title=" " alt="" coords="157,149,200,155,195,157,159,154"/>
+<area shape="rect" id="Node000007" href="$classfabgl_1_1_triangle_waveform_generator.html" title="Triangle waveform generator." alt="" coords="195,203,378,228"/>
+<area shape="poly" id="edge53_Node000000_Node000007" title=" " alt="" coords="130,158,144,164,168,177,192,189,226,202,221,203,190,194,165,182,142,169,131,164"/>
+<area shape="rect" id="Node000008" href="$classfabgl_1_1_v_i_c_noise_generator.html" title="Emulates the VIC 6561 (VIC&#45;20) noise generator." alt="" coords="219,252,354,278"/>
+<area shape="poly" id="edge54_Node000000_Node000008" title=" " alt="" coords="138,160,144,164,161,184,169,203,176,221,192,239,222,255,216,255,189,243,172,224,164,205,156,186,141,168,138,165"/>
+<area shape="rect" id="Node000002" href="$class_waveform_generator.html" title="Abstract base class for waveform generators. A waveform generator is an audio channel that SoundGener..." alt="" coords="5,179,143,204"/>
+<area shape="poly" id="edge55_Node000002_Node000001" title=" " alt="" coords="98,213,140,252,192,288,219,301,214,301,189,293,136,256,96,218"/>
+<area shape="poly" id="edge56_Node000002_Node000003" title=" " alt="" coords="138,168,141,166,153,150,159,135,163,104,168,72,175,56,189,40,204,30,224,24,220,27,206,35,192,44,180,59,173,73,169,104,164,137,157,153,145,169,142,172"/>
+<area shape="poly" id="edge57_Node000002_Node000004" title=" " alt="" coords="136,169,141,166,156,147,164,128,172,108,189,89,212,79,208,83,192,94,176,111,169,130,161,150,144,169,140,173"/>
+<area shape="poly" id="edge58_Node000002_Node000005" title=" " alt="" coords="129,171,141,165,165,151,190,138,225,129,220,132,192,143,168,156,144,170,132,175"/>
+<area shape="poly" id="edge59_Node000002_Node000006" title=" " alt="" coords="157,179,200,176,195,178,159,184"/>
+<area shape="poly" id="edge60_Node000002_Node000007" title=" " alt="" coords="157,198,197,204,192,206,158,204"/>
+<area shape="poly" id="edge61_Node000002_Node000008" title=" " alt="" coords="117,208,192,238,229,251,224,252,190,243,116,214"/>
 </map>

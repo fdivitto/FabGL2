@@ -118,6 +118,6 @@ See @ref guide_input for details.
 # Where to go next {#start_next}
 
 - The examples in `examples/` are complete ESP-IDF projects: build one with `idf.py build flash monitor`
-  from its folder. `VGA/HardwareTest` is a good way to check a board.
+  from its folder. @ref guide_examples describes each of them and how to use it. `VGA/HardwareTest` is a good way to check a board.
 - @ref guide_display explains how to choose the display controller and the resolution.
 - @ref guide_gui shows how to build applications with windows and controls.

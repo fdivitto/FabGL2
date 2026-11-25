@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">uiApp Class Reference</div></div>
+  <div class="headertitle"><div class="title">uiApp Class Reference<div class="ingroups"><a class="el" href="group__gui.html">Graphical user interface</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -208,7 +208,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ad4d4d5b8d7eff75da70ba876a77fe403"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the active window.  <br /></td></tr>
 <tr class="memitem:a70df5474cd77aa30087780f616629e2c" id="r_a70df5474cd77aa30087780f616629e2c"><td class="memItemLeft"><a class="el" href="classfabgl_1_1ui_window.html">uiWindow</a> *&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1ui_app_a70df5474cd77aa30087780f616629e2c.html#a70df5474cd77aa30087780f616629e2c">setFocusedWindow</a> (<a class="el" href="classfabgl_1_1ui_window.html">uiWindow</a> *value)</td></tr>
 <tr class="memdesc:a70df5474cd77aa30087780f616629e2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the focused window (control).  <br /></td></tr>
-<tr class="memitem:abe5345f02e694e8de8eaa8bc0dfaf147" id="r_abe5345f02e694e8de8eaa8bc0dfaf147"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1ui_app_abe5345f02e694e8de8eaa8bc0dfaf147.html#abe5345f02e694e8de8eaa8bc0dfaf147">setStyle</a> (uiStyle *value)</td></tr>
+<tr class="memitem:abe5345f02e694e8de8eaa8bc0dfaf147" id="r_abe5345f02e694e8de8eaa8bc0dfaf147"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1ui_app_abe5345f02e694e8de8eaa8bc0dfaf147.html#abe5345f02e694e8de8eaa8bc0dfaf147">setStyle</a> (<a class="el" href="structui_style.html">uiStyle</a> *value)</td></tr>
 <tr class="memdesc:abe5345f02e694e8de8eaa8bc0dfaf147"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the style of the application controls.  <br /></td></tr>
 <tr class="memitem:a7cfc7871d5779bd73c9f731d14a0a152" id="r_a7cfc7871d5779bd73c9f731d14a0a152"><td class="memItemLeft">uiTimerHandle&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1ui_app_a7cfc7871d5779bd73c9f731d14a0a152.html#a7cfc7871d5779bd73c9f731d14a0a152">setTimer</a> (uiEvtHandler *dest, int periodMS)</td></tr>
 <tr class="memdesc:a7cfc7871d5779bd73c9f731d14a0a152"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up a timer.  <br /></td></tr>
@@ -216,7 +216,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a3e13971dd3a3170e01b8df4c7f68b62c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes a window visible and runs it as a modal window.  <br /></td></tr>
 <tr class="memitem:a40524a6c585af26197d17053edd19136" id="r_a40524a6c585af26197d17053edd19136"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1ui_app_a40524a6c585af26197d17053edd19136.html#a40524a6c585af26197d17053edd19136">showWindow</a> (<a class="el" href="classfabgl_1_1ui_window.html">uiWindow</a> *window, bool value)</td></tr>
 <tr class="memdesc:a40524a6c585af26197d17053edd19136"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes a window visible or invisible.  <br /></td></tr>
-<tr class="memitem:aa7e849a9b72fee47e1be38ca65c66240" id="r_aa7e849a9b72fee47e1be38ca65c66240"><td class="memItemLeft">uiStyle *&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1ui_app_aa7e849a9b72fee47e1be38ca65c66240.html#aa7e849a9b72fee47e1be38ca65c66240">style</a> ()</td></tr>
+<tr class="memitem:aa7e849a9b72fee47e1be38ca65c66240" id="r_aa7e849a9b72fee47e1be38ca65c66240"><td class="memItemLeft"><a class="el" href="structui_style.html">uiStyle</a> *&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1ui_app_aa7e849a9b72fee47e1be38ca65c66240.html#aa7e849a9b72fee47e1be38ca65c66240">style</a> ()</td></tr>
 <tr class="memdesc:aa7e849a9b72fee47e1be38ca65c66240"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current style of the application controls.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -226,9 +226,10 @@ Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents the whole application base class. </p>
-<p>FabGL UI applications must derive from <a class="el" href="classfabgl_1_1ui_app.html" title="Represents the whole application base class.">uiApp</a>, create their UI elements in the <a class="el" href="classfabgl_1_1ui_app_a02fd73d861ef2e4aabb38c0c9ff82947.html#a02fd73d861ef2e4aabb38c0c9ff82947" title="Override this method to initialize the application and create its UI.">uiApp::init()</a> method and finally call <a class="el" href="classfabgl_1_1ui_app_a07dcf556fc74c9216516270bf081e06e.html#a07dcf556fc74c9216516270bf081e06e" title="Initializes the application and runs the main event loop.">uiApp::run()</a> to start the application. <a class="el" href="classfabgl_1_1ui_app.html" title="Represents the whole application base class.">uiApp</a> handles the event queue, window management, and the lifecycle and memory management of windows and controls. </p>
+<p>FabGL UI applications must derive from <a class="el" href="classfabgl_1_1ui_app.html" title="Represents the whole application base class.">uiApp</a>, create their UI elements in the <a class="el" href="classfabgl_1_1ui_app_a02fd73d861ef2e4aabb38c0c9ff82947.html#a02fd73d861ef2e4aabb38c0c9ff82947" title="Override this method to initialize the application and create its UI.">uiApp::init()</a> method and finally call <a class="el" href="classfabgl_1_1ui_app_a07dcf556fc74c9216516270bf081e06e.html#a07dcf556fc74c9216516270bf081e06e" title="Initializes the application and runs the main event loop.">uiApp::run()</a> to start the application. <a class="el" href="classfabgl_1_1ui_app.html" title="Represents the whole application base class.">uiApp</a> handles the event queue, window management, and the lifecycle and memory management of windows and controls.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="guide_gui.html" title="Graphical user interface">Graphical user interface</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="fabui_8h_source.html#l03104">3104</a> of file <a class="el" href="fabui_8h_source.html">fabui.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="fabui_8h_source.html#l03222">3222</a> of file <a class="el" href="fabui_8h_source.html">fabui.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="fabui_8h_source.html">fabui.h</a></li>
 <li><a class="el" href="fabui_8cpp_source.html">fabui.cpp</a></li>

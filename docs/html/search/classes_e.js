@@ -9,5 +9,6 @@ var searchData=
   ['size_6',['Size',['../structfabgl_1_1_size.html',1,'Size'],['../struct_size.html',1,'Size']]],
   ['soundgenerator_7',['SoundGenerator',['../classfabgl_1_1_sound_generator.html',1,'SoundGenerator'],['../class_sound_generator.html',1,'SoundGenerator']]],
   ['sprite_8',['Sprite',['../structfabgl_1_1_sprite.html',1,'Sprite'],['../struct_sprite.html',1,'Sprite']]],
-  ['squarewaveformgenerator_9',['SquareWaveformGenerator',['../classfabgl_1_1_square_waveform_generator.html',1,'SquareWaveformGenerator'],['../class_square_waveform_generator.html',1,'SquareWaveformGenerator']]]
+  ['squarewaveformgenerator_9',['SquareWaveformGenerator',['../classfabgl_1_1_square_waveform_generator.html',1,'SquareWaveformGenerator'],['../class_square_waveform_generator.html',1,'SquareWaveformGenerator']]],
+  ['stream_10',['Stream',['../structfabgl_1_1_stream.html',1,'Stream'],['../struct_stream.html',1,'Stream']]]
 ];

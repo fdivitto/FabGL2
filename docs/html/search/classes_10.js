@@ -49,11 +49,12 @@ var searchData=
   ['uisplitbutton_46',['uiSplitButton',['../classfabgl_1_1ui_split_button.html',1,'uiSplitButton'],['../classui_split_button.html',1,'uiSplitButton']]],
   ['uistaticlabel_47',['uiStaticLabel',['../classfabgl_1_1ui_static_label.html',1,'uiStaticLabel'],['../classui_static_label.html',1,'uiStaticLabel']]],
   ['uistaticlabelstyle_48',['uiStaticLabelStyle',['../structfabgl_1_1ui_static_label_style.html',1,'fabgl']]],
-  ['uitextedit_49',['uiTextEdit',['../classfabgl_1_1ui_text_edit.html',1,'uiTextEdit'],['../classui_text_edit.html',1,'uiTextEdit']]],
-  ['uitexteditprops_50',['uiTextEditProps',['../structfabgl_1_1ui_text_edit_props.html',1,'fabgl']]],
-  ['uitexteditstyle_51',['uiTextEditStyle',['../structfabgl_1_1ui_text_edit_style.html',1,'uiTextEditStyle'],['../structui_text_edit_style.html',1,'uiTextEditStyle']]],
-  ['uiwindow_52',['uiWindow',['../classfabgl_1_1ui_window.html',1,'fabgl']]],
-  ['uiwindowprops_53',['uiWindowProps',['../structfabgl_1_1ui_window_props.html',1,'fabgl']]],
-  ['uiwindowstate_54',['uiWindowState',['../structfabgl_1_1ui_window_state.html',1,'fabgl']]],
-  ['uiwindowstyle_55',['uiWindowStyle',['../structfabgl_1_1ui_window_style.html',1,'uiWindowStyle'],['../structui_window_style.html',1,'uiWindowStyle']]]
+  ['uistyle_49',['uiStyle',['../structfabgl_1_1ui_style.html',1,'uiStyle'],['../structui_style.html',1,'uiStyle']]],
+  ['uitextedit_50',['uiTextEdit',['../classfabgl_1_1ui_text_edit.html',1,'uiTextEdit'],['../classui_text_edit.html',1,'uiTextEdit']]],
+  ['uitexteditprops_51',['uiTextEditProps',['../structfabgl_1_1ui_text_edit_props.html',1,'fabgl']]],
+  ['uitexteditstyle_52',['uiTextEditStyle',['../structfabgl_1_1ui_text_edit_style.html',1,'uiTextEditStyle'],['../structui_text_edit_style.html',1,'uiTextEditStyle']]],
+  ['uiwindow_53',['uiWindow',['../classfabgl_1_1ui_window.html',1,'fabgl']]],
+  ['uiwindowprops_54',['uiWindowProps',['../structfabgl_1_1ui_window_props.html',1,'fabgl']]],
+  ['uiwindowstate_55',['uiWindowState',['../structfabgl_1_1ui_window_state.html',1,'fabgl']]],
+  ['uiwindowstyle_56',['uiWindowStyle',['../structfabgl_1_1ui_window_style.html',1,'uiWindowStyle'],['../structui_window_style.html',1,'uiWindowStyle']]]
 ];

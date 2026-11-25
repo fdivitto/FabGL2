@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="comment">// do not include all fonts in &quot;font&quot; folder to avoid waste of flash</span></div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="comment">// for apps that uses getPresetFontInfo() (used in Terminal class), getPresetFontInfoFromHeight()</span></div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">// and getPresetFixedFont().</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="keyword">static</span> <span class="keyword">const</span> FontInfo * FIXED_WIDTH_EMBEDDED_FONTS[] = {</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> * FIXED_WIDTH_EMBEDDED_FONTS[] = {</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="comment">// please, bigger fonts first!</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  &amp;FONT_8x19,</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  &amp;FONT_8x16,</div>
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>};</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="keyword">static</span> <span class="keyword">const</span> FontInfo * VAR_WIDTH_EMBEDDED_FONTS[] = {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> * VAR_WIDTH_EMBEDDED_FONTS[] = {</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  <span class="comment">// please, bigger fonts first!</span></div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  &amp;FONT_std_24,</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  &amp;FONT_std_22,</div>
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>FontInfo <span class="keyword">const</span> * getFixedWidthFont(<span class="keywordtype">int</span> index)</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * getFixedWidthFont(<span class="keywordtype">int</span> index)</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>{</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="keywordflow">return</span> FIXED_WIDTH_EMBEDDED_FONTS[index];</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>}</div>
@@ -188,11 +188,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="keywordtype">int</span> getFixedWidthFontCount()</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>{</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="keywordflow">return</span> <span class="keyword">sizeof</span>(FIXED_WIDTH_EMBEDDED_FONTS) / <span class="keyword">sizeof</span>(FontInfo*);</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="keywordflow">return</span> <span class="keyword">sizeof</span>(FIXED_WIDTH_EMBEDDED_FONTS) / <span class="keyword">sizeof</span>(<a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a>*);</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>}</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>FontInfo <span class="keyword">const</span> * getVarWidthFont(<span class="keywordtype">int</span> index)</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * getVarWidthFont(<span class="keywordtype">int</span> index)</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>{</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <span class="keywordflow">return</span> VAR_WIDTH_EMBEDDED_FONTS[index];</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>}</div>
@@ -200,13 +200,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="keywordtype">int</span> getVarWidthFontCount()</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>{</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  <span class="keywordflow">return</span> <span class="keyword">sizeof</span>(VAR_WIDTH_EMBEDDED_FONTS) / <span class="keyword">sizeof</span>(FontInfo*);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  <span class="keywordflow">return</span> <span class="keyword">sizeof</span>(VAR_WIDTH_EMBEDDED_FONTS) / <span class="keyword">sizeof</span>(<a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a>*);</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>}</div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>FontInfo <span class="keyword">const</span> * getPresetFontInfo(<span class="keywordtype">int</span> viewPortWidth, <span class="keywordtype">int</span> viewPortHeight, <span class="keywordtype">int</span> columns, <span class="keywordtype">int</span> rows)</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span><a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * getPresetFontInfo(<span class="keywordtype">int</span> viewPortWidth, <span class="keywordtype">int</span> viewPortHeight, <span class="keywordtype">int</span> columns, <span class="keywordtype">int</span> rows)</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>{</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  FontInfo <span class="keyword">const</span> * fontInfo = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * fontInfo = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; getFixedWidthFontCount(); ++i) {</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    fontInfo = getFixedWidthFont(i);</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keywordflow">if</span> (viewPortWidth / fontInfo-&gt;width &gt;= columns &amp;&amp; viewPortHeight / fontInfo-&gt;height &gt;= rows)</div>
@@ -217,9 +217,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>}</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>FontInfo <span class="keyword">const</span> * getPresetFontInfoFromHeight(<span class="keywordtype">int</span> <a class="code hl_variable" href="displaycontroller_8h_ad12fc34ce789bce6c8a05d8a17138534.html#ad12fc34ce789bce6c8a05d8a17138534">height</a>, <span class="keywordtype">bool</span> fixedWidth)</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span><a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * getPresetFontInfoFromHeight(<span class="keywordtype">int</span> <a class="code hl_variable" href="displaycontroller_8h_ad12fc34ce789bce6c8a05d8a17138534.html#ad12fc34ce789bce6c8a05d8a17138534">height</a>, <span class="keywordtype">bool</span> fixedWidth)</div>
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>{</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  FontInfo <span class="keyword">const</span> * fontInfo = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  <a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * fontInfo = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  <span class="keywordflow">if</span> (fixedWidth) {</div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; getFixedWidthFontCount(); ++i) {</div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      fontInfo = getFixedWidthFont(i);</div>
@@ -238,9 +238,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>}</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>FontInfo <span class="keyword">const</span> * getPresetFixedFont(<span class="keywordtype">int</span> <a class="code hl_variable" href="displaycontroller_8h_a2474a5474cbff19523a51eb1de01cda4.html#a2474a5474cbff19523a51eb1de01cda4">width</a>, <span class="keywordtype">int</span> <a class="code hl_variable" href="displaycontroller_8h_ad12fc34ce789bce6c8a05d8a17138534.html#ad12fc34ce789bce6c8a05d8a17138534">height</a>)</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * getPresetFixedFont(<span class="keywordtype">int</span> <a class="code hl_variable" href="displaycontroller_8h_a2474a5474cbff19523a51eb1de01cda4.html#a2474a5474cbff19523a51eb1de01cda4">width</a>, <span class="keywordtype">int</span> <a class="code hl_variable" href="displaycontroller_8h_ad12fc34ce789bce6c8a05d8a17138534.html#ad12fc34ce789bce6c8a05d8a17138534">height</a>)</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>{</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  FontInfo <span class="keyword">const</span> * fontInfo = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  <a class="code hl_struct" href="structfabgl_1_1_font_info.html">FontInfo</a> <span class="keyword">const</span> * fontInfo = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; getFixedWidthFontCount(); ++i) {</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    fontInfo = getFixedWidthFont(i);</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="displaycontroller_8h_ad12fc34ce789bce6c8a05d8a17138534.html#ad12fc34ce789bce6c8a05d8a17138534">height</a> == fontInfo-&gt;height &amp;&amp; <a class="code hl_variable" href="displaycontroller_8h_a2474a5474cbff19523a51eb1de01cda4.html#a2474a5474cbff19523a51eb1de01cda4">width</a> == fontInfo-&gt;width)</div>
@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('fabfonts_8cpp_
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>}</div>
 <div class="ttc" id="adisplaycontroller_8h_a2474a5474cbff19523a51eb1de01cda4_html_a2474a5474cbff19523a51eb1de01cda4"><div class="ttname"><a href="displaycontroller_8h_a2474a5474cbff19523a51eb1de01cda4.html#a2474a5474cbff19523a51eb1de01cda4">width</a></div><div class="ttdeci">uint8_t width</div><div class="ttdef"><b>Definition</b> <a href="displaycontroller_8h_source.html#l00002">displaycontroller.h:2</a></div></div>
 <div class="ttc" id="adisplaycontroller_8h_ad12fc34ce789bce6c8a05d8a17138534_html_ad12fc34ce789bce6c8a05d8a17138534"><div class="ttname"><a href="displaycontroller_8h_ad12fc34ce789bce6c8a05d8a17138534.html#ad12fc34ce789bce6c8a05d8a17138534">height</a></div><div class="ttdeci">uint8_t height</div><div class="ttdef"><b>Definition</b> <a href="displaycontroller_8h_source.html#l00003">displaycontroller.h:3</a></div></div>
+<div class="ttc" id="astructfabgl_1_1_font_info_html"><div class="ttname"><a href="structfabgl_1_1_font_info.html">fabgl::FontInfo</a></div><div class="ttdoc">Describes a bitmapped font.</div><div class="ttdef"><b>Definition</b> <a href="fabutils_8h_source.html#l00363">fabutils.h:363</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

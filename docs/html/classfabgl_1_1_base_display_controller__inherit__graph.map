@@ -1,9 +1,33 @@
 <map id="BaseDisplayController" name="BaseDisplayController">
-<area shape="rect" id="Node000001" title="Represents the base abstract class for all display controllers." alt="" coords="120,5,271,31"/>
-<area shape="rect" id="Node000002" href="$classfabgl_1_1_bitmapped_display_controller.html" title="Represents the base abstract class for bitmapped display controllers." alt="" coords="5,79,189,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,42,115,81,112,77,169,39"/>
-<area shape="rect" id="Node000003" href="$classfabgl_1_1_textual_display_controller.html" title="Represents the base abstract class for textual display controllers." alt="" coords="213,79,376,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="225,38,280,78,275,79,224,43"/>
-<area shape="rect" id="Node000004" href="$classfabgl_1_1_v_g_a_text_controller.html" title="VGA text&#45;only display controller." alt="" coords="230,153,359,178"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="296,118,296,154,292,151,292,122"/>
+<area shape="rect" id="Node000001" title="Represents the base abstract class for all display controllers." alt="" coords="263,5,414,31"/>
+<area shape="rect" id="Node000002" href="$classfabgl_1_1_bitmapped_display_controller.html" title="Represents the base abstract class for bitmapped display controllers." alt="" coords="148,79,332,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="308,42,258,81,255,77,311,38"/>
+<area shape="rect" id="Node000015" href="$classfabgl_1_1_textual_display_controller.html" title="Represents the base abstract class for textual display controllers." alt="" coords="357,79,520,105"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="368,38,424,78,419,79,368,43"/>
+<area shape="rect" id="Node000003" href="$classfabgl_1_1_generic_bitmapped_display_controller.html" title="Base class of the bitmapped display controllers that implement drawing primitives in software." alt="" coords="123,153,351,178"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="240,118,240,153,235,151,238,123"/>
+<area shape="rect" id="Node000004" href="$classfabgl_1_1_c_v_b_s_base_controller.html" title="Base class of the composite video (PAL/NTSC) display controllers." alt="" coords="84,226,228,252"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="210,191,171,228,168,224,214,187"/>
+<area shape="rect" id="Node000007" href="$classfabgl_1_1_v_g_a_base_controller.html" title="Base class of all VGA display controllers." alt="" coords="287,226,422,252"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="270,184,337,225,332,226,269,189"/>
+<area shape="rect" id="Node000005" href="$classfabgl_1_1_c_v_b_s_paletted_controller.html" title="Base class of the palette&#45;based composite video display controllers." alt="" coords="5,300,168,326"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="132,265,100,301,96,298,136,261"/>
+<area shape="rect" id="Node000006" href="$classfabgl_1_1_c_v_b_s16_controller.html" title="Composite video (PAL/NTSC) bitmapped display controller with 16 colors." alt="" coords="22,374,151,399"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="88,339,89,374,84,372,85,343"/>
+<area shape="rect" id="Node000008" href="$classfabgl_1_1_v_g_a_controller.html" title="VGA bitmapped display controller (64 colors)." alt="" coords="191,300,296,326"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="326,259,264,302,261,297,321,262"/>
+<area shape="rect" id="Node000009" href="$classfabgl_1_1_v_g_a_direct_controller.html" title="Base class for direct&#45;draw VGA controllers." alt="" coords="320,300,461,326"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="368,263,387,300,382,299,366,268"/>
+<area shape="rect" id="Node000010" href="$classfabgl_1_1_v_g_a_paletted_controller.html" title="Base class for palette&#45;based bitmapped controllers, such as VGA16Controller, VGA8Controller,..." alt="" coords="484,300,638,326"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="404,255,529,299,523,300,403,260"/>
+<area shape="rect" id="Node000011" href="$classfabgl_1_1_v_g_a16_controller.html" title="VGA bitmapped display controller with 16 colors." alt="" coords="294,374,413,399"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="514,331,389,376,388,370,509,331"/>
+<area shape="rect" id="Node000012" href="$classfabgl_1_1_v_g_a2_controller.html" title="VGA bitmapped display controller with 2 colors." alt="" coords="437,374,549,399"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="542,336,506,376,503,371,537,338"/>
+<area shape="rect" id="Node000013" href="$classfabgl_1_1_v_g_a4_controller.html" title="VGA bitmapped display controller with 4 colors." alt="" coords="573,374,685,399"/>
+<area shape="poly" id="edge12_Node000010_Node000013" title=" " alt="" coords="584,335,620,374,615,372,582,339"/>
+<area shape="rect" id="Node000014" href="$classfabgl_1_1_v_g_a8_controller.html" title="VGA bitmapped display controller with 8 colors." alt="" coords="709,374,821,399"/>
+<area shape="poly" id="edge13_Node000010_Node000014" title=" " alt="" coords="610,328,733,373,728,373,609,334"/>
+<area shape="rect" id="Node000016" href="$classfabgl_1_1_v_g_a_text_controller.html" title="VGA text&#45;only display controller." alt="" coords="375,153,504,178"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="440,118,442,153,437,151,438,122"/>
 </map>

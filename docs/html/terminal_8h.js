@@ -1,8 +1,5 @@
 var terminal_8h =
 [
-    [ "LineEditor", "classfabgl_1_1_line_editor.html", "classfabgl_1_1_line_editor" ],
-    [ "Terminal", "classfabgl_1_1_terminal.html", "classfabgl_1_1_terminal" ],
-    [ "TerminalController", "classfabgl_1_1_terminal_controller.html", "classfabgl_1_1_terminal_controller" ],
     [ "fabgl::CharStyle", "group___enumerations_ga58734f6595a1eefb555afc0f1897fc3f.html#ga58734f6595a1eefb555afc0f1897fc3f", [
       [ "fabgl::Bold", "group___enumerations_ga58734f6595a1eefb555afc0f1897fc3f.html#gga58734f6595a1eefb555afc0f1897fc3faa529a7a50505042b4f78439ecc3fb0d6", null ],
       [ "fabgl::ReducedLuminosity", "group___enumerations_ga58734f6595a1eefb555afc0f1897fc3f.html#gga58734f6595a1eefb555afc0f1897fc3fa01a8eb7c512c56e42383b0564f4e1514", null ],

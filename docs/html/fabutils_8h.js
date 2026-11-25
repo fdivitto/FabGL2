@@ -2,14 +2,7 @@ var fabutils_8h =
 [
     [ "CoreUsage", "structfabgl_1_1_core_usage.html", null ],
     [ "CurrentVideoMode", "structfabgl_1_1_current_video_mode.html", null ],
-    [ "DirItem", "structfabgl_1_1_dir_item.html", "structfabgl_1_1_dir_item" ],
-    [ "FileBrowser", "classfabgl_1_1_file_browser.html", "classfabgl_1_1_file_browser" ],
-    [ "MouseButtons", "structfabgl_1_1_mouse_buttons.html", "structfabgl_1_1_mouse_buttons" ],
-    [ "MouseStatus", "structfabgl_1_1_mouse_status.html", "structfabgl_1_1_mouse_status" ],
-    [ "Point", "structfabgl_1_1_point.html", "structfabgl_1_1_point" ],
-    [ "Rect", "structfabgl_1_1_rect.html", "structfabgl_1_1_rect" ],
-    [ "Size", "structfabgl_1_1_size.html", "structfabgl_1_1_size" ],
-    [ "VirtualKeyItem", "structfabgl_1_1_virtual_key_item.html", "structfabgl_1_1_virtual_key_item" ],
+    [ "Stream", "struct_stream.html", "struct_stream" ],
     [ "fabgl::ChipPackage", "group___enumerations_ga5d4cf45276f202b6a848d0baf97adea0.html#ga5d4cf45276f202b6a848d0baf97adea0", [
       [ "ESP32D0WDQ6", "fabutils_8h.html#gga5d4cf45276f202b6a848d0baf97adea0ac1e5a622092c4a6696ffda151efefb66", null ],
       [ "ESP32D0WDQ5", "fabutils_8h.html#gga5d4cf45276f202b6a848d0baf97adea0ade1d97e9e28e4b67a2a96c2b400ca4b1", null ],

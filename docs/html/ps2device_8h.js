@@ -1,6 +1,5 @@
 var ps2device_8h =
 [
-    [ "PS2Device", "classfabgl_1_1_p_s2_device.html", "classfabgl_1_1_p_s2_device" ],
     [ "fabgl::PS2DeviceType", "group___enumerations_gab1e29a3412c837d0e4e7599473e8948f.html#gab1e29a3412c837d0e4e7599473e8948f", [
       [ "UnknownPS2Device", "ps2device_8h.html#ggab1e29a3412c837d0e4e7599473e8948fa896a8d33d48700b0acaeb7d8fd0f58a0", null ],
       [ "OldATKeyboard", "ps2device_8h.html#ggab1e29a3412c837d0e4e7599473e8948fa45e3ba6c41a9110f3478fff0794acde1", null ],

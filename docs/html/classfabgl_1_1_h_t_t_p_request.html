@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">HTTPRequest Class Reference</div></div>
+  <div class="headertitle"><div class="title">HTTPRequest Class Reference<div class="ingroups"><a class="el" href="group__network.html">Network</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -128,10 +128,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a00493e01037c52bf0c68e4fc6d526cd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the content length.  <br /></td></tr>
 <tr class="memitem:a365bc55b737788c9a35f1d480386d1b2" id="r_a365bc55b737788c9a35f1d480386d1b2"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_h_t_t_p_request_a365bc55b737788c9a35f1d480386d1b2.html#a365bc55b737788c9a35f1d480386d1b2">GET</a> (char const *URL)</td></tr>
 <tr class="memdesc:a365bc55b737788c9a35f1d480386d1b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a GET request.  <br /></td></tr>
-<tr class="memitem:a4d90bca5d1a8478da80992b40c11581c" id="r_a4d90bca5d1a8478da80992b40c11581c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_h_t_t_p_request_a4d90bca5d1a8478da80992b40c11581c.html#a4d90bca5d1a8478da80992b40c11581c">open</a> (char const *URL)</td></tr>
-<tr class="memdesc:a4d90bca5d1a8478da80992b40c11581c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens a streaming GET request (follows redirects).  <br /></td></tr>
+<tr class="memitem:a000f94dbd179a5e3d5cdc126fdc4aa1c" id="r_a000f94dbd179a5e3d5cdc126fdc4aa1c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_h_t_t_p_request_a000f94dbd179a5e3d5cdc126fdc4aa1c.html#a000f94dbd179a5e3d5cdc126fdc4aa1c">open</a> (char const *URL, int64_t rangeStart=0)</td></tr>
+<tr class="memdesc:a000f94dbd179a5e3d5cdc126fdc4aa1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens a streaming GET request (follows redirects).  <br /></td></tr>
 <tr class="memitem:a86a09c2ff8f34def8e166bb97c2757b2" id="r_a86a09c2ff8f34def8e166bb97c2757b2"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_h_t_t_p_request_a86a09c2ff8f34def8e166bb97c2757b2.html#a86a09c2ff8f34def8e166bb97c2757b2">read</a> (void *buffer, int length)</td></tr>
-<tr class="memdesc:a86a09c2ff8f34def8e166bb97c2757b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads content after a successful <a class="el" href="classfabgl_1_1_h_t_t_p_request_a4d90bca5d1a8478da80992b40c11581c.html#a4d90bca5d1a8478da80992b40c11581c" title="Opens a streaming GET request (follows redirects).">open()</a>.  <br /></td></tr>
+<tr class="memdesc:a86a09c2ff8f34def8e166bb97c2757b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads content after a successful <a class="el" href="classfabgl_1_1_h_t_t_p_request_a000f94dbd179a5e3d5cdc126fdc4aa1c.html#a000f94dbd179a5e3d5cdc126fdc4aa1c" title="Opens a streaming GET request (follows redirects).">open()</a>.  <br /></td></tr>
+<tr class="memitem:a7b805f7fd7fce1cb370a880cc4b0447f" id="r_a7b805f7fd7fce1cb370a880cc4b0447f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="classfabgl_1_1_h_t_t_p_request_a7b805f7fd7fce1cb370a880cc4b0447f.html#a7b805f7fd7fce1cb370a880cc4b0447f">setTimeout</a> (int timeoutMS)</td></tr>
+<tr class="memdesc:a7b805f7fd7fce1cb370a880cc4b0447f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the network timeout of the next <a class="el" href="classfabgl_1_1_h_t_t_p_request_a000f94dbd179a5e3d5cdc126fdc4aa1c.html#a000f94dbd179a5e3d5cdc126fdc4aa1c" title="Opens a streaming GET request (follows redirects).">open()</a> and <a class="el" href="classfabgl_1_1_h_t_t_p_request_a365bc55b737788c9a35f1d480386d1b2.html#a365bc55b737788c9a35f1d480386d1b2" title="Performs a GET request.">GET()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -153,10 +155,8 @@ if (nc.connect("MySSID", "MyPassword")) {
   if (req.GET("http://www.fabglib.org/schema_audio.png") == 200)
     Term.printf("Received %d of %d bytes\r\n", received, req.contentLength());
 }
-</pre> <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_v_g_a_2_file_browser_2main_2_file_browser_8cpp-example.html#_a34">VGA/FileBrowser/main/FileBrowser.cpp</a>, and <a class="el" href="_v_g_a_2_p_c_emulator_2main_2_p_c_emulator_8cpp-example.html#_a19">VGA/PCEmulator/main/PCEmulator.cpp</a>.</dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="netutils_8h_source.html#l00274">274</a> of file <a class="el" href="netutils_8h_source.html">netutils.h</a>.</p>
+</pre> 
+<p class="definition">Definition at line <a class="el" href="netutils_8h_source.html#l00280">280</a> of file <a class="el" href="netutils_8h_source.html">netutils.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="netutils_8h_source.html">netutils.h</a></li>
 <li><a class="el" href="netutils_8cpp_source.html">netutils.cpp</a></li>

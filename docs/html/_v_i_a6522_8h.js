@@ -1,6 +1,5 @@
 var _v_i_a6522_8h =
 [
-    [ "VIA6522", "classfabgl_1_1_v_i_a6522.html", null ],
     [ "fabgl::VIA6522Port", "group___enumerations_ga69838990f93c3301289776790e4fc0e0.html#ga69838990f93c3301289776790e4fc0e0", [
       [ "PA", "_v_i_a6522_8h.html#gga69838990f93c3301289776790e4fc0e0a06f6a489209115c5cef3f45036aad3ec", null ],
       [ "PB", "_v_i_a6522_8h.html#gga69838990f93c3301289776790e4fc0e0acd203ccd68b84de1c5df8fd890e104e0", null ],

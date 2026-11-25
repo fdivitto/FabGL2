@@ -121,46 +121,46 @@
  * See @ref confAudio "Configuring the audio port" for a sample audio connection circuit.
  *
  * - - -
- * <CENTER> @link VGA/PCEmulator/main/PCEmulator.cpp IBM PC Emulator Example @endlink </CENTER>
+ * <CENTER> @ref example_PCEmulator "IBM PC Emulator Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/3I1U2nEoxIQ?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/SpaceInvaders/main/SpaceInvaders.cpp Space Invaders Example @endlink </CENTER>
+ * <CENTER> @ref example_SpaceInvaders "Space Invaders Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/LL8J7tjxeXA?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/GraphicalUserInterface/main/GraphicalUserInterface.cpp Graphical User Interface (GUI) Example @endlink </CENTER>
+ * <CENTER> @ref example_GraphicalUserInterface "Graphical User Interface (GUI) Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/84ytGdiOih0?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/Audio/main/Audio.cpp Audio Output Demo @endlink </CENTER>
+ * <CENTER> @ref example_Audio "Audio Output Demo" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/RQtKFgU7OYI?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/AnsiTerminal/main/AnsiTerminal.cpp Serial Terminal Connected to an MBC2 Z80 Board @endlink </CENTER>
+ * <CENTER> @ref example_AnsiTerminal "Serial Terminal Connected to an MBC2 Z80 Board" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/Ww_pH_ZOLqU?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/SimpleTerminalOut/main/SimpleTerminalOut.cpp Simple Terminal Output Example @endlink </CENTER>
+ * <CENTER> @ref example_SimpleTerminalOut "Simple Terminal Output Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/AmXN0SIRqqU?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/Altair8800/main/Altair8800.cpp Altair 8800 Emulator @endlink </CENTER>
+ * <CENTER> @ref example_Altair8800 "Altair 8800 Emulator" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/y0opVifEyS8?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/VIC20/main/VIC20.cpp Commodore VIC-20 Emulator @endlink </CENTER>
+ * <CENTER> @ref example_VIC20 "Commodore VIC-20 Emulator" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/ZW427HVWYys?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/NetworkTerminal/main/NetworkTerminal.cpp Network Terminal Example @endlink </CENTER>
+ * <CENTER> @ref example_NetworkTerminal "Network Terminal Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/n5c27-y5tm4?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/ModelineStudio/main/ModelineStudio.cpp Modeline Studio Example @endlink </CENTER>
+ * <CENTER> @ref example_ModelineStudio "Modeline Studio Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/Urp0rPukjzE?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/LoopbackTerminal/main/LoopbackTerminal.cpp Loopback Terminal Example @endlink </CENTER>
+ * <CENTER> @ref example_LoopbackTerminal "Loopback Terminal Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/hQhU5hgWdcU?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/DoubleBuffer/main/DoubleBuffer.cpp Double Buffering Example @endlink </CENTER>
+ * <CENTER> @ref example_DoubleBuffer "Double Buffering Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/TRQcIiWQCJw?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/CollisionDetection/main/CollisionDetection.cpp Collision Detection Example @endlink </CENTER>
+ * <CENTER> @ref example_CollisionDetection "Collision Detection Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/q3OPSq4HhDE?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
- * <CENTER> @link VGA/MultitaskingCPM/main/MultitaskingCPM.cpp Multitasking CP/M Plus Example @endlink </CENTER>
+ * <CENTER> @ref example_MultitaskingCPM "Multitasking CP/M Plus Example" </CENTER>
  * @htmlonly <div align="center"> <iframe width="560" height="349" src="http://www.youtube.com/embed/3UevsxMQZ5w?rel=0&loop=1&autoplay=0&modestbranding=1" frameborder="0" allowfullscreen align="middle"> </iframe> </div> @endhtmlonly
  * - - -
  *
@@ -251,43 +251,6 @@
  */
 
 
-
-
-/**
- * @example VGA/Altair8800/main/Altair8800.cpp Altair 8800 emulator, with ADM-31, ADM-3A, Kaypro, Hazeltine 1500 and Osborne I terminal emulation
- * @example VGA/AnsiTerminal/main/AnsiTerminal.cpp Serial VT/ANSI terminal
- * @example VGA/Audio/main/Audio.cpp Audio demo with GUI
- * @example VGA/ClassicRacer/main/ClassicRacer.cpp Racing game, by Carles Oriol
- * @example VGA/CollisionDetection/main/CollisionDetection.cpp Sprites and collision detection using fabgl::Scene
- * @example VGA/DirectVGA/main/DirectVGA.cpp Direct VGA control using the VGADirectController base class
- * @example VGA/DirectVGA_ElMuro/main/DirectVGA_ElMuro.cpp Breakout-style game based on the VGADirectController class, by Carles Oriol
- * @example VGA/DoubleBuffer/main/DoubleBuffer.cpp Double buffering usage
- * @example VGA/FileBrowser/main/FileBrowser.cpp File browser (SPIFFS and SD card) with GUI
- * @example VGA/GraphicalUserInterface/main/GraphicalUserInterface.cpp Graphical User Interface (GUI) demo
- * @example VGA/HardwareTest/main/HardwareTest.cpp Hardware test with GUI
- * @example VGA/LoopbackTerminal/main/LoopbackTerminal.cpp Loopback VT/ANSI terminal
- * @example VGA/ModelineStudio/main/ModelineStudio.cpp Tests VGA output using predefined resolutions or custom Linux-style modelines
- * @example VGA/MouseOnScreen/main/MouseOnScreen.cpp PS/2 mouse with on-screen mouse pointer
- * @example VGA/MultitaskingCPM/main/MultitaskingCPM.cpp Multitasking, multi-session CP/M 3 compatible system, with directories and FAT32 file system on SD cards
- * @example VGA/NetworkTerminal/main/NetworkTerminal.cpp Network VT/ANSI terminal
- * @example VGA/PCEmulator/main/PCEmulator.cpp Intel 8086 based IBM PC emulator (runs FreeDOS, MS-DOS, CP/M-86, ELKS Linux, Windows 3.0)
- * @example VGA/SimpleTerminalOut/main/SimpleTerminalOut.cpp Simple terminal, output only
- * @example VGA/SimpleTextTerminalOut/main/SimpleTextTerminalOut.cpp Simple terminal in text-only mode, output only
- * @example VGA/Songs/main/Songs.cpp Music and sound demo, by Carles Oriol
- * @example VGA/SpaceInvaders/main/SpaceInvaders.cpp Complete Space Invaders game
- * @example VGA/SoundChipSimulator/main/SoundChipSimulator.cpp Sound chip simulator, by Carles Oriol
- * @example VGA/Sprites/main/Sprites.cpp Simple sprite animation
- * @example VGA/Synth/main/Synth.cpp FabGL Synth: polyphonic synthesizer played with the PS/2 keyboard or the mouse (resonant low-pass filter, ADSR envelope, GUI)
- * @example VGA/TerminalCharSet/main/TerminalCharSet.cpp Terminal character set
- * @example VGA/VIC20/main/VIC20.cpp Commodore VIC-20 emulator
- * @example VGA/InputBox/main/InputBox.cpp UI wizards using fabgl::InputBox
- *
- * @example Others/KeyboardScanCodes/main/KeyboardScanCodes.cpp PS/2 keyboard scancodes
- * @example Others/KeyboardVirtualKeys/main/KeyboardVirtualKeys.cpp PS/2 keyboard virtual keys
- * @example Others/MouseStudio/main/MouseStudio.cpp PS/2 mouse events
- *
- * @example Composite/BaseExample/main/BaseExample.cpp Base example for PAL/NTSC composite video output
- */
 
 
 /*!

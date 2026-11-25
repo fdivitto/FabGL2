@@ -116,6 +116,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">int peek </td>
@@ -124,11 +127,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classfabgl_1_1
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Reads a code from the keyboard without advancing to the next one. </p>
 <p>The keyboard queue is available only after <a class="el" href="classfabgl_1_1_terminal_a068123b964647130439aa949370181dc.html#a068123b964647130439aa949370181dc" title="Allows the terminal to be used locally.">connectLocally()</a> has been called.</p>
 <dl class="section return"><dt>Returns</dt><dd>The next code, or -1 if none is available. </dd></dl>
+
+<p>Implements <a class="el" href="structfabgl_1_1_stream.html">Stream</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="terminal_8cpp_source.html#l01520">1520</a> of file <a class="el" href="terminal_8cpp_source.html">terminal.cpp</a>.</p>
 
