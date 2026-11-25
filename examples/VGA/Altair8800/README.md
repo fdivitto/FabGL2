@@ -108,24 +108,24 @@ The settings are saved in NVS.
 
 The Altair has three serial boards: SIO at port 00h (TTY) and 10h (CRT) are connected to the screen and keyboard,
 SIO at port 12h is connected to the **USB serial port** (115200 baud). The scripts in [tools](tools) use it
-(they need Python with `pyserial`, and `xmodem` for `transfile.py`; they are written for Python 2):
+(they need Python 3 with `pyserial`, and `xmodem` for `transfile.py`: `pip3 install pyserial xmodem`):
 
 **Single files (XMODEM)**: run `PCGET` (receive) or `PCPUT` (send) on the Altair, then on the PC:
 
 ```
 A>PCGET MYFILE.COM                                   (on the Altair)
-python tools/transfile.py MYFILE.COM to /dev/ttyUSB0      (on the PC)
+python3 tools/transfile.py MYFILE.COM to /dev/ttyUSB0      (on the PC)
 
 A>PCPUT MBASIC.COM                                   (on the Altair)
-python tools/transfile.py MBASIC.COM from /dev/ttyUSB0    (on the PC)
+python3 tools/transfile.py MBASIC.COM from /dev/ttyUSB0    (on the PC)
 ```
 
 **Whole disk images**: open the emulator menu and choose `R` (receive) or `S` (send) and the drive letter, then on
 the PC:
 
 ```
-python tools/transdisk.py mydisk.dsk to /dev/ttyUSB0      (PC -> Altair, after "R")
-python tools/transdisk.py mydisk.dsk from /dev/ttyUSB0    (Altair -> PC, start this before "S")
+python3 tools/transdisk.py mydisk.dsk to /dev/ttyUSB0      (PC -> Altair, after "R")
+python3 tools/transdisk.py mydisk.dsk from /dev/ttyUSB0    (Altair -> PC, start this before "S")
 ```
 
 Close any serial monitor before running the scripts.

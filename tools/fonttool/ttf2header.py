@@ -53,6 +53,12 @@ def writeRow(file, width, y, data):
   
 
 
+def textsize(f, text, stroke):
+  # replaces FreeTypeFont.getsize(), removed in Pillow 10
+  left, top, right, bottom = f.getbbox(text, stroke_width = stroke)
+  return max(right, math.ceil(f.getlength(text)) + 2 * stroke), bottom
+
+
 def savefontVar_h(f, file, fname, stroke, font_size, ifirst, ilast):
   fname = re.sub('[^0-9a-zA-Z]+', '_', f.getname()[0])
   file.write("// {} {}\n".format(fname, font_size))
@@ -66,17 +72,17 @@ def savefontVar_h(f, file, fname, stroke, font_size, ifirst, ilast):
   
   mh = 0
   for i in range(256):
-    w, h = f.getsize(chr(i), stroke_width = stroke)
+    w, h = textsize(f, chr(i), stroke)
     if h > mh: mh = h
   
   for i in range(256):
     if i in range(ifirst, ilast + 1):
-      mask, off = font.getmask2(chr(i), stroke_width = stroke, mode = "1")
+      mask, off = f.getmask2(chr(i), stroke_width = stroke, mode = "1")
       if mask:
         #print(i, "size:", mask.size, "off:", off, "mh:", mh)
         width, height = mask.size
       else:
-        width = f.getsize(chr(i), stroke_width = stroke)[0]
+        width = textsize(f, chr(i), stroke)[0]
         height = 0
       sz = (int)(1 + mh * math.ceil(max(8, width) / 8))
       file.write("  // chr={} sz={} w={} h={}\n".format(i, sz, width, mh))
@@ -166,7 +172,7 @@ while pidx < argn:
     print("Unknown parameter: " + args[pidx]);
     sys.exit()
 
-font = ImageFont.truetype(font = input_file, size = font_size)
+font = ImageFont.truetype(font = input_file, size = font_size, layout_engine = ImageFont.Layout.BASIC)
 
 fp = open(out_file, "w")
 savefontVar_h(font, fp, font.getname()[0], stroke, font_size, ifirst, ilast)

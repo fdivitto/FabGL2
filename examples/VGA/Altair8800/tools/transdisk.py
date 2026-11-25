@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Transfer disk images between remote machine and host
 
@@ -8,15 +8,15 @@ from time import sleep
 
 
 if len(sys.argv) < 4:
-  print "Transfer disk images between remote machine and host at 115200 bauds"
-  print ""
-  print "Usage:"
-  print "  python transdisk filename (from/to) serialport"
-  print ""
-  print "Example, put mydisk.dsk to emulated machine:"
-  print "  python transdisk.py mydisk.dsk to /dev/cu.SLAB_USBtoUART"
-  print "Example, get MBASIC.COM from emulated machine:"
-  print "  python transdisk.py mydisk.dsk from /dev/cu.SLAB_USBtoUART"
+  print("Transfer disk images between remote machine and host at 115200 bauds")
+  print("")
+  print("Usage:")
+  print("  python3 transdisk filename (from/to) serialport")
+  print("")
+  print("Example, put mydisk.dsk to emulated machine:")
+  print("  python3 transdisk.py mydisk.dsk to /dev/cu.SLAB_USBtoUART")
+  print("Example, get MBASIC.COM from emulated machine:")
+  print("  python3 transdisk.py mydisk.dsk from /dev/cu.SLAB_USBtoUART")
 
   sys.exit()
 
@@ -33,7 +33,7 @@ TRACKS_COUNT = 77
 
 if cmd == 'from':
   # copy from remote machine
-  print "Please activate disk image send from remote machine..."
+  print("Please activate disk image send from remote machine...")
   stream = open(filename, 'wb')
   for i in range(0, SECTOR_SIZE * TRACK_SIZE * TRACKS_COUNT):
     stream.write(ser.read())
@@ -50,10 +50,10 @@ if cmd == 'to':
       sys.stdout.write("Sent " + str(i) + " bytes\r")
       sys.stdout.flush()
       # wait ACK
-      r = ord(ser.read()[0])
+      r = ser.read(1)[0]
       if r != 0x06:
-        print "Error, expected ACK!"
+        print("Error, expected ACK!")
         sys.exit()
 
-print
+print()
 

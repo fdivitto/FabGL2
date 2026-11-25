@@ -13,7 +13,7 @@ usage:
  -o1 = output as simple hex string
 
 Example:
-   python img2bitmap.py test.png -s 64 64 >out.c
+   python3 img2bitmap.py test.png -s 64 64 >out.c
 
 Requires PIL library:
    sudo pip install pillow

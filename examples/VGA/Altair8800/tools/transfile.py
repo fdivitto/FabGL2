@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Transfer files between remote machine and host, using XMODEM protocol
 #
 # Requires XMODEM library:
-#   sudo pip install xmodem
+#   pip3 install xmodem
 # Requires serial library:
-#   sudo pip install pyserial
+#   pip3 install pyserial
 
 import sys
 import serial
@@ -20,16 +20,16 @@ def putc(data, timeout=1):
 
 
 if len(sys.argv) < 4:
-  print "Transfer files between remote machine and host - uses XMODEM protocol"
-  print "at 115200 baud rate."
-  print ""
-  print "Usage:"
-  print "  python transfile filename (from/to) serialport"
-  print ""
-  print "Example, put MBASIC.COM to emulated machine:"
-  print "  python transfile.py MBASIC.COM to /dev/cu.SLAB_USBtoUART"
-  print "Example, get MBASIC.COM from emulated machine:"
-  print "  python transfile.py MBASIC.COM from /dev/cu.SLAB_USBtoUART"
+  print("Transfer files between remote machine and host - uses XMODEM protocol")
+  print("at 115200 baud rate.")
+  print("")
+  print("Usage:")
+  print("  python3 transfile filename (from/to) serialport")
+  print("")
+  print("Example, put MBASIC.COM to emulated machine:")
+  print("  python3 transfile.py MBASIC.COM to /dev/cu.SLAB_USBtoUART")
+  print("Example, get MBASIC.COM from emulated machine:")
+  print("  python3 transfile.py MBASIC.COM from /dev/cu.SLAB_USBtoUART")
 
   sys.exit()
 

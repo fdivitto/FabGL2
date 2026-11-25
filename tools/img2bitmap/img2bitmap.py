@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Converts an image (png, jpeg, ....) to FabGL Bitmap structure
 #
 # usage:
-#    python img2bitmap.py filename [-t x y] [-s width height] [-d] [-f0 | -f1 | -f2] [-o0 | -o1]
+#    python3 img2bitmap.py filename [-t x y] [-s width height] [-d] [-f0 | -f1 | -f2] [-o0 | -o1]
 #
 # -t  = pixel where to take transparent color
 # -s  = resize to specified values
@@ -15,10 +15,10 @@
 # -o1 = output as simple hex string
 #
 # Example:
-#   python img2bitmap.py test.png -s 64 64 >out.c
+#   python3 img2bitmap.py test.png -s 64 64 >out.c
 #
 # Requires PIL library:
-#   sudo pip install pillow
+#   pip3 install pillow
 
 import sys
 import os
@@ -54,7 +54,7 @@ if len(sys.argv) < 2:
   print("  -o0 = output as FabGL C++ code (default)\n")
   print("  -o1 = output as simple hex string\n\n")
   print("Example:")
-  print("  python img2bitmap.py input.png -s 64 64 >out.c")
+  print("  python3 img2bitmap.py input.png -s 64 64 >out.c")
   sys.exit()
 
 i = 2
