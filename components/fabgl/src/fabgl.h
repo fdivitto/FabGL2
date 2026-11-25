@@ -42,7 +42,7 @@
  * @mainpage FabGL Library
  *
  * @htmlonly
- * <a href="https://www.github.com/fdivitto/fabgl"> <img src="github.png" style="width:230px;height:80px;border:0;"> </a>
+ * <a href="https://www.github.com/fdivitto/fabgl2"> <img src="github.png" style="width:230px;height:80px;border:0;"> </a>
  * @endhtmlonly
  *
  * [www.FabGL.com](http://www.fabgl.com) - 2019-2026 by Fabrizio Di Vittorio (fdivitto2013@gmail.com)
