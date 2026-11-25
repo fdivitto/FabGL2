@@ -319,21 +319,37 @@ public:
    *     }
    *     http.close();
    *
+   * To resume an interrupted download, pass the number of bytes already received as rangeStart: the request
+   * then asks only the remaining part (HTTP Range header) and a server that supports it replies 206
+   * (Partial Content), with contentLength() reporting the remaining length.
+   *
    * @param URL The page or file to retrieve
+   * @param rangeStart First byte to retrieve (0 = whole content)
    *
    * @return The HTTP status code (0 = connection failure)
    */
-  int open(char const * URL);
+  int open(char const * URL, int64_t rangeStart = 0);
 
   /**
    * @brief Reads content after a successful open()
    *
+   * A connection closed by the server before the end of the content also returns 0: compare the received
+   * bytes with contentLength() to know whether the content is complete.
+   *
    * @param buffer Destination buffer
    * @param length Buffer size
    *
-   * @return Number of bytes read, 0 when the whole content has been received, -1 on error
+   * @return Number of bytes read, 0 when no more data is available, negative on error or when no data arrives
+   *         within the timeout (see setTimeout())
    */
   int read(void * buffer, int length);
+
+  /**
+   * @brief Sets the network timeout of the next open() and GET()
+   *
+   * @param timeoutMS Maximum time in milliseconds to wait for the connection or for incoming data (default 10000)
+   */
+  void setTimeout(int timeoutMS) { m_timeoutMS = timeoutMS; }
 
   /**
    * @brief Closes the HTTP connection
@@ -358,6 +374,7 @@ private:
   static esp_err_t httpEventHandler(esp_http_client_event_t * evt);
 
   esp_http_client_handle_t m_client;
+  int                      m_timeoutMS;
 
 };
 

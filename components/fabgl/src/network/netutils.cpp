@@ -25,6 +25,7 @@
 
 
 
+#include <stdio.h>
 #include <string.h>
 #include <algorithm>
 
@@ -408,7 +409,8 @@ static void tlsRecordPoolRelease() { }
 
 
 HTTPRequest::HTTPRequest()
-  : m_client(nullptr)
+  : m_client(nullptr),
+    m_timeoutMS(10000)
 {
 }
 
@@ -460,6 +462,7 @@ int HTTPRequest::GET(char const * URL)
     config.crt_bundle_attach = esp_crt_bundle_attach;
     config.buffer_size       = 2048;   // the default (512) is too small for the headers of many servers
     config.buffer_size_tx    = 1024;
+    config.timeout_ms        = m_timeoutMS;
     tlsRecordPoolAcquire();
     m_client = esp_http_client_init(&config);
     if (!m_client) {
@@ -471,7 +474,7 @@ int HTTPRequest::GET(char const * URL)
 }
 
 
-int HTTPRequest::open(char const * URL)
+int HTTPRequest::open(char const * URL, int64_t rangeStart)
 {
   close();
 
@@ -481,11 +484,19 @@ int HTTPRequest::open(char const * URL)
   config.disable_auto_redirect = true;
   config.buffer_size           = 2048;
   config.buffer_size_tx        = 1024;
+  config.timeout_ms            = m_timeoutMS;
   tlsRecordPoolAcquire();
   m_client = esp_http_client_init(&config);
   if (!m_client) {
     tlsRecordPoolRelease();
     return 0;
+  }
+
+  if (rangeStart > 0) {
+    // the header is kept across redirections
+    char range[32];
+    snprintf(range, sizeof(range), "bytes=%lld-", (long long) rangeStart);
+    esp_http_client_set_header(m_client, "Range", range);
   }
 
   for (int redirects = 0; redirects < 8; ++redirects) {

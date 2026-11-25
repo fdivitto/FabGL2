@@ -18,6 +18,9 @@ CONFIG_ESP_MAIN_TASK_AFFINITY_CPU1=y
 CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0=n
 CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
 
+# lwIP task on the WiFi core: unpinned it can run on CPU1 and delay the VGA interrupt (flickering while downloading)
+CONFIG_LWIP_TCPIP_TASK_AFFINITY_CPU0=y
+
 # PS/2 controller runs on ULP FSM coprocessor
 CONFIG_ULP_COPROC_ENABLED=y
 CONFIG_ULP_COPROC_TYPE_FSM=y
