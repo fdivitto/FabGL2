@@ -30,6 +30,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include "fabutils.h"
 #include "fabui.h"
@@ -5378,6 +5381,1250 @@ void uiSplitButton::paintButton()
 
 
 // uiSplitButton
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// helpers for the controls below
+
+
+static void resetGlyphOptions(Canvas * canvas, bool bold = false)
+{
+  canvas->setGlyphOptions(GlyphOptions().FillBackground(false).DoubleWidth(0).Bold(bold).Italic(false).Underline(false).Invert(0));
+}
+
+
+// draws a text horizontally centered on "centerX"
+static void drawCenteredText(Canvas * canvas, FontInfo const * font, RGB888 const & color, int centerX, int y, char const * text, bool bold = false)
+{
+  resetGlyphOptions(canvas, bold);
+  canvas->setPenColor(color);
+  canvas->drawText(font, centerX - (canvas->textExtent(font, text) + (bold ? (int) strlen(text) : 0)) / 2, y, text);
+}
+
+
+// draws a text that ends at "rightX"
+static void drawRightAlignedText(Canvas * canvas, FontInfo const * font, RGB888 const & color, int rightX, int y, char const * text, bool bold = false)
+{
+  resetGlyphOptions(canvas, bold);
+  canvas->setPenColor(color);
+  canvas->drawText(font, rightX - canvas->textExtent(font, text) - (bold ? (int) strlen(text) : 0), y, text);
+}
+
+
+// sets "dest" to a copy of "value" (nullptr allowed)
+static void replaceString(char * & dest, char const * value)
+{
+  free(dest);
+  dest = value ? strdup(value) : nullptr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiKnob
+
+
+uiKnob::uiKnob(uiWindow * parent, char const * label, const Point & pos, const Size & size, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_label(nullptr),
+    m_position(0),
+    m_min(0),
+    m_max(99),
+    m_default(0),
+    m_dragY(0),
+    m_dragPosition(0)
+{
+  objectType().uiKnob = true;
+
+  windowStyle().borderSize = 0;
+  windowProps().focusable  = true;
+
+  replaceString(m_label, label);
+  snprintf(m_valueText, sizeof(m_valueText), "%d", m_position);
+
+  if (app()) {
+    m_knobStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiKnob::~uiKnob()
+{
+  free(m_label);
+}
+
+
+void uiKnob::setup(int min, int max, int defaultPosition)
+{
+  m_min      = min;
+  m_max      = imax(max, min + 1);
+  m_default  = iclamp(defaultPosition, m_min, m_max);
+  m_position = m_default;
+  snprintf(m_valueText, sizeof(m_valueText), "%d", m_position);
+  repaint();
+  onChange();
+}
+
+
+void uiKnob::setPosition(int value)
+{
+  value = iclamp(value, m_min, m_max);
+  if (value != m_position) {
+    m_position = value;
+    snprintf(m_valueText, sizeof(m_valueText), "%d", m_position);
+    repaint();
+    onChange();
+  }
+}
+
+
+void uiKnob::setLabel(char const * value)
+{
+  replaceString(m_label, value);
+  repaint();
+}
+
+
+void uiKnob::setValueText(char const * value)
+{
+  strlcpy(m_valueText, value ? value : "", sizeof(m_valueText));
+  repaint();
+}
+
+
+void uiKnob::setValueTextFmt(const char * format, ...)
+{
+  va_list ap;
+  va_start(ap, format);
+  vsnprintf(m_valueText, sizeof(m_valueText), format, ap);
+  va_end(ap);
+  repaint();
+}
+
+
+bool uiKnob::isDragging()
+{
+  return app()->capturedMouseWindow() == this;
+}
+
+
+void uiKnob::paintKnob()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_knobStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+
+  int labelH = m_label ? m_knobStyle.labelFont->height + 2 : 0;
+  int valueH = m_knobStyle.valueFont->height + 2;
+  int availH = cRect.height() - labelH - valueH;
+  int ring   = imax(imin(cRect.width(), availH) / 2 - 2, 6);   // radius of the dots ring
+  int cx     = (cRect.X1 + cRect.X2) / 2;
+  int cy     = cRect.Y1 + labelH + availH / 2;
+
+  if (m_label)
+    drawCenteredText(cv, m_knobStyle.labelFont, m_knobStyle.labelColor, cx, cRect.Y1, m_label);
+
+  float pos = (float) (m_position - m_min) / (m_max - m_min);
+
+  // ring of dots: 270 degrees, from bottom-left (225) to bottom-right (-45), clockwise
+  int dots = imax(7, ring * 471 / 500 + 1);   // a dot every ~5 pixels
+  for (int i = 0; i < dots; ++i) {
+    float a = (225.0f - 270.0f * i / (dots - 1)) * (float) M_PI / 180.0f;
+    int x = cx + (int) lroundf(ring * cosf(a));
+    int y = cy - (int) lroundf(ring * sinf(a));
+    bool lit = (float) i / (dots - 1) <= pos + 0.001f;
+    cv->setBrushColor(lit ? m_knobStyle.ringColor : m_knobStyle.ringBackgroundColor);
+    cv->fillRectangle(x - 1, y - 1, x, y);
+  }
+
+  // body, cap and pointer
+  int bodyD = imax(2 * ring - 11, 6);
+  int capD  = imax(bodyD - 6, 4);
+  cv->setBrushColor(m_knobStyle.bodyColor);
+  cv->fillEllipse(cx, cy, bodyD, bodyD);
+  cv->setBrushColor(m_knobStyle.capColor);
+  cv->fillEllipse(cx, cy, capD, capD);
+  float a = (225.0f - 270.0f * pos) * (float) M_PI / 180.0f;
+  int r1 = 3, r2 = capD / 2 + 1;
+  cv->setPenColor(m_knobStyle.pointerColor);
+  cv->setPenWidth(2);
+  cv->drawLine(cx + (int) lroundf(r1 * cosf(a)), cy - (int) lroundf(r1 * sinf(a)),
+               cx + (int) lroundf(r2 * cosf(a)), cy - (int) lroundf(r2 * sinf(a)));
+  cv->setPenWidth(1);
+
+  // value
+  bool active = isDragging() || hasFocus();
+  drawCenteredText(cv, m_knobStyle.valueFont, active ? m_knobStyle.activeValueColor : m_knobStyle.valueColor, cx, cy + ring + 4, m_valueText);
+}
+
+
+void uiKnob::handleKeyDown(uiKeyEventInfo const & key)
+{
+  int page = imax(1, (m_max - m_min) / 10);
+  switch (key.VK) {
+    case VK_UP:
+    case VK_KP_UP:
+    case VK_RIGHT:
+    case VK_KP_RIGHT:
+      setPosition(m_position + 1);
+      break;
+    case VK_DOWN:
+    case VK_KP_DOWN:
+    case VK_LEFT:
+    case VK_KP_LEFT:
+      setPosition(m_position - 1);
+      break;
+    case VK_PAGEUP:
+    case VK_KP_PAGEUP:
+      setPosition(m_position + page);
+      break;
+    case VK_PAGEDOWN:
+    case VK_KP_PAGEDOWN:
+      setPosition(m_position - page);
+      break;
+    case VK_HOME:
+    case VK_KP_HOME:
+      setPosition(m_min);
+      break;
+    case VK_END:
+    case VK_KP_END:
+      setPosition(m_max);
+      break;
+    default:
+      break;
+  }
+}
+
+
+void uiKnob::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  switch (event->id) {
+
+    case UIEVT_PAINT:
+      beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+      paintKnob();
+      break;
+
+    case UIEVT_MOUSEBUTTONDOWN:
+      if (event->params.mouse.changedButton == 1) {
+        m_dragY        = event->params.mouse.status.Y;
+        m_dragPosition = m_position;
+        repaint();
+      }
+      break;
+
+    case UIEVT_MOUSEMOVE:
+      if (isDragging())
+        setPosition(m_dragPosition + (m_dragY - event->params.mouse.status.Y) * (m_max - m_min) / imax(1, (int) m_knobProps.dragPixels));
+      break;
+
+    case UIEVT_MOUSEBUTTONUP:
+      repaint();
+      break;
+
+    case UIEVT_MOUSEWHEEL:
+      setPosition(m_position - event->params.mouse.status.wheelDelta * imax(1, (m_max - m_min) / 50));
+      break;
+
+    case UIEVT_DBLCLICK:
+      setPosition(m_default);
+      break;
+
+    case UIEVT_KEYDOWN:
+      handleKeyDown(event->params.key);
+      break;
+
+    case UIEVT_SETFOCUS:
+    case UIEVT_KILLFOCUS:
+      repaint();
+      break;
+
+    default:
+      break;
+  }
+}
+
+
+// uiKnob
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiToggleSwitch
+
+
+uiToggleSwitch::uiToggleSwitch(uiWindow * parent, const Point & pos, const Size & size, bool checked, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_checked(checked)
+{
+  objectType().uiToggleSwitch = true;
+
+  windowStyle().borderSize = 0;
+  windowProps().focusable  = true;
+
+  if (app()) {
+    m_toggleSwitchStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiToggleSwitch::~uiToggleSwitch()
+{
+}
+
+
+void uiToggleSwitch::setChecked(bool value)
+{
+  if (value != m_checked) {
+    m_checked = value;
+    repaint();
+  }
+}
+
+
+void uiToggleSwitch::toggle()
+{
+  setChecked(!m_checked);
+  onChange();
+}
+
+
+void uiToggleSwitch::paintToggleSwitch()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_toggleSwitchStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+
+  int h      = cRect.height();
+  int r      = h / 2;
+  int trackW = h * 7 / 4;
+  int x1     = cRect.X2 - trackW + 1;
+  int x2     = cRect.X2;
+  int cy     = cRect.Y1 + r;
+
+  // text
+  char const * text = m_checked ? m_toggleSwitchStyle.onText : m_toggleSwitchStyle.offText;
+  if (text) {
+    auto font = m_toggleSwitchStyle.textFont;
+    drawRightAlignedText(cv, font, m_checked ? m_toggleSwitchStyle.onTextColor : m_toggleSwitchStyle.offTextColor,
+                         x1 - 6, cRect.Y1 + (h - font->height) / 2, text, true);
+  }
+
+  // track
+  cv->setBrushColor(m_checked ? m_toggleSwitchStyle.onColor : m_toggleSwitchStyle.offColor);
+  cv->fillRectangle(x1 + r, cRect.Y1, x2 - r, cRect.Y1 + 2 * r - 1);
+  cv->fillEllipse(x1 + r, cy, 2 * r, 2 * r);
+  cv->fillEllipse(x2 - r, cy, 2 * r, 2 * r);
+
+  // thumb
+  cv->setBrushColor(m_toggleSwitchStyle.thumbColor);
+  cv->fillEllipse(m_checked ? x2 - r : x1 + r, cy, 2 * r - 4, 2 * r - 4);
+}
+
+
+void uiToggleSwitch::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  switch (event->id) {
+
+    case UIEVT_PAINT:
+      beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+      paintToggleSwitch();
+      break;
+
+    case UIEVT_CLICK:
+      toggle();
+      break;
+
+    case UIEVT_KEYUP:
+      if (event->params.key.VK == VK_RETURN || event->params.key.VK == VK_KP_ENTER || event->params.key.VK == VK_SPACE)
+        toggle();
+      break;
+
+    default:
+      break;
+  }
+}
+
+
+// uiToggleSwitch
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiLevelBar
+
+
+uiLevelBar::uiLevelBar(uiWindow * parent, const Point & pos, const Size & size, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_position(0),
+    m_min(0),
+    m_max(100)
+{
+  objectType().uiLevelBar = true;
+
+  windowStyle().borderSize = 0;
+  windowProps().focusable  = true;
+
+  if (app()) {
+    m_levelBarStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiLevelBar::~uiLevelBar()
+{
+}
+
+
+void uiLevelBar::setRange(int min, int max)
+{
+  m_min      = min;
+  m_max      = imax(max, min + 1);
+  m_position = iclamp(m_position, m_min, m_max);
+  repaint();
+}
+
+
+void uiLevelBar::setPosition(int value)
+{
+  value = iclamp(value, m_min, m_max);
+  if (value != m_position) {
+    m_position = value;
+    repaint();
+    onChange();
+  }
+}
+
+
+int uiLevelBar::barWidth()
+{
+  int width = uiControl::clientRect(uiOrigin::Window).width();
+  if (m_levelBarProps.showPercentage)
+    width -= canvas()->textExtent(m_levelBarStyle.textFont, "100%") + 8;
+  return imax(width, 1);
+}
+
+
+void uiLevelBar::setPositionFromX(int x)
+{
+  int bw = barWidth();
+  setPosition(m_min + (x - uiControl::clientRect(uiOrigin::Window).X1) * (m_max - m_min) / imax(bw - 1, 1));
+}
+
+
+void uiLevelBar::paintLevelBar()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_levelBarStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+
+  int segments = imax(1, m_levelBarProps.segments);
+  int segW     = barWidth() / segments;
+  int range    = m_max - m_min;
+  int lit      = ((m_position - m_min) * segments + range / 2) / range;
+  int firstHot = segments - m_levelBarProps.highSegments;
+  for (int i = 0; i < segments; ++i) {
+    bool hot = i >= firstHot;
+    if (i < lit)
+      cv->setBrushColor(hot ? m_levelBarStyle.highColor : m_levelBarStyle.lowColor);
+    else
+      cv->setBrushColor(hot ? m_levelBarStyle.highOffColor : m_levelBarStyle.lowOffColor);
+    int x = cRect.X1 + i * segW;
+    cv->fillRectangle(x, cRect.Y1, x + imax(segW - 1 - m_levelBarProps.segmentGap, 0), cRect.Y2);
+  }
+
+  if (m_levelBarProps.showPercentage) {
+    char txt[8];
+    snprintf(txt, sizeof(txt), "%d%%", (m_position - m_min) * 100 / range);
+    auto font = m_levelBarStyle.textFont;
+    drawRightAlignedText(cv, font, m_levelBarStyle.textColor, cRect.X2, cRect.Y1 + (cRect.height() - font->height) / 2, txt, true);
+  }
+}
+
+
+void uiLevelBar::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  switch (event->id) {
+
+    case UIEVT_PAINT:
+      beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+      paintLevelBar();
+      break;
+
+    case UIEVT_MOUSEBUTTONDOWN:
+      if (m_levelBarProps.allowEdit && event->params.mouse.changedButton == 1)
+        setPositionFromX(event->params.mouse.status.X);
+      break;
+
+    case UIEVT_MOUSEMOVE:
+      if (m_levelBarProps.allowEdit && app()->capturedMouseWindow() == this)
+        setPositionFromX(event->params.mouse.status.X);
+      break;
+
+    case UIEVT_MOUSEWHEEL:
+      if (m_levelBarProps.allowEdit)
+        setPosition(m_position - event->params.mouse.status.wheelDelta * imax(1, (m_max - m_min) / imax(1, (int) m_levelBarProps.segments)));
+      break;
+
+    case UIEVT_KEYDOWN:
+      if (m_levelBarProps.allowEdit) {
+        int step = imax(1, (m_max - m_min) / imax(1, (int) m_levelBarProps.segments));
+        switch (event->params.key.VK) {
+          case VK_RIGHT: case VK_KP_RIGHT: case VK_UP: case VK_KP_UP:
+            setPosition(m_position + step);
+            break;
+          case VK_LEFT: case VK_KP_LEFT: case VK_DOWN: case VK_KP_DOWN:
+            setPosition(m_position - step);
+            break;
+          default:
+            break;
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+
+
+// uiLevelBar
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiLedBar
+
+
+uiLedBar::uiLedBar(uiWindow * parent, const Point & pos, const Size & size, int count, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_count(count)
+{
+  objectType().uiLedBar = true;
+
+  windowStyle().borderSize = 0;
+  windowProps().focusable  = false;
+
+  m_states = (uint8_t *) calloc(imax(count, 1), 1);
+
+  if (app()) {
+    m_ledBarStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiLedBar::~uiLedBar()
+{
+  free(m_states);
+}
+
+
+void uiLedBar::setLed(int index, int state)
+{
+  if (index >= 0 && index < m_count) {
+    state = iclamp(state, 0, 3);
+    if (state != m_states[index]) {
+      m_states[index] = state;
+      repaint();
+    }
+  }
+}
+
+
+void uiLedBar::paintLedBar()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_ledBarStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+
+  int gap  = m_ledBarProps.ledGap;
+  int ledW = (cRect.width() - gap * (m_count - 1)) / imax(m_count, 1);
+  for (int i = 0; i < m_count; ++i) {
+    int x = cRect.X1 + i * (ledW + gap);
+    cv->setBrushColor(m_ledBarStyle.ledColors[m_states[i]]);
+    cv->fillRectangle(x, cRect.Y1, x + ledW - 1, cRect.Y2);
+  }
+}
+
+
+void uiLedBar::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  if (event->id == UIEVT_PAINT) {
+    beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+    paintLedBar();
+  }
+}
+
+
+// uiLedBar
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiStepper
+
+
+uiStepper::uiStepper(uiWindow * parent, const Point & pos, const Size & size, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_text(nullptr),
+    m_pressed(-1)
+{
+  objectType().uiStepper = true;
+
+  windowStyle().borderSize = 0;
+  windowProps().focusable  = true;
+
+  if (app()) {
+    m_stepperStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiStepper::~uiStepper()
+{
+  free(m_text);
+}
+
+
+void uiStepper::setText(char const * value)
+{
+  replaceString(m_text, value);
+  repaint();
+}
+
+
+Rect uiStepper::buttonRect(int index)
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  int s = cRect.height();
+  return index == 0 ? Rect(cRect.X1, cRect.Y1, cRect.X1 + s - 1, cRect.Y2) : Rect(cRect.X2 - s + 1, cRect.Y1, cRect.X2, cRect.Y2);
+}
+
+
+void uiStepper::paintStepper()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_stepperStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+
+  for (int i = 0; i < 2; ++i) {
+    Rect r = buttonRect(i);
+    bool pressed = (m_pressed == i);
+    cv->setBrushColor(pressed ? m_stepperStyle.mouseDownButtonBackgroundColor : m_stepperStyle.buttonBackgroundColor);
+    cv->fillRectangle(r);
+    cv->setPenColor(m_stepperStyle.buttonBorderColor);
+    cv->drawRectangle(r);
+    // arrow
+    int cx = (r.X1 + r.X2) / 2, cy = (r.Y1 + r.Y2) / 2, s = imax(r.height() / 6, 2);
+    Point arrow[3] = { Point(cx + (i ? -s / 2 : s / 2), cy - s),
+                       Point(cx + (i ? -s / 2 : s / 2), cy + s),
+                       Point(cx + (i ? s : -s), cy) };
+    cv->setBrushColor(pressed ? m_stepperStyle.mouseDownArrowColor : m_stepperStyle.arrowColor);
+    cv->fillPath(arrow, 3);
+  }
+
+  if (m_text) {
+    auto font = m_stepperStyle.textFont;
+    drawCenteredText(cv, font, m_stepperStyle.textColor, (cRect.X1 + cRect.X2) / 2, cRect.Y1 + (cRect.height() - font->height) / 2, m_text, true);
+  }
+}
+
+
+void uiStepper::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  switch (event->id) {
+
+    case UIEVT_PAINT:
+      beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+      paintStepper();
+      break;
+
+    case UIEVT_MOUSEBUTTONDOWN:
+      if (event->params.mouse.changedButton == 1) {
+        for (int i = 0; i < 2; ++i)
+          if (buttonRect(i).contains(event->params.mouse.status.X, event->params.mouse.status.Y)) {
+            m_pressed = i;
+            repaint();
+            onStep(i == 0 ? -1 : +1);
+          }
+      }
+      break;
+
+    case UIEVT_MOUSEBUTTONUP:
+      if (m_pressed >= 0) {
+        m_pressed = -1;
+        repaint();
+      }
+      break;
+
+    case UIEVT_KEYDOWN:
+      switch (event->params.key.VK) {
+        case VK_LEFT: case VK_KP_LEFT: case VK_DOWN: case VK_KP_DOWN:
+          onStep(-1);
+          break;
+        case VK_RIGHT: case VK_KP_RIGHT: case VK_UP: case VK_KP_UP:
+          onStep(+1);
+          break;
+        default:
+          break;
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+
+
+// uiStepper
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiTileSelector
+
+
+uiTileSelector::uiTileSelector(uiWindow * parent, const Point & pos, const Size & size, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_selected(-1)
+{
+  objectType().uiTileSelector = true;
+
+  windowStyle().borderSize = 0;
+  windowProps().focusable  = true;
+
+  if (app()) {
+    m_tileSelectorStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiTileSelector::~uiTileSelector()
+{
+}
+
+
+void uiTileSelector::selectItem(int index)
+{
+  index = iclamp(index, -1, m_items.count() - 1);
+  if (index != m_selected) {
+    m_selected = index;
+    repaint();
+  }
+}
+
+
+int uiTileSelector::captionHeight()
+{
+  for (int i = 0; i < m_items.count(); ++i)
+    if (m_items.get(i) && m_items.get(i)[0])
+      return m_tileSelectorStyle.textFont->height + 3;
+  return 0;
+}
+
+
+Rect uiTileSelector::tileRect(int index)
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  int count  = imax(m_items.count(), 1);
+  int gap    = m_tileSelectorProps.tileGap;
+  int tileW  = (cRect.width() - gap * (count - 1)) / count;
+  int x      = cRect.X1 + index * (tileW + gap);
+  return Rect(x, cRect.Y1, x + tileW - 1, cRect.Y2 - captionHeight());
+}
+
+
+void uiTileSelector::paintTileSelector()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_tileSelectorStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+
+  for (int i = 0; i < m_items.count(); ++i) {
+    Rect r   = tileRect(i);
+    bool sel = (i == m_selected);
+    cv->setBrushColor(m_tileSelectorStyle.tileBackgroundColor);
+    cv->fillRectangle(r);
+    cv->setPenColor(sel ? m_tileSelectorStyle.selectedTileBorderColor : m_tileSelectorStyle.tileBorderColor);
+    cv->drawRectangle(r);
+    onPaintTile(i, r, sel);
+    char const * caption = m_items.get(i);
+    if (caption && caption[0])
+      drawCenteredText(cv, m_tileSelectorStyle.textFont, sel ? m_tileSelectorStyle.selectedTextColor : m_tileSelectorStyle.textColor,
+                       (r.X1 + r.X2) / 2, r.Y2 + 2, caption);
+  }
+}
+
+
+void uiTileSelector::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  switch (event->id) {
+
+    case UIEVT_PAINT:
+      beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+      paintTileSelector();
+      break;
+
+    case UIEVT_MOUSEBUTTONDOWN:
+      if (event->params.mouse.changedButton == 1) {
+        for (int i = 0; i < m_items.count(); ++i)
+          if (tileRect(i).contains(event->params.mouse.status.X, event->params.mouse.status.Y)) {
+            if (i != m_selected) {
+              selectItem(i);
+              onChange();
+            }
+            break;
+          }
+      }
+      break;
+
+    case UIEVT_KEYDOWN:
+    {
+      int index = m_selected;
+      if (event->params.key.VK == VK_LEFT || event->params.key.VK == VK_KP_LEFT)
+        index = imax(index - 1, 0);
+      else if (event->params.key.VK == VK_RIGHT || event->params.key.VK == VK_KP_RIGHT)
+        index = imin(index + 1, m_items.count() - 1);
+      if (index != m_selected) {
+        selectItem(index);
+        onChange();
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+}
+
+
+// uiTileSelector
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiGraph
+
+
+uiGraph::uiGraph(uiWindow * parent, const Point & pos, const Size & size, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_values(nullptr),
+    m_count(0),
+    m_min(-100),
+    m_max(100)
+{
+  objectType().uiGraph = true;
+
+  windowStyle().borderSize  = 1;
+  windowStyle().borderColor = RGB888(128, 128, 128);
+  windowProps().focusable   = false;
+
+  if (app()) {
+    m_graphStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiGraph::~uiGraph()
+{
+  free(m_values);
+}
+
+
+void uiGraph::setRange(int min, int max)
+{
+  m_min = min;
+  m_max = max != min ? max : min + 1;
+  repaint();
+}
+
+
+void uiGraph::setValues(int16_t const * values, int count)
+{
+  if (count != m_count) {
+    free(m_values);
+    m_values = count > 0 ? (int16_t *) malloc(count * sizeof(int16_t)) : nullptr;
+    m_count  = m_values ? count : 0;
+  }
+  if (m_count)
+    memcpy(m_values, values, m_count * sizeof(int16_t));
+  repaint();
+}
+
+
+Rect uiGraph::plotRect()
+{
+  return uiControl::clientRect(uiOrigin::Window).shrink(m_graphProps.margin);
+}
+
+
+int uiGraph::valueToY(int value)
+{
+  Rect r = plotRect();
+  int y = r.Y2 - (value - m_min) * (r.height() - 1) / (m_max - m_min);
+  return iclamp(y, r.Y1, r.Y2);
+}
+
+
+int uiGraph::indexToX(int index)
+{
+  Rect r = plotRect();
+  return m_count > 1 ? r.X1 + index * (r.width() - 1) / (m_count - 1) : r.X1;
+}
+
+
+void uiGraph::paintGraph()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  Rect plot  = plotRect();
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_graphStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+
+  // grid
+  cv->setPenColor(m_graphStyle.gridColor);
+  for (int i = 1; i <= m_graphProps.hGridLines; ++i) {
+    int y = plot.Y1 + plot.height() * i / (m_graphProps.hGridLines + 1);
+    cv->drawLine(plot.X1, y, plot.X2, y);
+  }
+  for (int i = 1; i <= m_graphProps.vGridLines; ++i) {
+    int x = plot.X1 + plot.width() * i / (m_graphProps.vGridLines + 1);
+    cv->drawLine(x, plot.Y1, x, plot.Y2);
+  }
+
+  onPaintBackground(plot);
+
+  if (m_count > 1) {
+    // area below the curve
+    if (m_graphProps.fillArea) {
+      cv->setPenColor(m_graphStyle.fillColor);
+      for (int i = 1; i < m_count; ++i) {
+        int x1 = indexToX(i - 1), y1 = valueToY(m_values[i - 1]);
+        int x2 = indexToX(i),     y2 = valueToY(m_values[i]);
+        for (int x = (i == 1 ? x1 : x1 + 1); x <= x2; ++x) {
+          int y = x2 > x1 ? y1 + (y2 - y1) * (x - x1) / (x2 - x1) : y2;
+          if (y < plot.Y2)
+            cv->drawLine(x, y + 1, x, plot.Y2);
+        }
+      }
+    }
+    // curve
+    cv->setPenColor(m_graphStyle.lineColor);
+    int px = indexToX(0), py = valueToY(m_values[0]);
+    for (int i = 1; i < m_count; ++i) {
+      int x = indexToX(i), y = valueToY(m_values[i]);
+      cv->drawLine(px, py, x, y);
+      px = x;
+      py = y;
+    }
+  }
+
+  onPaint(plot);
+}
+
+
+void uiGraph::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  if (event->id == UIEVT_PAINT) {
+    beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+    paintGraph();
+  }
+}
+
+
+// uiGraph
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiPianoKeyboard
+
+
+uiPianoKeyboard::uiPianoKeyboard(uiWindow * parent, const Point & pos, const Size & size, int keysCount, bool visible, uint32_t styleClassID)
+  : uiControl(parent, pos, size, visible, 0),
+    m_keysCount(imax(keysCount, 1)),
+    m_baseNote(60),
+    m_whiteKeys(1),
+    m_mouseKey(-1),
+    m_keyLabels(nullptr)
+{
+  objectType().uiPianoKeyboard = true;
+
+  windowStyle().borderSize = 0;
+  windowProps().focusable  = false;
+
+  m_pressed      = (uint8_t *) calloc(m_keysCount, 1);
+  m_whitesBefore = (uint8_t *) calloc(m_keysCount, 1);
+  updateLayout();
+
+  if (app()) {
+    m_pianoKeyboardStyle.adaptToDisplayColors(app()->displayColors());
+    if (app()->style() && styleClassID)
+      app()->style()->setStyle(this, styleClassID);
+  }
+}
+
+
+uiPianoKeyboard::~uiPianoKeyboard()
+{
+  free(m_pressed);
+  free(m_whitesBefore);
+}
+
+
+bool uiPianoKeyboard::isBlack(int index)
+{
+  static const bool black[12] = { false, true, false, true, false, false, true, false, true, false, true, false };
+  return black[(m_baseNote + index) % 12];
+}
+
+
+void uiPianoKeyboard::updateLayout()
+{
+  int whites = 0;
+  for (int i = 0; i < m_keysCount; ++i) {
+    m_whitesBefore[i] = whites;
+    if (!isBlack(i))
+      ++whites;
+  }
+  m_whiteKeys = imax(whites, 1);
+}
+
+
+void uiPianoKeyboard::setBaseNote(int value)
+{
+  releaseAll();
+  m_baseNote = value;
+  updateLayout();
+  repaint();
+}
+
+
+void uiPianoKeyboard::press(int index, uint8_t source)
+{
+  if (index < 0 || index >= m_keysCount || (m_pressed[index] & source))
+    return;   // ignore typematic repeats
+  bool wasPressed = m_pressed[index];
+  m_pressed[index] |= source;
+  if (!wasPressed) {
+    repaint(keyRect(index));
+    onNoteOn(m_baseNote + index);
+  }
+}
+
+
+void uiPianoKeyboard::release(int index, uint8_t source)
+{
+  if (index < 0 || index >= m_keysCount || !(m_pressed[index] & source))
+    return;
+  m_pressed[index] &= ~source;
+  if (!m_pressed[index]) {
+    repaint(keyRect(index));
+    onNoteOff(m_baseNote + index);
+  }
+}
+
+
+void uiPianoKeyboard::releaseAll()
+{
+  for (int i = 0; i < m_keysCount; ++i)
+    if (m_pressed[i]) {
+      m_pressed[i] = 0;
+      onNoteOff(m_baseNote + i);
+    }
+  m_mouseKey = -1;
+  repaint();
+}
+
+
+// forHitTest = true: white keys include the 1 pixel gap on their right
+Rect uiPianoKeyboard::keyRect(int index, bool forHitTest)
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  int top    = m_pianoKeyboardProps.topLineSize ? m_pianoKeyboardProps.topLineSize + 1 : 0;
+  int ww     = cRect.width() / m_whiteKeys;
+  int x      = cRect.X1 + m_whitesBefore[index] * ww;
+  if (isBlack(index)) {
+    int bw = ww * 2 / 3;
+    int bh = (cRect.height() - top) * 6 / 10;
+    x -= bw / 2;
+    return Rect(x, cRect.Y1 + top, x + bw - 1, cRect.Y1 + top + bh - 1);
+  } else {
+    return Rect(x, cRect.Y1 + top, x + ww - (forHitTest ? 1 : 2), cRect.Y2);
+  }
+}
+
+
+int uiPianoKeyboard::keyAt(int x, int y)
+{
+  // black keys are over white keys: check them first
+  for (int i = 0; i < m_keysCount; ++i)
+    if (isBlack(i) && keyRect(i, true).contains(x, y))
+      return i;
+  for (int i = 0; i < m_keysCount; ++i)
+    if (!isBlack(i) && keyRect(i, true).contains(x, y))
+      return i;
+  return -1;
+}
+
+
+void uiPianoKeyboard::paintKey(int index)
+{
+  auto & style  = m_pianoKeyboardStyle;
+  auto   cv     = canvas();
+  Rect   r      = keyRect(index);
+  bool   black  = isBlack(index);
+  bool   pressed = m_pressed[index] != 0;
+  int    front  = m_pianoKeyboardProps.frontSize;
+  int    fh     = style.textFont->height;
+  int    cx     = (r.X1 + r.X2) / 2;
+
+  if (black) {
+    // bevelled key: lighter sides and front
+    cv->setBrushColor(pressed ? style.pressedKeyFrontColor : style.blackKeyBevelColor);
+    cv->fillRectangle(r);
+    cv->setBrushColor(pressed ? style.pressedKeyColor : style.blackKeyColor);
+    cv->fillRectangle(r.X1 + 2, r.Y1, r.X2 - 2, r.Y2 - front);
+  } else {
+    cv->setBrushColor(pressed ? style.pressedKeyColor : style.whiteKeyColor);
+    cv->fillRectangle(r.X1, r.Y1, r.X2, r.Y2 - front);
+    cv->setBrushColor(pressed ? style.pressedKeyFrontColor : style.whiteKeyFrontColor);
+    cv->fillRectangle(r.X1, r.Y2 - front + 1, r.X2, r.Y2);
+  }
+
+  // key label
+  if (m_keyLabels && m_keyLabels[index]) {
+    RGB888 color = pressed ? style.pressedTextColor : (black ? style.blackLabelColor : style.labelColor);
+    int y = black || !m_pianoKeyboardProps.showNoteNames ? r.Y2 - front - fh - 3 : r.Y2 - front - 2 * fh - 8;
+    drawCenteredText(cv, style.textFont, color, cx, y, m_keyLabels[index], true);
+  }
+
+  // note name on white keys, highlighted on C
+  if (!black && m_pianoKeyboardProps.showNoteNames) {
+    char name[8];
+    midiNoteName(m_baseNote + index, name, sizeof(name));
+    bool isC = (m_baseNote + index) % 12 == 0;
+    RGB888 color = pressed ? style.pressedTextColor : (isC ? style.cNoteNameColor : style.noteNameColor);
+    drawCenteredText(cv, style.textFont, color, cx, r.Y2 - front - fh - 3, name, isC);
+  }
+}
+
+
+void uiPianoKeyboard::paintPianoKeyboard()
+{
+  Rect cRect = uiControl::clientRect(uiOrigin::Window);
+  auto cv    = canvas();
+
+  cv->setBrushColor(m_pianoKeyboardStyle.backgroundColor);
+  cv->fillRectangle(cRect);
+  if (m_pianoKeyboardProps.topLineSize) {
+    cv->setBrushColor(m_pianoKeyboardStyle.topLineColor);
+    cv->fillRectangle(cRect.X1, cRect.Y1, cRect.X2, cRect.Y1 + m_pianoKeyboardProps.topLineSize - 1);
+  }
+  // white keys first, then black keys on top
+  for (int i = 0; i < m_keysCount; ++i)
+    if (!isBlack(i))
+      paintKey(i);
+  for (int i = 0; i < m_keysCount; ++i)
+    if (isBlack(i))
+      paintKey(i);
+}
+
+
+void uiPianoKeyboard::processEvent(uiEvent * event)
+{
+  uiControl::processEvent(event);
+
+  switch (event->id) {
+
+    case UIEVT_PAINT:
+      beginPaint(event, uiControl::clientRect(uiOrigin::Window));
+      paintPianoKeyboard();
+      break;
+
+    case UIEVT_MOUSEBUTTONDOWN:
+      if (event->params.mouse.changedButton == 1) {
+        m_mouseKey = keyAt(event->params.mouse.status.X, event->params.mouse.status.Y);
+        press(m_mouseKey, MouseSource);
+      }
+      break;
+
+    case UIEVT_MOUSEMOVE:
+      // glissando: dragging the mouse with the button pressed changes note
+      if (m_mouseKey >= 0 && app()->capturedMouseWindow() == this) {
+        int key = keyAt(event->params.mouse.status.X, event->params.mouse.status.Y);
+        if (key != m_mouseKey) {
+          release(m_mouseKey, MouseSource);
+          m_mouseKey = key;
+          press(m_mouseKey, MouseSource);
+        }
+      }
+      break;
+
+    case UIEVT_MOUSEBUTTONUP:
+      if (event->params.mouse.changedButton == 1) {
+        release(m_mouseKey, MouseSource);
+        m_mouseKey = -1;
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+
+
+// uiPianoKeyboard
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

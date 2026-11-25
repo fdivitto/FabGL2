@@ -36,9 +36,10 @@
  *    Z / X  : octave down / up
  *    1 .. 5 : select waveform
  *
- * Each note is played by a voice: a WaveformGenerator followed by a resonant low-pass filter
- * (adjustable cutoff and resonance) and shaped by an ADSR envelope.
- * Up to MAX_VOICES notes can sound at the same time.
+ * The sound is produced by fabgl::PolySynth: each note is played by a voice (an oscillator followed by a
+ * resonant low-pass filter, shaped by an ADSR envelope). The interface uses the FabGL synth controls
+ * (uiKnob, uiToggleSwitch, uiLevelBar, uiLedBar, uiStepper, uiTileSelector, uiGraph, uiPianoKeyboard),
+ * themed by a uiStyle and a custom 16-color palette.
  */
 
 
@@ -48,563 +49,304 @@
 #include "fabui.h"
 
 
-using fabgl::uiControl;
-using fabgl::uiEvent;
-using fabgl::uiOrigin;
-using fabgl::Delegate;
+using fabgl::uiStyle;
+using fabgl::uiObject;
+using fabgl::uiWindow;
 
 
 fabgl::VGA16Controller DisplayController;
 fabgl::PS2Controller   PS2Controller;
 SoundGenerator         soundGenerator;
+PolySynth              synth;
 
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// ADSR envelope parameters (shared by all voices)
-
-
-static constexpr int ENV_MAX = 1 << 24;   // envelope full level (fixed point)
-
-
-struct Envelope {
-  volatile int attackInc  = ENV_MAX;
-  volatile int decayInc   = ENV_MAX;
-  volatile int sustain    = ENV_MAX;
-  volatile int releaseInc = ENV_MAX;
-
-  // ms -> level increment per sample (from 0 to ENV_MAX)
-  static int msToInc(int ms) {
-    int samples = ms * FABGL_SOUNDGEN_DEFAULT_SAMPLE_RATE / 1000;
-    return samples > 0 ? ENV_MAX / samples : ENV_MAX;
-  }
-
-  void setAttack(int ms)          { attackInc  = msToInc(ms); }
-  void setDecay(int ms)           { decayInc   = msToInc(ms); }
-  void setSustain(int percent)    { sustain    = (int64_t) ENV_MAX * percent / 100; }
-  void setRelease(int ms)         { releaseInc = msToInc(ms); }
-};
-
-Envelope envelope;
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Resonant low-pass filter parameters (shared by all voices)
+// Theme
 //
-// Second order (12 dB/octave) "RBJ cookbook" biquad. Coefficients are computed in floating point by
-// the UI task and used in fixed point (Q28) by the sound generator interrupt, where the FPU can't be used.
-// Two coefficient sets are kept: the UI writes the inactive one and then swaps them, so the interrupt
-// never sees a half-updated set.
+// The display has 16 colors (VGA16Controller) and every palette slot is reprogrammed with a theme color.
+// Canvas colors are RGB888 values that the driver maps to a palette slot through a table built from the
+// default palette (setPaletteItem() doesn't rebuild it). So a theme color is selected with the default
+// color of its slot: see ink().
 
 
-struct LowPassFilter {
-
-  static constexpr int COEFF_SHIFT = 28;
-
-  static constexpr int MIN_CUTOFF  = 50;     // Hz
-  static constexpr int MAX_CUTOFF  = 7000;   // Hz (sample rate is 16384 Hz, Nyquist is 8192 Hz)
-  static constexpr float MIN_Q     = 0.707f; // no resonance (Butterworth)
-  static constexpr float MAX_Q     = 12.0f;
-
-  struct Coeffs {
-    int32_t b0, b1, b2, a1, a2;
-  };
-
-  Coeffs       sets[2];
-  volatile int active  = 0;
-  volatile bool enabled = true;
-  int          cutoff  = 2000;  // Hz
-  float        q       = 2.0f;
-
-  LowPassFilter() { update(); }
-
-  void setCutoff(int value)    { cutoff = value; update(); }
-  void setResonance(float value) { q = value; update(); }
-
-  void update()
-  {
-    float w0    = 2.0f * (float) M_PI * cutoff / FABGL_SOUNDGEN_DEFAULT_SAMPLE_RATE;
-    float cosw  = cosf(w0);
-    float alpha = sinf(w0) / (2.0f * q);
-    float a0    = 1.0f + alpha;
-    float scale = (float) (1 << COEFF_SHIFT) / a0;
-
-    int next = active ^ 1;
-    Coeffs & c = sets[next];
-    c.b0 = (int32_t) lroundf((1.0f - cosw) * 0.5f * scale);
-    c.b1 = (int32_t) lroundf((1.0f - cosw) * scale);
-    c.b2 = c.b0;
-    c.a1 = (int32_t) lroundf(-2.0f * cosw * scale);
-    c.a2 = (int32_t) lroundf((1.0f - alpha) * scale);
-    active = next;
-  }
-
-  // slider position (0..100) <-> logarithmic scales
-  static int cutoffFromSlider(int pos)  { return (int) lroundf(MIN_CUTOFF * powf((float) MAX_CUTOFF / MIN_CUTOFF, pos / 100.0f)); }
-  static float qFromSlider(int pos)     { return MIN_Q * powf(MAX_Q / MIN_Q, pos / 100.0f); }
-};
-
-LowPassFilter lowPassFilter;
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Voice: a waveform generator (sine, square, ...) shaped by the ADSR envelope
-
-
-enum class Waveform { Sine, Square, Pulse, Triangle, Sawtooth };
-
-static const char * WaveformNames[] = { "Sine", "Square", "Pulse 25%", "Triangle", "Sawtooth" };
-static constexpr int WaveformsCount = sizeof(WaveformNames) / sizeof(WaveformNames[0]);
-
-
-class Voice : public WaveformGenerator {
-
-public:
-
-  enum class State { Idle, Attack, Decay, Sustain, Release };
-
-  Voice()
-  {
-    m_pulse.setDutyCycle(64);
-    m_gen = &m_sine;
-  }
-
-  // must be called after attaching the voice to the sound generator (sample rate is known)
-  void setWaveform(Waveform waveform)
-  {
-    WaveformGenerator * gens[] = { &m_sine, &m_square, &m_pulse, &m_triangle, &m_sawtooth };
-    auto gen = gens[(int)waveform];
-    gen->setSampleRate(sampleRate());
-    gen->setVolume(127);
-    gen->setFrequency(m_frequency);
-    m_gen = gen;
-  }
-
-  void setFrequency(int value)
-  {
-    m_frequency = value;
-    m_gen->setFrequency(value);
-  }
-
-  void noteOn(int note, int frequency)
-  {
-    m_note = note;
-    setFrequency(frequency);
-    if (m_state == State::Idle)
-      m_x1 = m_x2 = m_y1 = m_y2 = 0;  // clear filter state (safe: the interrupt doesn't touch idle voices)
-    m_state = State::Attack;  // a retriggered voice restarts from its current level (no clicks)
-    enable(true);
-  }
-
-  void noteOff()
-  {
-    if (m_state != State::Idle)
-      m_state = State::Release;
-  }
-
-  int note()      { return m_note; }
-  State state()   { return m_state; }
-  bool isIdle()   { return m_state == State::Idle; }
-
-  int getSample()
-  {
-    switch (m_state) {
-      case State::Attack:
-        m_level += envelope.attackInc;
-        if (m_level >= ENV_MAX) {
-          m_level = ENV_MAX;
-          m_state = State::Decay;
-        }
-        break;
-      case State::Decay:
-        m_level -= envelope.decayInc;
-        if (m_level <= envelope.sustain) {
-          m_level = envelope.sustain;
-          m_state = State::Sustain;
-        }
-        break;
-      case State::Sustain:
-        m_level = envelope.sustain;   // follows the sustain slider while the key is held
-        break;
-      case State::Release:
-        m_level -= envelope.releaseInc;
-        if (m_level <= 0) {
-          m_level = 0;
-          m_state = State::Idle;
-          m_note  = -1;
-          enable(false);
-        }
-        break;
-      case State::Idle:
-        return 0;
-    }
-
-    int sample = m_gen->getSample();                  // -128..127 (generator volume = 127)
-    if (lowPassFilter.enabled)
-      sample = filter(sample);
-    sample = sample * volume() / 127;                 // voice volume
-    return (sample * (m_level >> 16)) >> 8;           // envelope (0..256)
-  }
-
-private:
-
-  // biquad low-pass filter, direct form I. Samples are scaled by 256 to keep precision.
-  int filter(int in)
-  {
-    auto const & c = lowPassFilter.sets[lowPassFilter.active];
-    int32_t x0 = in << 8;
-    int64_t acc = (int64_t) c.b0 * x0 + (int64_t) c.b1 * m_x1 + (int64_t) c.b2 * m_x2
-                - (int64_t) c.a1 * m_y1 - (int64_t) c.a2 * m_y2;
-    int32_t y0 = (int32_t) (acc >> LowPassFilter::COEFF_SHIFT);
-    y0 = fabgl::iclamp(y0, -(1 << 20), (1 << 20));         // safety net against runaway (never reached when stable)
-    m_x2 = m_x1;
-    m_x1 = x0;
-    m_y2 = m_y1;
-    m_y1 = y0;
-    return fabgl::iclamp(y0 >> 8, -128, 127);              // resonance can exceed the 8 bit range: clip
-  }
-
-  SineWaveformGenerator     m_sine;
-  SquareWaveformGenerator   m_square;
-  SquareWaveformGenerator   m_pulse;
-  TriangleWaveformGenerator m_triangle;
-  SawtoothWaveformGenerator m_sawtooth;
-
-  WaveformGenerator * m_gen;
-  int                 m_frequency = 0;
-  int                 m_note      = -1;
-  volatile State      m_state     = State::Idle;
-  int                 m_level     = 0;
-
-  // filter state
-  int32_t             m_x1 = 0, m_x2 = 0, m_y1 = 0, m_y2 = 0;
+enum class Ink {
+  Background,   // slot 0 stays black: the mouse pointer uses it
+  Panel,
+  Edge,
+  Fill,
+  Shadow,
+  Text,
+  Dim,
+  Amber,
+  DimAmber,
+  Cyan,
+  Grid,
+  Led,
+  DimLed,
+  Accent,
+  KeyShade,
+  White,        // slot 15 stays white: the mouse pointer uses it
 };
 
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Synth: a pool of voices
-
-
-class Synth {
-
-public:
-
-  static constexpr int MAX_VOICES = 8;
-
-  void begin()
-  {
-    for (auto & v : m_voices) {
-      soundGenerator.attach(&v);
-      v.setWaveform(m_waveform);
-    }
-    soundGenerator.play(true);
-  }
-
-  void setWaveform(Waveform value)
-  {
-    m_waveform = value;
-    bool playing = soundGenerator.play(false);
-    for (auto & v : m_voices)
-      v.setWaveform(value);
-    soundGenerator.play(playing);
-  }
-
-  Waveform waveform() { return m_waveform; }
-
-  // note: MIDI note number (60 = C4, 69 = A4 = 440 Hz)
-  void noteOn(int note)
-  {
-    Voice * voice = nullptr;
-    // same note still sounding (releasing)? reuse its voice
-    for (auto & v : m_voices)
-      if (v.note() == note) {
-        voice = &v;
-        break;
-      }
-    // free voice?
-    if (!voice)
-      for (auto & v : m_voices)
-        if (v.isIdle()) {
-          voice = &v;
-          break;
-        }
-    // all voices busy: steal a releasing one, otherwise the oldest one
-    if (!voice)
-      for (auto & v : m_voices)
-        if (v.state() == Voice::State::Release) {
-          voice = &v;
-          break;
-        }
-    if (!voice)
-      voice = &m_voices[m_nextSteal++ % MAX_VOICES];
-
-    voice->noteOn(note, noteFrequency(note));
-  }
-
-  void noteOff(int note)
-  {
-    for (auto & v : m_voices)
-      if (v.note() == note && v.state() != Voice::State::Release)
-        v.noteOff();
-  }
-
-  static int noteFrequency(int note)
-  {
-    return (int) lroundf(440.0f * powf(2.0f, (note - 69) / 12.0f));
-  }
-
-private:
-
-  Voice    m_voices[MAX_VOICES];
-  Waveform m_waveform  = Waveform::Sawtooth;
-  int      m_nextSteal = 0;
+static const RGB888 InkColors[16] = {
+  RGB888(  0,   0,   0),   // Background
+  RGB888(  0,   0,  85),   // Panel
+  RGB888(  0,  85, 170),   // Edge
+  RGB888(  0,   0, 170),   // Fill
+  RGB888( 85,  85,  85),   // Shadow
+  RGB888(170, 170, 255),   // Text
+  RGB888( 85,  85, 170),   // Dim
+  RGB888(255, 170,   0),   // Amber
+  RGB888(170,  85,   0),   // DimAmber
+  RGB888(  0, 255, 255),   // Cyan
+  RGB888(  0,  85,  85),   // Grid
+  RGB888(  0, 255,  85),   // Led
+  RGB888(  0,  85,   0),   // DimLed
+  RGB888(255,   0, 170),   // Accent
+  RGB888(170, 170, 170),   // KeyShade
+  RGB888(255, 255, 255),   // White
 };
 
-Synth synth;
 
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Note names
-
-
-static const char * NoteNames[12] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-
-// MIDI note -> "C4"
-static void noteName(int note, char * str, size_t len)
+static RGB888 ink(Ink value)
 {
-  snprintf(str, len, "%s%d", NoteNames[note % 12], note / 12 - 1);
+  return RGB888((Color) value);
 }
 
 
+static void setupPalette()
+{
+  for (int i = 0; i < 16; ++i)
+    DisplayController.setPaletteItem(i, InkColors[i]);
+}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// PianoKeyboard: on screen keyboard control (two octaves plus the final C)
+
+static fabgl::FontInfo const * const SmallFont  = &fabgl::FONT_std_12;
+static fabgl::FontInfo const * const MediumFont = &fabgl::FONT_std_17;
+static fabgl::FontInfo const * const BigFont    = &fabgl::FONT_std_24;
+static fabgl::FontInfo const * const TinyFont   = &fabgl::FONT_6x8;
 
 
-class PianoKeyboard : public uiControl {
+// style classes (last parameter of the control constructors)
+enum StyleClass {
+  STYLE_NONE,
+  STYLE_KNOB,
+  STYLE_SWITCH,
+  STYLE_LEVELBAR,
+  STYLE_LEDBAR,
+  STYLE_STEPPER,
+  STYLE_TILES,
+  STYLE_GRAPH,
+  STYLE_PIANO,
+  STYLE_DISPLAY,        // black panel with border
+  STYLE_DISPLAY_NOTE,   // labels on the display
+  STYLE_DISPLAY_FREQ,
+  STYLE_WAVE_NAME,      // label on a panel
+};
 
-public:
 
-  static constexpr int KEYS        = 25;   // semitones displayed (C..C'')
-  static constexpr int WHITE_KEYS  = 15;
+struct SynthStyle : uiStyle {
 
-  // keyboard source flags
-  static constexpr uint8_t SRC_KEYBOARD = 1;
-  static constexpr uint8_t SRC_MOUSE    = 2;
-
-  PianoKeyboard(uiWindow * parent, const Point & pos, const Size & size)
-    : uiControl(parent, pos, size, true)
+  void setStyle(uiObject * object, uint32_t styleClassID)
   {
-    windowStyle().borderSize  = 0;
-    windowProps().focusable   = false;   // keyboard events are handled by the main frame
-    memset(m_pressed, 0, sizeof(m_pressed));
-  }
+    // keyboard events go to the main frame (it plays the notes)
+    ((uiWindow *) object)->windowProps().focusable = false;
 
-  // base note (the leftmost C)
-  void setBaseNote(int value)
-  {
-    releaseAll();
-    m_baseNote = value;
-    repaint();
-  }
+    switch (styleClassID) {
 
-  int baseNote() { return m_baseNote; }
-
-  // index: 0..KEYS-1
-  void press(int index, uint8_t source)
-  {
-    if (index < 0 || index >= KEYS || (m_pressed[index] & source))
-      return; // ignore typematic repeats
-    bool wasPressed = m_pressed[index];
-    m_pressed[index] |= source;
-    if (!wasPressed) {
-      synth.noteOn(m_baseNote + index);
-      repaintKey(index);
-      onNote(m_baseNote + index);
-    }
-  }
-
-  void release(int index, uint8_t source)
-  {
-    if (index < 0 || index >= KEYS || !(m_pressed[index] & source))
-      return;
-    m_pressed[index] &= ~source;
-    if (!m_pressed[index]) {
-      synth.noteOff(m_baseNote + index);
-      repaintKey(index);
-    }
-  }
-
-  void releaseAll()
-  {
-    for (int i = 0; i < KEYS; ++i)
-      if (m_pressed[i]) {
-        m_pressed[i] = 0;
-        synth.noteOff(m_baseNote + i);
+      case STYLE_KNOB:
+      {
+        auto & s = ((uiKnob *) object)->knobStyle();
+        s.backgroundColor     = ink(Ink::Panel);
+        s.labelFont           = SmallFont;
+        s.labelColor          = ink(Ink::Text);
+        s.valueFont           = SmallFont;
+        s.valueColor          = ink(Ink::Amber);
+        s.activeValueColor    = ink(Ink::White);
+        s.ringColor           = ink(Ink::Amber);
+        s.ringBackgroundColor = ink(Ink::Shadow);
+        s.bodyColor           = ink(Ink::Shadow);
+        s.capColor            = ink(Ink::Background);
+        s.pointerColor        = ink(Ink::White);
+        break;
       }
-    m_mouseKey = -1;
-    repaint();
-  }
 
-  // keyboard letters to show on the keys (nullptr = none)
-  void setKeyLabels(char const * const * labels) { m_keyLabels = labels; }
-
-  // called when a note starts playing
-  Delegate<int> onNote;
-
-  virtual void processEvent(uiEvent * event)
-  {
-    uiControl::processEvent(event);
-
-    switch (event->id) {
-
-      case fabgl::UIEVT_PAINT:
-        beginPaint(event, uiControl::clientRect(uiOrigin::Window));
-        paintKeyboard();
+      case STYLE_SWITCH:
+      {
+        auto & s = ((uiToggleSwitch *) object)->toggleSwitchStyle();
+        s.backgroundColor = ink(Ink::Panel);
+        s.onColor         = ink(Ink::Amber);
+        s.offColor        = ink(Ink::Shadow);
+        s.thumbColor      = ink(Ink::White);
+        s.textFont        = SmallFont;
+        s.onTextColor     = ink(Ink::Amber);
+        s.offTextColor    = ink(Ink::Dim);
         break;
+      }
 
-      case fabgl::UIEVT_MOUSEBUTTONDOWN:
-        if (event->params.mouse.changedButton == 1) {
-          m_mouseKey = keyAt(event->params.mouse.status.X, event->params.mouse.status.Y);
-          press(m_mouseKey, SRC_MOUSE);
-        }
+      case STYLE_LEVELBAR:
+      {
+        auto & s = ((uiLevelBar *) object)->levelBarStyle();
+        s.backgroundColor = ink(Ink::Panel);
+        s.lowColor        = ink(Ink::Led);
+        s.lowOffColor     = ink(Ink::DimLed);
+        s.highColor       = ink(Ink::Amber);
+        s.highOffColor    = ink(Ink::DimAmber);
+        s.textFont        = MediumFont;
+        s.textColor       = ink(Ink::Amber);
         break;
+      }
 
-      case fabgl::UIEVT_MOUSEMOVE:
-        // glissando: dragging the mouse with the button pressed changes note
-        if (m_mouseKey >= 0 && app()->capturedMouseWindow() == this) {
-          int key = keyAt(event->params.mouse.status.X, event->params.mouse.status.Y);
-          if (key != m_mouseKey) {
-            release(m_mouseKey, SRC_MOUSE);
-            m_mouseKey = key;
-            press(m_mouseKey, SRC_MOUSE);
-          }
-        }
+      case STYLE_LEDBAR:
+      {
+        auto & s = ((uiLedBar *) object)->ledBarStyle();
+        s.backgroundColor = ink(Ink::Background);
+        s.ledColors[0]    = ink(Ink::DimLed);     // idle
+        s.ledColors[1]    = ink(Ink::Led);        // playing
+        s.ledColors[2]    = ink(Ink::DimAmber);   // releasing
         break;
+      }
 
-      case fabgl::UIEVT_MOUSEBUTTONUP:
-        if (event->params.mouse.changedButton == 1) {
-          release(m_mouseKey, SRC_MOUSE);
-          m_mouseKey = -1;
-        }
+      case STYLE_STEPPER:
+      {
+        auto & s = ((uiStepper *) object)->stepperStyle();
+        s.backgroundColor                = ink(Ink::Panel);
+        s.buttonBackgroundColor          = ink(Ink::Background);
+        s.mouseDownButtonBackgroundColor = ink(Ink::Amber);
+        s.buttonBorderColor              = ink(Ink::Edge);
+        s.arrowColor                     = ink(Ink::Text);
+        s.mouseDownArrowColor            = ink(Ink::Background);
+        s.textFont                       = BigFont;
+        s.textColor                      = ink(Ink::Amber);
         break;
+      }
+
+      case STYLE_TILES:
+      {
+        auto & s = ((uiTileSelector *) object)->tileSelectorStyle();
+        s.backgroundColor         = ink(Ink::Panel);
+        s.tileBackgroundColor     = ink(Ink::Background);
+        s.tileBorderColor         = ink(Ink::Edge);
+        s.selectedTileBorderColor = ink(Ink::Amber);
+        s.textFont                = SmallFont;
+        s.textColor               = ink(Ink::Dim);
+        s.selectedTextColor       = ink(Ink::Amber);
+        break;
+      }
+
+      case STYLE_GRAPH:
+      {
+        auto graph = (uiGraph *) object;
+        graph->windowStyle().borderColor = ink(Ink::Edge);
+        auto & s = graph->graphStyle();
+        s.backgroundColor = ink(Ink::Background);
+        s.gridColor       = ink(Ink::Grid);
+        s.lineColor       = ink(Ink::Cyan);
+        s.fillColor       = ink(Ink::Fill);
+        break;
+      }
+
+      case STYLE_PIANO:
+      {
+        auto & s = ((uiPianoKeyboard *) object)->pianoKeyboardStyle();
+        s.backgroundColor      = ink(Ink::Background);
+        s.topLineColor         = ink(Ink::DimAmber);
+        s.whiteKeyColor        = ink(Ink::White);
+        s.whiteKeyFrontColor   = ink(Ink::KeyShade);
+        s.blackKeyColor        = ink(Ink::Background);
+        s.blackKeyBevelColor   = ink(Ink::Shadow);
+        s.pressedKeyColor      = ink(Ink::Amber);
+        s.pressedKeyFrontColor = ink(Ink::DimAmber);
+        s.textFont             = SmallFont;
+        s.labelColor           = ink(Ink::Dim);
+        s.blackLabelColor      = ink(Ink::KeyShade);
+        s.noteNameColor        = ink(Ink::KeyShade);
+        s.cNoteNameColor       = ink(Ink::Fill);
+        s.pressedTextColor     = ink(Ink::Background);
+        break;
+      }
+
+      case STYLE_DISPLAY:
+      {
+        auto panel = (uiPanel *) object;
+        panel->windowStyle().borderSize     = 1;
+        panel->windowStyle().borderColor    = ink(Ink::Edge);
+        panel->panelStyle().backgroundColor = ink(Ink::Background);
+        break;
+      }
+
+      case STYLE_DISPLAY_NOTE:
+      case STYLE_DISPLAY_FREQ:
+      case STYLE_WAVE_NAME:
+      {
+        auto & s = ((uiLabel *) object)->labelStyle();
+        s.backgroundColor = ink(styleClassID == STYLE_WAVE_NAME ? Ink::Panel : Ink::Background);
+        s.textFont        = styleClassID == STYLE_DISPLAY_NOTE ? BigFont : MediumFont;
+        s.textColor       = ink(styleClassID == STYLE_DISPLAY_FREQ ? Ink::Text : Ink::Amber);
+        s.textAlign       = styleClassID == STYLE_DISPLAY_FREQ ? uiHAlign::Right : (styleClassID == STYLE_WAVE_NAME ? uiHAlign::Center : uiHAlign::Left);
+        break;
+      }
 
       default:
         break;
     }
   }
 
-private:
+} synthStyle;
 
-  static bool isBlack(int index)
-  {
-    static const bool black[12] = { false, true, false, true, false, false, true, false, true, false, true, false };
-    return black[index % 12];
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Drawing helpers (main frame background, graph overlays)
+
+
+enum class Align { Left, Center, Right };
+
+// x is the left side, the center or the right side of the text, depending on "align"
+static void drawText(Canvas * cv, fabgl::FontInfo const * font, Ink color, int x, int y, char const * text, Align align = Align::Left, bool bold = false)
+{
+  int width = cv->textExtent(font, text) + (bold ? strlen(text) : 0);
+  if (align == Align::Center)
+    x -= width / 2;
+  else if (align == Align::Right)
+    x -= width;
+  cv->setGlyphOptions(GlyphOptions().FillBackground(false).Bold(bold));
+  cv->setPenColor(ink(color));
+  cv->drawText(font, x, y, text);
+}
+
+static void fillRect(Canvas * cv, Ink color, Rect const & rect)
+{
+  cv->setBrushColor(ink(color));
+  cv->fillRectangle(rect);
+}
+
+static void drawLine(Canvas * cv, Ink color, int x1, int y1, int x2, int y2)
+{
+  cv->setPenColor(ink(color));
+  cv->drawLine(x1, y1, x2, y2);
+}
+
+// a panel with rounded corners, a title and an optional note on the right
+static void drawPanel(Canvas * cv, Rect const & r, char const * title, char const * note = nullptr)
+{
+  fillRect(cv, Ink::Panel, r);
+  cv->setPenColor(ink(Ink::Edge));
+  cv->drawRectangle(r);
+  cv->setPenColor(ink(Ink::Background));
+  cv->setPixel(r.X1, r.Y1);
+  cv->setPixel(r.X2, r.Y1);
+  cv->setPixel(r.X1, r.Y2);
+  cv->setPixel(r.X2, r.Y2);
+  if (title) {
+    fillRect(cv, Ink::Amber, Rect(r.X1 + 8, r.Y1 + 9, r.X1 + 11, r.Y1 + 12));
+    drawText(cv, SmallFont, Ink::Text, r.X1 + 17, r.Y1 + 5, title, Align::Left, true);
   }
-
-  int whiteWidth()  { return clientSize().width / WHITE_KEYS; }
-  int blackWidth()  { return whiteWidth() * 2 / 3; }
-  int blackHeight() { return clientSize().height * 6 / 10; }
-
-  // number of white keys before "index"
-  static int whiteIndex(int index)
-  {
-    static const int whites[12] = { 0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6 };
-    return index / 12 * 7 + whites[index % 12];
-  }
-
-  Rect keyRect(int index)
-  {
-    int ww = whiteWidth();
-    if (isBlack(index)) {
-      int x = whiteIndex(index) * ww - blackWidth() / 2;
-      return Rect(x, 0, x + blackWidth() - 1, blackHeight() - 1);
-    } else {
-      int x = whiteIndex(index) * ww;
-      return Rect(x, 0, x + ww - 1, clientSize().height - 1);
-    }
-  }
-
-  int keyAt(int x, int y)
-  {
-    // black keys are over white keys: check them first
-    for (int i = 0; i < KEYS; ++i)
-      if (isBlack(i) && keyRect(i).contains(x, y))
-        return i;
-    for (int i = 0; i < KEYS; ++i)
-      if (!isBlack(i) && keyRect(i).contains(x, y))
-        return i;
-    return -1;
-  }
-
-  void repaintKey(int index)
-  {
-    // a white key is partially covered by black keys: repaint the whole keyboard area of the key
-    repaint(keyRect(index));
-  }
-
-  void paintKey(int index)
-  {
-    Rect r = keyRect(index);
-    bool black   = isBlack(index);
-    bool pressed = m_pressed[index] != 0;
-
-    if (black) {
-      canvas()->setBrushColor(pressed ? RGB888(0, 0, 255) : RGB888(0, 0, 0));
-      canvas()->fillRectangle(r);
-      canvas()->setPenColor(RGB888(64, 64, 64));
-      canvas()->drawRectangle(r);
-    } else {
-      canvas()->setBrushColor(pressed ? RGB888(0, 255, 255) : RGB888(255, 255, 255));
-      canvas()->fillRectangle(r);
-      canvas()->setPenColor(RGB888(0, 0, 0));
-      canvas()->drawRectangle(r);
-    }
-
-    auto font = &fabgl::FONT_std_12;
-    canvas()->setGlyphOptions(GlyphOptions().FillBackground(false));
-
-    // keyboard letter
-    if (m_keyLabels && m_keyLabels[index]) {
-      char const * lbl = m_keyLabels[index];
-      int tx = r.X1 + (r.width() - canvas()->textExtent(font, lbl)) / 2;
-      canvas()->setPenColor(black ? RGB888(255, 255, 255) : RGB888(0, 0, 255));
-      canvas()->drawText(font, tx, r.Y2 - font->height - (black ? 4 : 24), lbl);
-    }
-
-    // note name on white keys
-    if (!black) {
-      char name[16];
-      noteName(m_baseNote + index, name, sizeof(name));
-      int tx = r.X1 + (r.width() - canvas()->textExtent(font, name)) / 2;
-      canvas()->setPenColor(RGB888(128, 128, 128));
-      canvas()->drawText(font, tx, r.Y2 - font->height - 4, name);
-    }
-  }
-
-  void paintKeyboard()
-  {
-    // background (area not covered by keys)
-    canvas()->setBrushColor(RGB888(64, 64, 64));
-    canvas()->fillRectangle(uiControl::clientRect(uiOrigin::Window));
-    // white keys first, then black keys on top
-    for (int i = 0; i < KEYS; ++i)
-      if (!isBlack(i))
-        paintKey(i);
-    for (int i = 0; i < KEYS; ++i)
-      if (isBlack(i))
-        paintKey(i);
-  }
-
-  int                  m_baseNote  = 60;   // C4
-  uint8_t              m_pressed[KEYS];    // SRC_xxx flags
-  int                  m_mouseKey  = -1;
-  char const * const * m_keyLabels = nullptr;
-};
+  if (note)
+    drawText(cv, SmallFont, Ink::Dim, r.X2 - 8, r.Y1 + 5, note, Align::Right);
+}
 
 
 
@@ -644,8 +386,10 @@ static int keyToIndex(VirtualKey vk)
 }
 
 
+static constexpr int PIANO_KEYS = 25;   // two octaves plus the final C
+
 // labels drawn on the on-screen keys
-static char const * KeyLabels[PianoKeyboard::KEYS] = {
+static char const * KeyLabels[PIANO_KEYS] = {
   "A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J",
   "K", "O", "L", "P", ";", "'", "]",
   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
@@ -655,6 +399,13 @@ static char const * KeyLabels[PianoKeyboard::KEYS] = {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Main frame
+//
+//   +--------------------------------------------------------------+
+//   | FabGL SYNTH                                   VOICES ######## |  header
+//   | [OSCILLATOR      ] [ENVELOPE        ] [LOW-PASS FILTER     ] |  panels: graph + controls
+//   | [NOW PLAYING  |  OCTAVE  |  MASTER VOLUME                   ] |  strip
+//   | [ piano keyboard                                            ] |
+//   +--------------------------------------------------------------+
 
 
 class SynthFrame : public uiFrame {
@@ -662,104 +413,45 @@ class SynthFrame : public uiFrame {
 public:
 
   SynthFrame(uiWindow * parent)
-    : uiFrame(parent, "FabGL Synth", Point(0, 0), parent->clientSize())
+    : uiFrame(parent, "", Point(0, 0), parent->clientSize())
   {
     frameProps().resizeable        = false;
     frameProps().moveable          = false;
     frameProps().hasCloseButton    = false;
     frameProps().hasMaximizeButton = false;
     frameProps().hasMinimizeButton = false;
-    frameStyle().backgroundColor   = RGB888(255, 255, 255);
+    frameStyle().backgroundColor   = ink(Ink::Background);
+    windowStyle().borderSize       = 0;
 
-    int y = 30;
+    onPaint = [&]() { paintBackground(); };
 
-    // waveform
-    new uiStaticLabel(this, "Waveform", Point(10, y + 1));
-    m_waveformCombo = new uiComboBox(this, Point(80, y), Size(110, 20), 85);
-    for (int i = 0; i < WaveformsCount; ++i)
-      m_waveformCombo->items().appendFmt("%d - %s", i + 1, WaveformNames[i]);
-    m_waveformCombo->selectItem((int) synth.waveform());
-    m_waveformCombo->onChange = [&]() {
-      synth.setWaveform((Waveform) m_waveformCombo->selectedItem());
-    };
+    // voices activity
+    int ledsW = synth.voicesCount() * 16 - 4;
+    m_voiceLeds = new uiLedBar(this, Point(624 - ledsW, 19), Size(ledsW, 8), synth.voicesCount(), true, STYLE_LEDBAR);
+    onTimer = [&](uiTimerHandle) { updateVoiceLeds(); };
 
-    // octave
-    new uiStaticLabel(this, "Octave", Point(220, y + 1));
-    auto octDown = new uiButton(this, "Z  <", Point(270, y), Size(40, 20));
-    octDown->onClick = [&]() { changeOctave(-1); };
-    m_octaveLabel = new uiLabel(this, "", Point(318, y + 1), Size(30, 18));
-    m_octaveLabel->labelStyle().textAlign = uiHAlign::Center;
-    auto octUp = new uiButton(this, ">  X", Point(352, y), Size(40, 20));
-    octUp->onClick = [&]() { changeOctave(+1); };
-
-    // master volume
-    m_volumeLabel = new uiLabel(this, "", Point(420, y + 1), Size(80, 18));
-    auto volumeSlider = new uiSlider(this, Point(500, y + 1), Size(125, 18), uiOrientation::Horizontal);
-    volumeSlider->onChange = [=, this]() {
-      m_volumeLabel->setTextFmt("Volume %d", volumeSlider->position());
-      soundGenerator.setVolume(volumeSlider->position());
-    };
-    volumeSlider->setup(0, 127, 16);
-    volumeSlider->setPosition(100);
-
-    y = 70;
-
-    // ADSR envelope
-    auto envPanel = addPanel("Envelope (ADSR)", Point(10, y), Size(250, 150));
-    addSlider(envPanel, 10,  "Attack",  0, 1000,  10, [](int v, uiLabel * l) { l->setTextFmt("%d ms", v); envelope.setAttack(v); });
-    addSlider(envPanel, 70,  "Decay",   0, 1000, 200, [](int v, uiLabel * l) { l->setTextFmt("%d ms", v); envelope.setDecay(v); });
-    addSlider(envPanel, 130, "Sustain", 0, 100,   70, [](int v, uiLabel * l) { l->setTextFmt("%d %%", v); envelope.setSustain(v); });
-    addSlider(envPanel, 190, "Release", 0, 2000, 300, [](int v, uiLabel * l) { l->setTextFmt("%d ms", v); envelope.setRelease(v); });
-
-    // resonant low-pass filter (sliders 0..100 on logarithmic scales)
-    auto filterPanel = addPanel("Low-pass filter", Point(270, y), Size(190, 150));
-    addSlider(filterPanel, 12, "Cutoff", 0, 100, 70, [](int v, uiLabel * l) {
-      int cutoff = LowPassFilter::cutoffFromSlider(v);
-      l->setTextFmt("%d Hz", cutoff);
-      lowPassFilter.setCutoff(cutoff);
-    });
-    addSlider(filterPanel, 72, "Resonance", 0, 100, 37, [](int v, uiLabel * l) {
-      float q = LowPassFilter::qFromSlider(v);
-      int q10 = (int) lroundf(q * 10);
-      l->setTextFmt("Q %d.%d", q10 / 10, q10 % 10);
-      lowPassFilter.setResonance(q);
-    });
-    new uiStaticLabel(filterPanel, "On", Point(150, 24));
-    auto filterCheck = new uiCheckBox(filterPanel, Point(149, 44), Size(17, 17));
-    filterCheck->setChecked(lowPassFilter.enabled);
-    filterCheck->onChange = [=]() {
-      lowPassFilter.enabled = filterCheck->checked();
-    };
-
-    // info panel
-    auto infoPanel = addPanel("Now playing", Point(470, y), Size(160, 150));
-    m_noteLabel = new uiLabel(infoPanel, "-", Point(10, 28), Size(140, 36));
-    m_noteLabel->labelStyle().textFont  = &fabgl::FONT_std_24;
-    m_noteLabel->labelStyle().textAlign = uiHAlign::Center;
-    m_noteLabel->labelStyle().textColor = RGB888(0, 0, 255);
-    m_freqLabel = new uiLabel(infoPanel, "", Point(10, 66), Size(140, 20));
-    m_freqLabel->labelStyle().textAlign = uiHAlign::Center;
-    new uiStaticLabel(infoPanel, "Keys: A W S E D F ...", Point(10, 94));
-    new uiStaticLabel(infoPanel, "Z/X: octave  1-5: wave", Point(10, 110));
-    new uiStaticLabel(infoPanel, "or click with the mouse", Point(10, 126));
+    createOscillatorPanel(panelRect(0));
+    createEnvelopePanel(panelRect(1));
+    createFilterPanel(panelRect(2));
+    createStrip(stripRect());
 
     // on screen keyboard
-    m_piano = new PianoKeyboard(this, Point(20, 235), Size(600, 230));
+    m_piano = new uiPianoKeyboard(this, Point(12, 310), Size(616, 162), PIANO_KEYS, true, STYLE_PIANO);
     m_piano->setKeyLabels(KeyLabels);
-    m_piano->onNote = [&](int note) {
-      char name[16];
-      noteName(note, name, sizeof(name));
-      m_noteLabel->setText(name);
-      m_freqLabel->setTextFmt("%d Hz", Synth::noteFrequency(note));
+    m_piano->onNoteOn = [&](int note) {
+      synth.noteOn(note);
+      char str[8];
+      m_noteLabel->setText(fabgl::midiNoteName(note, str, sizeof(str)));
+      m_freqLabel->setTextFmt("%d Hz", PolySynth::noteFrequency(note));
     };
-
-    updateOctaveLabel();
+    m_piano->onNoteOff = [&](int note) { synth.noteOff(note); };
+    updateOctave();
 
     // PS/2 keyboard
     onKeyDown = [&](uiKeyEventInfo const & key) {
       int index = keyToIndex(key.VK);
       if (index >= 0) {
-        m_piano->press(index, PianoKeyboard::SRC_KEYBOARD);
+        m_piano->press(index, uiPianoKeyboard::KeyboardSource);
         return;
       }
       switch (key.VK) {
@@ -780,44 +472,303 @@ public:
     onKeyUp = [&](uiKeyEventInfo const & key) {
       int index = keyToIndex(key.VK);
       if (index >= 0)
-        m_piano->release(index, PianoKeyboard::SRC_KEYBOARD);
+        m_piano->release(index, uiPianoKeyboard::KeyboardSource);
     };
   }
 
 private:
 
-  // a fixed sub-frame that groups controls
-  uiFrame * addPanel(char const * title, Point const & pos, Size const & size)
+  // layout
+  static constexpr int PANEL_Y = 50;
+  static constexpr int PANEL_W = 204;
+  static constexpr int PANEL_H = 182;
+  static constexpr int GRAPH_H = 64;
+  static constexpr int PanelCols[3] = { 8, 218, 428 };
+  static constexpr int StripCols[3] = { 18, 214, 370 };
+
+  static Rect panelRect(int index)          { return Rect(PanelCols[index], PANEL_Y, PanelCols[index] + PANEL_W - 1, PANEL_Y + PANEL_H - 1); }
+  static Rect stripRect()                   { return Rect(8, PANEL_Y + PANEL_H + 6, 631, PANEL_Y + PANEL_H + 6 + 63); }
+  static int  controlsY()                   { return PANEL_Y + 24 + GRAPH_H + 8; }
+
+  uiGraph * addGraph(Rect const & panel)
   {
-    auto panel = new uiFrame(this, title, pos, size);
-    panel->frameProps().resizeable        = false;
-    panel->frameProps().moveable          = false;
-    panel->frameProps().hasCloseButton    = false;
-    panel->frameProps().hasMaximizeButton = false;
-    panel->frameProps().hasMinimizeButton = false;
-    panel->windowProps().activable        = false;   // keep the main frame active (it receives the keyboard)
-    return panel;
+    return new uiGraph(this, Point(panel.X1 + 8, panel.Y1 + 24), Size(PANEL_W - 16, GRAPH_H), true, STYLE_GRAPH);
   }
 
-  // vertical slider with title and value label. "apply" receives the slider position and the value label
-  void addSlider(uiWindow * parent, int x, char const * title, int min, int max, int value, void (*apply)(int, uiLabel *))
+  // a knob in the controls area of a panel. "apply" is called when the value changes
+  template <typename Apply>
+  uiKnob * addKnob(int x, int width, char const * label, int min, int max, int value, Apply apply)
   {
-    new uiStaticLabel(parent, title, Point(x, 24));
-    auto label  = new uiLabel(parent, "", Point(x, 126), Size(56, 18));
-    auto slider = new uiSlider(parent, Point(x + 12, 42), Size(17, 80), uiOrientation::Vertical);
-    slider->setup(min, max, (max - min) / 10);
-    slider->setPosition(value);
-    slider->onChange = [=]() {
-      apply(slider->position(), label);
-    };
-    apply(value, label);
+    auto knob = new uiKnob(this, label, Point(x, controlsY()), Size(width, 76), true, STYLE_KNOB);
+    knob->onChange = [=]() { apply(knob); };
+    knob->setup(min, max, value);
+    return knob;
+  }
+
+
+  //// oscillator ////
+
+  void createOscillatorPanel(Rect const & panel)
+  {
+    m_waveGraph = addGraph(panel);
+    m_waveGraph->setRange(-127, 127);
+
+    m_waveTiles = new uiTileSelector(this, Point(panel.X1 + 8, controlsY()), Size(PANEL_W - 16, 46), true, STYLE_TILES);
+    for (int i = 0; i < 5; ++i)
+      m_waveTiles->items().appendFmt("%d", i + 1);
+    m_waveTiles->onPaintTile = [&](int index, Rect const & r, bool selected) { paintWaveIcon(index, r, selected); };
+    m_waveTiles->onChange    = [&]() { selectWaveform(m_waveTiles->selectedItem()); };
+
+    m_waveName = new uiLabel(this, "", Point(panel.X1 + 8, controlsY() + 50), Size(PANEL_W - 16, 22), true, STYLE_WAVE_NAME);
+
+    selectWaveform((int) synth.waveform());
+  }
+
+  // one cycle of the waveform inside a tile
+  void paintWaveIcon(int index, Rect const & r, bool selected)
+  {
+    auto cv  = m_waveTiles->canvas();
+    int  x1  = r.X1 + 5, x2 = r.X2 - 5, cy = (r.Y1 + r.Y2) / 2, amp = 7;
+    int  px  = x1, py = cy - SynthVoice::waveformShape((SynthWaveform) index, 0) * amp / 127;
+    cv->setPenColor(ink(selected ? Ink::Amber : Ink::Text));
+    for (int x = x1 + 1; x <= x2; ++x) {
+      int y = cy - SynthVoice::waveformShape((SynthWaveform) index, (x - x1) * 255 / (x2 - x1)) * amp / 127;
+      cv->drawLine(px, py, x, y);
+      px = x;
+      py = y;
+    }
   }
 
   void selectWaveform(int index)
   {
-    if (index >= 0 && index < WaveformsCount) {
-      m_waveformCombo->selectItem(index);   // selectItem() doesn't fire onChange
-      synth.setWaveform((Waveform) index);
+    if (index < 0 || index > (int) SynthWaveform::Sawtooth)
+      return;
+    auto waveform = (SynthWaveform) index;
+    synth.setWaveform(waveform);
+    m_waveTiles->selectItem(index);
+    m_waveName->setText(SynthVoice::waveformName(waveform));
+    // two cycles
+    int count = m_waveGraph->plotRect().width();
+    int16_t values[count];
+    for (int i = 0; i < count; ++i)
+      values[i] = SynthVoice::waveformShape(waveform, i * 512 / count);
+    m_waveGraph->setValues(values, count);
+  }
+
+
+  //// envelope ////
+
+  void createEnvelopePanel(Rect const & panel)
+  {
+    m_envGraph = addGraph(panel);
+    m_envGraph->setRange(0, 100);
+    m_envGraph->graphProps().fillArea   = true;
+    m_envGraph->graphProps().hGridLines = 0;
+    m_envGraph->graphProps().vGridLines = 0;
+    m_envGraph->onPaintBackground = [&](Rect const & plot) { paintEnvelopeBackground(plot); };
+    m_envGraph->onPaint           = [&](Rect const & plot) { paintEnvelopeOverlay(plot); };
+
+    int kw = (PANEL_W - 16) / 4, kx = panel.X1 + 8;
+    addKnob(kx + kw * 0, kw, "ATTACK",  0, 1000,  10, [&](uiKnob * k) { synth.envelope().setAttack(k->position());  k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
+    addKnob(kx + kw * 1, kw, "DECAY",   0, 1000, 200, [&](uiKnob * k) { synth.envelope().setDecay(k->position());   k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
+    addKnob(kx + kw * 2, kw, "SUSTAIN", 0, 100,   70, [&](uiKnob * k) { synth.envelope().setSustain(k->position()); k->setValueTextFmt("%d %%", k->position()); updateEnvelopeGraph(); });
+    addKnob(kx + kw * 3, kw, "RELEASE", 0, 2000, 300, [&](uiKnob * k) { synth.envelope().setRelease(k->position()); k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
+  }
+
+  // envelope shape on a fixed time scale: the shape changes as the times change
+  void updateEnvelopeGraph()
+  {
+    static constexpr int SUSTAIN_W = 30;     // width of the sustain segment
+    static constexpr int MAX_MS    = 4000;   // max attack + decay + release
+
+    auto & env = synth.envelope();
+    int w      = m_envGraph->plotRect().width();
+    int avail  = w - 1 - SUSTAIN_W;
+    int a      = env.attack()  * avail / MAX_MS;
+    int d      = env.decay()   * avail / MAX_MS;
+    int r      = env.release() * avail / MAX_MS;
+
+    // vertices: x (0..w-1) and level (0..100)
+    m_envX[0] = 0;          m_envY[0] = 0;
+    m_envX[1] = a;          m_envY[1] = 100;
+    m_envX[2] = a + d;      m_envY[2] = env.sustain();
+    m_envX[3] = w - 1 - r;  m_envY[3] = env.sustain();
+    m_envX[4] = w - 1;      m_envY[4] = 0;
+
+    int16_t values[w];
+    for (int x = 0, seg = 0; x < w; ++x) {
+      while (seg < 3 && x > m_envX[seg + 1])
+        ++seg;
+      int x1 = m_envX[seg], x2 = m_envX[seg + 1];
+      values[x] = x2 > x1 ? m_envY[seg] + (m_envY[seg + 1] - m_envY[seg]) * (x - x1) / (x2 - x1) : m_envY[seg + 1];
+    }
+    m_envGraph->setValues(values, w);
+  }
+
+  void paintEnvelopeBackground(Rect const & plot)
+  {
+    auto cv = m_envGraph->canvas();
+    for (int i = 1; i < 4; ++i)
+      drawLine(cv, Ink::Grid, plot.X1 + m_envX[i], plot.Y1, plot.X1 + m_envX[i], plot.Y2);
+  }
+
+  void paintEnvelopeOverlay(Rect const & plot)
+  {
+    static char const * names[4] = { "A", "D", "S", "R" };
+    auto cv = m_envGraph->canvas();
+    for (int i = 1; i < 4; ++i) {
+      int x = plot.X1 + m_envX[i], y = m_envGraph->valueToY(m_envY[i]);
+      fillRect(cv, Ink::Amber, Rect(x - 1, y - 1, x + 1, y + 1));
+    }
+    for (int i = 0; i < 4; ++i)
+      if (m_envX[i + 1] - m_envX[i] >= 8)
+        drawText(cv, TinyFont, Ink::Dim, plot.X1 + (m_envX[i] + m_envX[i + 1]) / 2 + 1, plot.Y2 - 9, names[i], Align::Center);
+  }
+
+
+  //// filter ////
+
+  static constexpr float MIN_FREQ = 20.0f;
+  static constexpr float MAX_FREQ = 8000.0f;
+  static constexpr int   MAX_DB10 = 240;     // dB * 10
+  static constexpr int   MIN_DB10 = -360;
+
+  void createFilterPanel(Rect const & panel)
+  {
+    m_filterGraph = addGraph(panel);
+    m_filterGraph->setRange(MIN_DB10, MAX_DB10);
+    m_filterGraph->graphProps().fillArea   = true;
+    m_filterGraph->graphProps().hGridLines = 0;
+    m_filterGraph->graphProps().vGridLines = 0;
+    m_filterGraph->onPaintBackground = [&](Rect const & plot) { paintFilterBackground(plot); };
+    m_filterGraph->onPaint           = [&](Rect const & plot) { paintFilterOverlay(plot); };
+
+    // knobs 0..100 on logarithmic scales
+    int kw = (PANEL_W - 16) / 2, kx = panel.X1 + 8;
+    addKnob(kx, kw, "CUTOFF", 0, 100, 70, [&](uiKnob * k) {
+      synth.filter().setCutoff(ResonantLowPassFilter::cutoffFromPosition(k->position()));
+      k->setValueTextFmt("%d Hz", synth.filter().cutoff());
+      updateFilterGraph();
+    });
+    addKnob(kx + kw, kw, "RESONANCE", 0, 100, 37, [&](uiKnob * k) {
+      synth.filter().setResonance(ResonantLowPassFilter::resonanceFromPosition(k->position()));
+      int q10 = (int) lroundf(synth.filter().resonance() * 10);
+      k->setValueTextFmt("Q %d.%d", q10 / 10, q10 % 10);
+      updateFilterGraph();
+    });
+
+    auto filterSwitch = new uiToggleSwitch(this, Point(panel.X2 - 8 - 64, panel.Y1 + 4), Size(64, 16), synth.filter().enabled(), true, STYLE_SWITCH);
+    filterSwitch->onChange = [=, this]() {
+      synth.filter().setEnabled(filterSwitch->checked());
+      updateFilterGraph();
+    };
+  }
+
+  int freqToX(Rect const & plot, float freq) { return plot.X1 + (int) lroundf(logf(freq / MIN_FREQ) / logf(MAX_FREQ / MIN_FREQ) * (plot.width() - 1)); }
+
+  // response in dB * 10 for each column of the plot area
+  void updateFilterGraph()
+  {
+    auto & filter = synth.filter();
+    if (!filter.enabled()) {
+      m_filterGraph->setValues(nullptr, 0);
+      return;
+    }
+    int w = m_filterGraph->plotRect().width();
+    int16_t values[w];
+    for (int x = 0; x < w; ++x) {
+      float freq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, (float) x / (w - 1));
+      values[x] = fabgl::iclamp((int) lroundf(filter.responseDB(freq) * 10), MIN_DB10, MAX_DB10);
+    }
+    m_filterGraph->setValues(values, w);
+  }
+
+  // grid (100 Hz, 1 KHz, 0 dB) and cutoff marker
+  void paintFilterBackground(Rect const & plot)
+  {
+    auto cv  = m_filterGraph->canvas();
+    int x100 = freqToX(plot, 100), x1k = freqToX(plot, 1000), y0 = m_filterGraph->valueToY(0);
+    drawLine(cv, Ink::Grid, x100, plot.Y1, x100, plot.Y2);
+    drawLine(cv, Ink::Grid, x1k, plot.Y1, x1k, plot.Y2);
+    drawLine(cv, Ink::Grid, plot.X1, y0, plot.X2, y0);
+    if (synth.filter().enabled()) {
+      int xc = freqToX(plot, synth.filter().cutoff());
+      drawLine(cv, Ink::DimAmber, xc, plot.Y1, xc, plot.Y2);
+    }
+  }
+
+  void paintFilterOverlay(Rect const & plot)
+  {
+    auto cv  = m_filterGraph->canvas();
+    int x100 = freqToX(plot, 100), x1k = freqToX(plot, 1000);
+    drawText(cv, TinyFont, Ink::Dim, x100 + 3, plot.Y2 - 8, "100");
+    drawText(cv, TinyFont, Ink::Dim, x1k + 3, plot.Y2 - 8, "1K");
+    if (!synth.filter().enabled()) {
+      int y0 = m_filterGraph->valueToY(0);
+      drawLine(cv, Ink::Shadow, plot.X1, y0, plot.X2, y0);
+      drawText(cv, SmallFont, Ink::Dim, (plot.X1 + plot.X2) / 2, plot.Y1 + 4, "BYPASS", Align::Center, true);
+    }
+  }
+
+
+  //// strip: now playing, octave, master volume ////
+
+  void createStrip(Rect const & strip)
+  {
+    int y = strip.Y1 + 22;
+
+    auto display = new uiPanel(this, Point(StripCols[0], y), Size(176, 36), true, STYLE_DISPLAY);
+    m_noteLabel = new uiLabel(display, "- -", Point(10, 4), Size(70, 26), true, STYLE_DISPLAY_NOTE);
+    m_freqLabel = new uiLabel(display, "", Point(80, 8), Size(84, 20), true, STYLE_DISPLAY_FREQ);
+
+    m_octave = new uiStepper(this, Point(StripCols[1], y), Size(134, 36), true, STYLE_STEPPER);
+    m_octave->onStep = [&](int delta) { changeOctave(delta); };
+
+    auto volume = new uiLevelBar(this, Point(StripCols[2], y + 8), Size(strip.X2 - 10 - StripCols[2], 20), true, STYLE_LEVELBAR);
+    volume->setRange(0, 127);
+    volume->onChange = [=]() { soundGenerator.setVolume(volume->position()); };
+    volume->setPosition(100);
+  }
+
+
+  //// main frame ////
+
+  void paintBackground()
+  {
+    auto cv = canvas();
+
+    // header: logo, tagline, voices
+    int x = 16;
+    drawText(cv, BigFont, Ink::Text, x, 10, "FabGL", Align::Left, true);
+    x += cv->textExtent(BigFont, "FabGL") + 14;
+    drawText(cv, BigFont, Ink::Amber, x, 10, "SYNTH", Align::Left, true);
+    int logoEnd = x + cv->textExtent(BigFont, "SYNTH") + 5;
+    drawText(cv, SmallFont, Ink::Dim, logoEnd + 14, 19, "8-VOICE POLYPHONIC SYNTHESIZER");
+    drawText(cv, SmallFont, Ink::Dim, m_voiceLeds->pos().X - 8, 17, "VOICES", Align::Right, true);
+    drawLine(cv, Ink::Edge, 8, 42, 631, 42);
+    fillRect(cv, Ink::Amber, Rect(16, 41, logoEnd, 43));
+
+    // panels
+    drawPanel(cv, panelRect(0), "OSCILLATOR", "KEYS 1-5");
+    drawPanel(cv, panelRect(1), "ENVELOPE", "ADSR");
+    drawPanel(cv, panelRect(2), "LOW-PASS");
+
+    // strip
+    Rect r = stripRect();
+    drawPanel(cv, r, nullptr);
+    drawText(cv, SmallFont, Ink::Text, StripCols[0], r.Y1 + 5, "NOW PLAYING", Align::Left, true);
+    drawText(cv, SmallFont, Ink::Text, StripCols[1], r.Y1 + 5, "OCTAVE", Align::Left, true);
+    drawText(cv, SmallFont, Ink::Dim,  StripCols[1] + 134, r.Y1 + 5, "Z / X", Align::Right);
+    drawText(cv, SmallFont, Ink::Text, StripCols[2], r.Y1 + 5, "MASTER VOLUME", Align::Left, true);
+    for (int i = 1; i < 3; ++i)
+      drawLine(cv, Ink::Edge, StripCols[i] - 10, r.Y1 + 8, StripCols[i] - 10, r.Y2 - 8);
+  }
+
+  void updateVoiceLeds()
+  {
+    for (int i = 0; i < synth.voicesCount(); ++i) {
+      auto state = synth.voice(i).state();
+      m_voiceLeds->setLed(i, state == SynthVoiceState::Idle ? 0 : (state == SynthVoiceState::Release ? 2 : 1));
     }
   }
 
@@ -827,21 +778,28 @@ private:
     // leftmost C from C1 (MIDI 24) to C6 (MIDI 84): the rightmost key reaches C8
     if (base >= 24 && base <= 84) {
       m_piano->setBaseNote(base);
-      updateOctaveLabel();
+      updateOctave();
     }
   }
 
-  void updateOctaveLabel()
+  void updateOctave()
   {
-    m_octaveLabel->setTextFmt("%d", m_piano->baseNote() / 12 - 1);
+    char str[8];
+    m_octave->setText(fabgl::midiNoteName(m_piano->baseNote(), str, sizeof(str)));
   }
 
-  PianoKeyboard * m_piano;
-  uiComboBox *    m_waveformCombo;
-  uiLabel *       m_octaveLabel;
-  uiLabel *       m_volumeLabel;
-  uiLabel *       m_noteLabel;
-  uiLabel *       m_freqLabel;
+  uiPianoKeyboard * m_piano;
+  uiTileSelector *  m_waveTiles;
+  uiLabel *         m_waveName;
+  uiGraph *         m_waveGraph;
+  uiGraph *         m_envGraph;
+  uiGraph *         m_filterGraph;
+  uiLedBar *        m_voiceLeds;
+  uiLabel *         m_noteLabel;
+  uiLabel *         m_freqLabel;
+  uiStepper *       m_octave;
+  int               m_envX[5] = { };   // envelope vertices (plot area coordinates)
+  int               m_envY[5] = { };   // envelope levels (0..100)
 };
 
 
@@ -854,12 +812,16 @@ class SynthApp : public uiApp {
 
   void init()
   {
-    synth.begin();
+    synth.begin(&soundGenerator);
+
+    setStyle(&synthStyle);
 
     auto frame = new SynthFrame(rootWindow());
     showWindow(frame, true);
     setActiveWindow(frame);
     setFocusedWindow(frame);
+
+    setTimer(frame, 40);   // voices activity leds
   }
 
 } app;
@@ -871,6 +833,7 @@ extern "C" void app_main()
 
   DisplayController.begin();
   DisplayController.setResolution(VGA_640x480_60Hz);
+  setupPalette();
 
   // adjust this to center screen in your monitor
   //DisplayController.moveScreen(20, -2);

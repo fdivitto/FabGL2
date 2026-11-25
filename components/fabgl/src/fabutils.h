@@ -1097,6 +1097,18 @@ inline int hex2digit(char hex)
 }
 
 
+/**
+ * @brief Gets the name of a MIDI note
+ *
+ * @param note MIDI note number (60 = C4, 69 = A4)
+ * @param str Destination buffer
+ * @param len Size of the destination buffer
+ *
+ * @return "str", containing the note name and the octave (for example "C4" or "F#2")
+ */
+char const * midiNoteName(int note, char * str, size_t len);
+
+
 // milliseconds to FreeRTOS ticks.
 // ms = -1 => maximum delay (portMAX_DELAY)
 uint32_t msToTicks(int ms);

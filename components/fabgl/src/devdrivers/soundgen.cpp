@@ -29,6 +29,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
@@ -892,11 +893,339 @@ void play_task(void*arg)
 */
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ADSREnvelope
 
+
+ADSREnvelope::ADSREnvelope()
+  : m_sampleRate(FABGL_SOUNDGEN_DEFAULT_SAMPLE_RATE)
+{
+  setAttack(10);
+  setDecay(200);
+  setSustain(70);
+  setRelease(300);
+}
+
+
+void ADSREnvelope::setSampleRate(int value)
+{
+  m_sampleRate = value;
+  setAttack(m_attackMs);
+  setDecay(m_decayMs);
+  setRelease(m_releaseMs);
+}
+
+
+// ms -> level increment per sample (from 0 to MAX_LEVEL)
+int ADSREnvelope::msToInc(int ms)
+{
+  int samples = ms * m_sampleRate / 1000;
+  return samples > 0 ? MAX_LEVEL / samples : MAX_LEVEL;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ResonantLowPassFilter
+
+
+ResonantLowPassFilter::ResonantLowPassFilter()
+  : m_active(0),
+    m_enabled(true),
+    m_sampleRate(FABGL_SOUNDGEN_DEFAULT_SAMPLE_RATE),
+    m_cutoff(2000),
+    m_q(2.0f)
+{
+  update();
+}
+
+
+void ResonantLowPassFilter::setSampleRate(int value)
+{
+  m_sampleRate = value;
+  update();
+}
+
+
+void ResonantLowPassFilter::setCutoff(int hz)
+{
+  m_cutoff = iclamp(hz, MIN_CUTOFF, MAX_CUTOFF);
+  update();
+}
+
+
+void ResonantLowPassFilter::setResonance(float q)
+{
+  m_q = tclamp(q, MIN_Q, MAX_Q);
+  update();
+}
+
+
+void ResonantLowPassFilter::update()
+{
+  float w0    = 2.0f * (float) M_PI * m_cutoff / m_sampleRate;
+  float cosw  = cosf(w0);
+  float alpha = sinf(w0) / (2.0f * m_q);
+  float a0    = 1.0f + alpha;
+  float scale = (float) (1 << COEFF_SHIFT) / a0;
+
+  int next = m_active ^ 1;
+  Coeffs & c = m_sets[next];
+  c.b0 = (int32_t) lroundf((1.0f - cosw) * 0.5f * scale);
+  c.b1 = (int32_t) lroundf((1.0f - cosw) * scale);
+  c.b2 = c.b0;
+  c.a1 = (int32_t) lroundf(-2.0f * cosw * scale);
+  c.a2 = (int32_t) lroundf((1.0f - alpha) * scale);
+  m_active = next;
+}
+
+
+float ResonantLowPassFilter::responseDB(float freq)
+{
+  auto const & c = m_sets[m_active];
+  float k  = 1.0f / (1 << COEFF_SHIFT);
+  float b0 = c.b0 * k, b1 = c.b1 * k, b2 = c.b2 * k, a1 = c.a1 * k, a2 = c.a2 * k;
+  float w  = 2.0f * (float) M_PI * freq / m_sampleRate;
+  float c1 = cosf(w), s1 = sinf(w), c2 = cosf(2 * w), s2 = sinf(2 * w);
+  float nr = b0 + b1 * c1 + b2 * c2, ni = -(b1 * s1 + b2 * s2);
+  float dr = 1  + a1 * c1 + a2 * c2, di = -(a1 * s1 + a2 * s2);
+  return 10.0f * log10f((nr * nr + ni * ni) / (dr * dr + di * di) + 1e-12f);
+}
+
+
+int ResonantLowPassFilter::cutoffFromPosition(int position)
+{
+  return (int) lroundf(MIN_CUTOFF * powf((float) MAX_CUTOFF / MIN_CUTOFF, position / 100.0f));
+}
+
+
+float ResonantLowPassFilter::resonanceFromPosition(int position)
+{
+  return MIN_Q * powf(MAX_Q / MIN_Q, position / 100.0f);
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SynthVoice
+
+
+SynthVoice::SynthVoice()
+  : m_gen(&m_sine),
+    m_envelope(nullptr),
+    m_filter(nullptr),
+    m_frequency(0),
+    m_note(-1),
+    m_state(SynthVoiceState::Idle),
+    m_level(0)
+{
+  m_pulse.setDutyCycle(64);
+}
+
+
+void SynthVoice::setup(ADSREnvelope * envelope, ResonantLowPassFilter * filter)
+{
+  m_envelope = envelope;
+  m_filter   = filter;
+}
+
+
+void SynthVoice::setWaveform(SynthWaveform waveform)
+{
+  WaveformGenerator * gens[] = { &m_sine, &m_square, &m_pulse, &m_triangle, &m_sawtooth };
+  auto gen = gens[(int) waveform];
+  gen->setSampleRate(sampleRate());
+  gen->setVolume(127);
+  gen->setFrequency(m_frequency);
+  m_gen = gen;
+}
+
+
+void SynthVoice::setFrequency(int value)
+{
+  m_frequency = value;
+  m_gen->setFrequency(value);
+}
+
+
+void SynthVoice::noteOn(int note, int frequency)
+{
+  m_note = note;
+  setFrequency(frequency);
+  if (m_state == SynthVoiceState::Idle)
+    m_filterState.reset();          // safe: the interrupt doesn't touch idle voices
+  m_state = SynthVoiceState::Attack;  // a retriggered voice restarts from its current level (no clicks)
+  enable(true);
+}
+
+
+void SynthVoice::noteOff()
+{
+  if (m_state != SynthVoiceState::Idle)
+    m_state = SynthVoiceState::Release;
+}
+
+
+// runs inside the sound generator interrupt: fixed point only
+int SynthVoice::getSample()
+{
+  if (!m_envelope)
+    return 0;
+
+  switch (m_state) {
+    case SynthVoiceState::Attack:
+      m_level += m_envelope->attackInc();
+      if (m_level >= ADSREnvelope::MAX_LEVEL) {
+        m_level = ADSREnvelope::MAX_LEVEL;
+        m_state = SynthVoiceState::Decay;
+      }
+      break;
+    case SynthVoiceState::Decay:
+      m_level -= m_envelope->decayInc();
+      if (m_level <= m_envelope->sustainLevel()) {
+        m_level = m_envelope->sustainLevel();
+        m_state = SynthVoiceState::Sustain;
+      }
+      break;
+    case SynthVoiceState::Sustain:
+      m_level = m_envelope->sustainLevel();   // follows the sustain level while the key is held
+      break;
+    case SynthVoiceState::Release:
+      m_level -= m_envelope->releaseInc();
+      if (m_level <= 0) {
+        m_level = 0;
+        m_state = SynthVoiceState::Idle;
+        m_note  = -1;
+        enable(false);
+      }
+      break;
+    case SynthVoiceState::Idle:
+      return 0;
+  }
+
+  int sample = m_gen->getSample();                  // -128..127 (generator volume = 127)
+  if (m_filter && m_filter->enabled())
+    sample = m_filter->process(m_filterState, sample);
+  sample = sample * volume() / 127;                 // voice volume
+  return (sample * (m_level >> 16)) >> 8;           // envelope (0..256)
+}
+
+
+int SynthVoice::waveformShape(SynthWaveform waveform, int phase)
+{
+  phase &= 255;
+  switch (waveform) {
+    case SynthWaveform::Sine:     return (int) lroundf(127.0f * sinf(phase * 2.0f * (float) M_PI / 256.0f));
+    case SynthWaveform::Square:   return phase < 128 ? 127 : -127;
+    case SynthWaveform::Pulse:    return phase < 64 ? 127 : -127;
+    case SynthWaveform::Triangle: return phase < 128 ? -127 + phase * 2 : 127 - (phase - 128) * 2;
+    default:                      return -127 + phase;   // Sawtooth
+  }
+}
+
+
+char const * SynthVoice::waveformName(SynthWaveform waveform)
+{
+  static char const * names[] = { "SINE", "SQUARE", "PULSE 25%", "TRIANGLE", "SAWTOOTH" };
+  return names[(int) waveform];
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// PolySynth
+
+
+PolySynth::PolySynth(int voices)
+  : m_soundGenerator(nullptr),
+    m_voicesCount(voices),
+    m_waveform(SynthWaveform::Sawtooth),
+    m_nextSteal(0)
+{
+  m_voices = new SynthVoice[voices];
+  for (int i = 0; i < voices; ++i)
+    m_voices[i].setup(&m_envelope, &m_filter);
+}
+
+
+PolySynth::~PolySynth()
+{
+  if (m_soundGenerator)
+    for (int i = 0; i < m_voicesCount; ++i)
+      m_soundGenerator->detach(&m_voices[i]);
+  delete [] m_voices;
+}
+
+
+void PolySynth::begin(SoundGenerator * soundGenerator)
+{
+  m_soundGenerator = soundGenerator;
+  m_envelope.setSampleRate(soundGenerator->sampleRate());
+  m_filter.setSampleRate(soundGenerator->sampleRate());
+  for (int i = 0; i < m_voicesCount; ++i) {
+    soundGenerator->attach(&m_voices[i]);
+    m_voices[i].setWaveform(m_waveform);
+  }
+  soundGenerator->play(true);
+}
+
+
+void PolySynth::setWaveform(SynthWaveform value)
+{
+  m_waveform = value;
+  if (m_soundGenerator) {
+    bool playing = m_soundGenerator->play(false);
+    for (int i = 0; i < m_voicesCount; ++i)
+      m_voices[i].setWaveform(value);
+    m_soundGenerator->play(playing);
+  }
+}
+
+
+void PolySynth::noteOn(int note)
+{
+  SynthVoice * voice = nullptr;
+  // same note still sounding (releasing)? reuse its voice
+  for (int i = 0; !voice && i < m_voicesCount; ++i)
+    if (m_voices[i].note() == note)
+      voice = &m_voices[i];
+  // free voice?
+  for (int i = 0; !voice && i < m_voicesCount; ++i)
+    if (m_voices[i].isIdle())
+      voice = &m_voices[i];
+  // all voices busy: steal a releasing one, otherwise the oldest one
+  for (int i = 0; !voice && i < m_voicesCount; ++i)
+    if (m_voices[i].state() == SynthVoiceState::Release)
+      voice = &m_voices[i];
+  if (!voice)
+    voice = &m_voices[m_nextSteal++ % m_voicesCount];
+
+  voice->noteOn(note, noteFrequency(note));
+}
+
+
+void PolySynth::noteOff(int note)
+{
+  for (int i = 0; i < m_voicesCount; ++i)
+    if (m_voices[i].note() == note && m_voices[i].state() != SynthVoiceState::Release)
+      m_voices[i].noteOff();
+}
+
+
+void PolySynth::allNotesOff()
+{
+  for (int i = 0; i < m_voicesCount; ++i)
+    m_voices[i].noteOff();
+}
+
+
+int PolySynth::noteFrequency(int note)
+{
+  return (int) lroundf(440.0f * powf(2.0f, (note - 69) / 12.0f));
+}
 
 
 
 
 
 } // end of namespace
-

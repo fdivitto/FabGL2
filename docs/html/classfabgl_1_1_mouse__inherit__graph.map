@@ -1,5 +1,0 @@
-<map id="Mouse" name="Mouse">
-<area shape="rect" id="Node000001" title="PS/2 mouse driver." alt="" coords="19,79,79,105"/>
-<area shape="rect" id="Node000002" href="$classfabgl_1_1_p_s2_device.html" title="Base class for PS/2 devices (such as mice and keyboards)." alt="" coords="5,5,93,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="51,45,52,79,46,78,47,48"/>
-</map>

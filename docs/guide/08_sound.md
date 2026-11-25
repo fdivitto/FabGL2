@@ -68,3 +68,40 @@ soundGenerator.play(false);         // stop the output
 Channels are disabled when created: call enable(true) to hear them. The overall volume is set with
 SoundGenerator::setVolume(). The `VGA/Audio`, `VGA/Songs`, `VGA/SoundChipSimulator` and `VGA/Synth` examples show more
 complete uses.
+
+
+# Polyphonic synthesizer {#sound_synth}
+
+fabgl::PolySynth plays notes with a pool of voices (8 by default). Each voice (fabgl::SynthVoice) is an oscillator
+(sine, square, 25% pulse, triangle or sawtooth) followed by a resonant low-pass filter and shaped by an ADSR
+envelope. All voices share one fabgl::ADSREnvelope and one fabgl::ResonantLowPassFilter, whose parameters can be
+changed while notes are playing. When all voices are busy, a new note steals a releasing voice, otherwise the
+oldest one.
+
+```cpp
+SoundGenerator soundGenerator;
+PolySynth      synth;
+
+synth.begin(&soundGenerator);            // attaches the voices and starts playing
+synth.setWaveform(SynthWaveform::Sawtooth);
+
+synth.envelope().setAttack(10);          // ms
+synth.envelope().setDecay(200);          // ms
+synth.envelope().setSustain(70);         // percent
+synth.envelope().setRelease(300);        // ms
+
+synth.filter().setCutoff(1500);          // Hz (50..7000)
+synth.filter().setResonance(4.0f);       // Q (0.707 = no resonance .. 12)
+
+synth.noteOn(60);                        // MIDI note: 60 = C4, 69 = A4 (440 Hz)
+// ...
+synth.noteOff(60);
+```
+
+Envelope and filter run in fixed point inside the sound generator interrupt (the FPU cannot be used there). The
+filter coefficients are calculated in floating point when a parameter changes. For user interfaces:
+ResonantLowPassFilter::responseDB() returns the filter response at a frequency, cutoffFromPosition() and
+resonanceFromPosition() map a 0..100 control to logarithmic scales, SynthVoice::waveformShape() returns the
+shape of a waveform, fabgl::midiNoteName() and PolySynth::noteFrequency() convert MIDI note numbers.
+The @ref example_Synth example combines the synthesizer with the synth controls of the GUI (see @ref gui_synth_controls).
+

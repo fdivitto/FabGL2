@@ -86,6 +86,14 @@
           uiSpinButton
           *uiColorBox
           *uiProgressBar
+          *uiKnob
+          *uiToggleSwitch
+          *uiLevelBar
+          *uiLedBar
+          *uiStepper
+          *uiTileSelector
+          *uiGraph
+          *uiPianoKeyboard
 
 */
 
@@ -241,37 +249,46 @@ enum class uiHAlign {
 
 /** @brief Specifies the object type */
 struct uiObjectType {
-  uint32_t uiApp               : 1;
-  uint32_t uiEvtHandler        : 1;
-  uint32_t uiWindow            : 1;
-  uint32_t uiFrame             : 1;
-  uint32_t uiControl           : 1;
-  uint32_t uiScrollableControl : 1;
-  uint32_t uiButton            : 1;
-  uint32_t uiTextEdit          : 1;
-  uint32_t uiLabel             : 1;
-  uint32_t uiStaticLabel       : 1;
-  uint32_t uiImage             : 1;
-  uint32_t uiPanel             : 1;
-  uint32_t uiPaintBox          : 1;
-  uint32_t uiCustomListBox     : 1;
-  uint32_t uiListBox           : 1;
-  uint32_t uiFileBrowser       : 1;
-  uint32_t uiComboBox          : 1;
-  uint32_t uiCheckBox          : 1;
-  uint32_t uiSlider            : 1;
-  uint32_t uiColorListBox      : 1;
-  uint32_t uiCustomComboBox    : 1;
-  uint32_t uiColorBox          : 1;
-  uint32_t uiColorComboBox     : 1;
-  uint32_t uiProgressBar       : 1;
-  uint32_t uiSplitButton       : 1;
-  uint32_t uiSimpleMenu        : 1;
+  uint64_t uiApp               : 1;
+  uint64_t uiEvtHandler        : 1;
+  uint64_t uiWindow            : 1;
+  uint64_t uiFrame             : 1;
+  uint64_t uiControl           : 1;
+  uint64_t uiScrollableControl : 1;
+  uint64_t uiButton            : 1;
+  uint64_t uiTextEdit          : 1;
+  uint64_t uiLabel             : 1;
+  uint64_t uiStaticLabel       : 1;
+  uint64_t uiImage             : 1;
+  uint64_t uiPanel             : 1;
+  uint64_t uiPaintBox          : 1;
+  uint64_t uiCustomListBox     : 1;
+  uint64_t uiListBox           : 1;
+  uint64_t uiFileBrowser       : 1;
+  uint64_t uiComboBox          : 1;
+  uint64_t uiCheckBox          : 1;
+  uint64_t uiSlider            : 1;
+  uint64_t uiColorListBox      : 1;
+  uint64_t uiCustomComboBox    : 1;
+  uint64_t uiColorBox          : 1;
+  uint64_t uiColorComboBox     : 1;
+  uint64_t uiProgressBar       : 1;
+  uint64_t uiSplitButton       : 1;
+  uint64_t uiSimpleMenu        : 1;
+  uint64_t uiKnob              : 1;
+  uint64_t uiToggleSwitch      : 1;
+  uint64_t uiLevelBar          : 1;
+  uint64_t uiLedBar            : 1;
+  uint64_t uiStepper           : 1;
+  uint64_t uiTileSelector      : 1;
+  uint64_t uiGraph             : 1;
+  uint64_t uiPianoKeyboard     : 1;
 
   uiObjectType() : uiApp(0), uiEvtHandler(0), uiWindow(0), uiFrame(0), uiControl(0), uiScrollableControl(0), uiButton(0), uiTextEdit(0),
                    uiLabel(0), uiStaticLabel(0), uiImage(0), uiPanel(0), uiPaintBox(0), uiCustomListBox(0), uiListBox(0), uiFileBrowser(0), uiComboBox(0),
                    uiCheckBox(0), uiSlider(0), uiColorListBox(0), uiCustomComboBox(0), uiColorBox(0), uiColorComboBox(0), uiProgressBar(0),
-                   uiSplitButton(0), uiSimpleMenu(0)
+                   uiSplitButton(0), uiSimpleMenu(0), uiKnob(0), uiToggleSwitch(0), uiLevelBar(0), uiLedBar(0), uiStepper(0),
+                   uiTileSelector(0), uiGraph(0), uiPianoKeyboard(0)
     { }
 };
 
@@ -2999,6 +3016,1089 @@ private:
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiKnob
+
+
+/** @brief Contains the knob style */
+struct uiKnobStyle {
+  RGB888           backgroundColor     = RGB888(128, 128, 128);  /**< Background color */
+  FontInfo const * labelFont           = &FONT_std_12;           /**< Label font (top) */
+  RGB888           labelColor          = RGB888(0, 0, 0);        /**< Label color */
+  FontInfo const * valueFont           = &FONT_std_12;           /**< Value font (bottom) */
+  RGB888           valueColor          = RGB888(0, 0, 255);      /**< Value color */
+  RGB888           activeValueColor    = RGB888(255, 255, 255);  /**< Value color while dragging or when focused */
+  RGB888           ringColor           = RGB888(0, 0, 255);      /**< Color of the ring dots up to the current position */
+  RGB888           ringBackgroundColor = RGB888(64, 64, 64);     /**< Color of the ring dots after the current position */
+  RGB888           bodyColor           = RGB888(64, 64, 64);     /**< Color of the knob body */
+  RGB888           capColor            = RGB888(0, 0, 0);        /**< Color of the knob cap (inner circle) */
+  RGB888           pointerColor        = RGB888(255, 255, 255);  /**< Color of the pointer */
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      backgroundColor     = RGB888(255, 255, 255);
+      valueColor          = RGB888(0, 0, 0);
+      activeValueColor    = RGB888(0, 0, 0);
+      ringColor           = RGB888(0, 0, 0);
+      ringBackgroundColor = RGB888(255, 255, 255);
+      bodyColor           = RGB888(0, 0, 0);
+      capColor            = RGB888(0, 0, 0);
+    }
+  }
+};
+
+
+/** @brief Properties of the knob */
+struct uiKnobProps {
+  uint16_t dragPixels = 120;   /**< Vertical mouse movement (pixels) that covers the whole range */
+};
+
+
+/**
+ * @brief A rotary knob. The value changes dragging the mouse up and down, with the mouse wheel or with the keyboard
+ *
+ * The label is drawn above the knob and the value text below it. The value text is the position by default:
+ * applications can show a different text calling setValueText() inside onChange. Double clicking the knob
+ * restores the default position (see setup()).
+ *
+ * Example:
+ *
+ *     auto knob = new uiKnob(frame, "CUTOFF", Point(10, 30), Size(60, 76));
+ *     knob->onChange = [=]() {
+ *       knob->setValueTextFmt("%d Hz", knob->position() * 100);
+ *     };
+ *     knob->setup(0, 70, 20);
+ *
+ * @ingroup gui
+ */
+class uiKnob : public uiControl {
+
+public:
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A knob must always have a parent window
+   * @param label Label shown above the knob (copied). Can be nullptr
+   * @param pos Top-left coordinates of the knob relative to the parent
+   * @param size The knob size
+   * @param visible If true, the knob is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiKnob(uiWindow * parent, char const * label, const Point & pos, const Size & size, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiKnob();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets knob style
+   *
+   * @return L-value representing knob style
+   */
+  uiKnobStyle & knobStyle() { return m_knobStyle; }
+
+  /**
+   * @brief Sets or gets knob properties
+   *
+   * @return L-value representing knob properties
+   */
+  uiKnobProps & knobProps() { return m_knobProps; }
+
+  /**
+   * @brief Sets the range and the default position, moves the knob to the default position and calls onChange
+   *
+   * @param min Minimum position
+   * @param max Maximum position
+   * @param defaultPosition Default position (restored by a double click)
+   */
+  void setup(int min, int max, int defaultPosition);
+
+  /**
+   * @brief Determines the knob position
+   *
+   * @return Knob position
+   */
+  int position() { return m_position; }
+
+  /**
+   * @brief Sets the knob position. onChange is called when the position changes
+   *
+   * @param value New position (clipped to the range)
+   */
+  void setPosition(int value);
+
+  /** @brief Gets the minimum position */
+  int min() { return m_min; }
+
+  /** @brief Gets the maximum position */
+  int max() { return m_max; }
+
+  /**
+   * @brief Sets the label
+   *
+   * @param value Label text (copied)
+   */
+  void setLabel(char const * value);
+
+  /**
+   * @brief Sets the text shown below the knob
+   *
+   * The text is reset to the position number every time the position changes, before onChange is called.
+   *
+   * @param value Text to show
+   */
+  void setValueText(char const * value);
+
+  /**
+   * @brief Sets the text shown below the knob, using printf like formatting
+   *
+   * @param format printf like format string
+   */
+  void setValueTextFmt(const char * format, ...);
+
+  /**
+   * @brief Knob changed event delegate
+   *
+   * This delegate is called whenever the knob position changes
+   */
+  Delegate<> onChange;
+
+
+private:
+
+  void paintKnob();
+  void handleKeyDown(uiKeyEventInfo const & key);
+  bool isDragging();
+
+
+  uiKnobStyle m_knobStyle;
+  uiKnobProps m_knobProps;
+  char *      m_label;
+  char        m_valueText[24];
+  int         m_position;
+  int         m_min;
+  int         m_max;
+  int         m_default;
+  int         m_dragY;
+  int         m_dragPosition;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiToggleSwitch
+
+
+/** @brief Contains the toggle switch style */
+struct uiToggleSwitchStyle {
+  RGB888           backgroundColor = RGB888(128, 128, 128);  /**< Background color */
+  RGB888           onColor         = RGB888(0, 0, 255);      /**< Track color when on */
+  RGB888           offColor        = RGB888(64, 64, 64);     /**< Track color when off */
+  RGB888           thumbColor      = RGB888(255, 255, 255);  /**< Thumb color */
+  FontInfo const * textFont        = &FONT_std_12;           /**< Font of the "on" and "off" texts */
+  RGB888           onTextColor     = RGB888(0, 0, 255);      /**< Text color when on */
+  RGB888           offTextColor    = RGB888(64, 64, 64);     /**< Text color when off */
+  char const *     onText          = "ON";                   /**< Text shown when on (nullptr = none) */
+  char const *     offText         = "OFF";                  /**< Text shown when off (nullptr = none) */
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      backgroundColor = RGB888(255, 255, 255);
+      onColor         = RGB888(0, 0, 0);
+      offColor        = RGB888(0, 0, 0);
+      onTextColor     = RGB888(0, 0, 0);
+      offTextColor    = RGB888(0, 0, 0);
+    }
+  }
+};
+
+
+/**
+ * @brief An on/off switch: a track with a sliding thumb, and an optional text on its left
+ *
+ * The switch is toggled by clicking it or pressing SPACE or ENTER.
+ *
+ * @ingroup gui
+ */
+class uiToggleSwitch : public uiControl {
+
+public:
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A switch must always have a parent window
+   * @param pos Top-left coordinates of the switch relative to the parent
+   * @param size The switch size. The track is on the right side, its height is the switch height
+   * @param checked Initial state
+   * @param visible If true, the switch is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiToggleSwitch(uiWindow * parent, const Point & pos, const Size & size, bool checked = false, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiToggleSwitch();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets switch style
+   *
+   * @return L-value representing switch style
+   */
+  uiToggleSwitchStyle & toggleSwitchStyle() { return m_toggleSwitchStyle; }
+
+  /**
+   * @brief Determines whether the switch is on
+   *
+   * @return True if the switch is on
+   */
+  bool checked() { return m_checked; }
+
+  /**
+   * @brief Sets the switch state. This method does not call onChange
+   *
+   * @param value True = on
+   */
+  void setChecked(bool value);
+
+  /**
+   * @brief Switch changed event delegate
+   *
+   * This delegate is called when the user toggles the switch
+   */
+  Delegate<> onChange;
+
+
+private:
+
+  void paintToggleSwitch();
+  void toggle();
+
+
+  uiToggleSwitchStyle m_toggleSwitchStyle;
+  bool                m_checked;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiLevelBar
+
+
+/** @brief Contains the level bar style */
+struct uiLevelBarStyle {
+  RGB888           backgroundColor = RGB888(128, 128, 128);  /**< Background color */
+  RGB888           lowColor        = RGB888(0, 255, 0);      /**< Color of the lit segments */
+  RGB888           lowOffColor     = RGB888(0, 64, 0);       /**< Color of the unlit segments */
+  RGB888           highColor       = RGB888(255, 128, 0);    /**< Color of the lit segments in the high range */
+  RGB888           highOffColor    = RGB888(64, 32, 0);      /**< Color of the unlit segments in the high range */
+  FontInfo const * textFont        = &FONT_std_14;           /**< Font of the percentage */
+  RGB888           textColor       = RGB888(0, 0, 0);        /**< Color of the percentage */
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      backgroundColor = RGB888(255, 255, 255);
+      lowColor        = RGB888(0, 0, 0);
+      highColor       = RGB888(0, 0, 0);
+      lowOffColor     = RGB888(255, 255, 255);
+      highOffColor    = RGB888(255, 255, 255);
+    }
+  }
+};
+
+
+/** @brief Properties of the level bar */
+struct uiLevelBarProps {
+  uint8_t segments       = 24;   /**< Number of segments */
+  uint8_t highSegments   = 5;    /**< Number of segments (on the right) drawn with the high range colors */
+  uint8_t segmentGap     = 2;    /**< Space between segments in pixels */
+  uint8_t showPercentage : 1;    /**< If true, the percentage is shown on the right */
+  uint8_t allowEdit      : 1;    /**< If true, the level can be changed with the mouse (click, drag, wheel) and the keyboard */
+
+  uiLevelBarProps()
+    : showPercentage(true),
+      allowEdit(true)
+  {
+  }
+};
+
+
+/**
+ * @brief A horizontal segmented bar, like a led level meter. It can show a level or let the user set it
+ *
+ * @ingroup gui
+ */
+class uiLevelBar : public uiControl {
+
+public:
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A level bar must always have a parent window
+   * @param pos Top-left coordinates of the level bar relative to the parent
+   * @param size The level bar size
+   * @param visible If true, the level bar is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiLevelBar(uiWindow * parent, const Point & pos, const Size & size, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiLevelBar();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets level bar style
+   *
+   * @return L-value representing level bar style
+   */
+  uiLevelBarStyle & levelBarStyle() { return m_levelBarStyle; }
+
+  /**
+   * @brief Sets or gets level bar properties
+   *
+   * @return L-value representing level bar properties
+   */
+  uiLevelBarProps & levelBarProps() { return m_levelBarProps; }
+
+  /**
+   * @brief Sets the range of the level
+   *
+   * @param min Minimum level (default 0)
+   * @param max Maximum level (default 100)
+   */
+  void setRange(int min, int max);
+
+  /**
+   * @brief Determines the level
+   *
+   * @return Current level
+   */
+  int position() { return m_position; }
+
+  /**
+   * @brief Sets the level. onChange is called when the level changes
+   *
+   * @param value New level (clipped to the range)
+   */
+  void setPosition(int value);
+
+  /**
+   * @brief Level changed event delegate
+   *
+   * This delegate is called whenever the level changes
+   */
+  Delegate<> onChange;
+
+
+private:
+
+  void paintLevelBar();
+  int barWidth();
+  void setPositionFromX(int x);
+
+
+  uiLevelBarStyle m_levelBarStyle;
+  uiLevelBarProps m_levelBarProps;
+  int             m_position;
+  int             m_min;
+  int             m_max;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiLedBar
+
+
+/** @brief Contains the led bar style */
+struct uiLedBarStyle {
+  RGB888 backgroundColor = RGB888(128, 128, 128);   /**< Background color */
+  /** Led colors: index 0 is "off", 1..3 are the "on" states */
+  RGB888 ledColors[4]    = { RGB888(0, 64, 0),
+                             RGB888(0, 255, 0),
+                             RGB888(255, 128, 0),
+                             RGB888(255, 0, 0) };
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      backgroundColor = RGB888(255, 255, 255);
+      ledColors[0]    = RGB888(255, 255, 255);
+      ledColors[1] = ledColors[2] = ledColors[3] = RGB888(0, 0, 0);
+    }
+  }
+};
+
+
+/** @brief Properties of the led bar */
+struct uiLedBarProps {
+  uint8_t ledGap = 4;   /**< Space between leds in pixels */
+};
+
+
+/**
+ * @brief A row of leds. Each led has a state (0 = off, 1..3 = on with different colors)
+ *
+ * @ingroup gui
+ */
+class uiLedBar : public uiControl {
+
+public:
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A led bar must always have a parent window
+   * @param pos Top-left coordinates of the led bar relative to the parent
+   * @param size The led bar size. Leds fill the whole height and share the width
+   * @param count Number of leds
+   * @param visible If true, the led bar is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiLedBar(uiWindow * parent, const Point & pos, const Size & size, int count, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiLedBar();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets led bar style
+   *
+   * @return L-value representing led bar style
+   */
+  uiLedBarStyle & ledBarStyle() { return m_ledBarStyle; }
+
+  /**
+   * @brief Sets or gets led bar properties
+   *
+   * @return L-value representing led bar properties
+   */
+  uiLedBarProps & ledBarProps() { return m_ledBarProps; }
+
+  /**
+   * @brief Gets the number of leds
+   *
+   * @return Number of leds
+   */
+  int count() { return m_count; }
+
+  /**
+   * @brief Sets the state of a led. The led bar is repainted only when the state changes
+   *
+   * @param index Led index (0..count()-1)
+   * @param state 0 = off, 1..3 = on (see uiLedBarStyle.ledColors)
+   */
+  void setLed(int index, int state);
+
+  /**
+   * @brief Gets the state of a led
+   *
+   * @param index Led index (0..count()-1)
+   *
+   * @return Led state (0..3)
+   */
+  int led(int index) { return m_states[index]; }
+
+
+private:
+
+  void paintLedBar();
+
+
+  uiLedBarStyle m_ledBarStyle;
+  uiLedBarProps m_ledBarProps;
+  int           m_count;
+  uint8_t *     m_states;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiStepper
+
+
+/** @brief Contains the stepper style */
+struct uiStepperStyle {
+  RGB888           backgroundColor                = RGB888(128, 128, 128);  /**< Background color */
+  RGB888           buttonBackgroundColor          = RGB888(64, 64, 64);     /**< Background color of the buttons */
+  RGB888           mouseDownButtonBackgroundColor = RGB888(0, 0, 255);      /**< Background color of a pressed button */
+  RGB888           buttonBorderColor              = RGB888(0, 0, 0);        /**< Border color of the buttons */
+  RGB888           arrowColor                     = RGB888(255, 255, 255);  /**< Arrow color */
+  RGB888           mouseDownArrowColor            = RGB888(255, 255, 255);  /**< Arrow color of a pressed button */
+  FontInfo const * textFont                       = &FONT_std_14;           /**< Text font */
+  RGB888           textColor                      = RGB888(0, 0, 0);        /**< Text color */
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      backgroundColor                = RGB888(255, 255, 255);
+      buttonBackgroundColor          = RGB888(255, 255, 255);
+      mouseDownButtonBackgroundColor = RGB888(0, 0, 0);
+      arrowColor                     = RGB888(0, 0, 0);
+    }
+  }
+};
+
+
+/**
+ * @brief A text between "previous" and "next" arrow buttons, to step through values (for example an octave)
+ *
+ * The application handles onStep and updates the text. Keyboard: LEFT/DOWN steps back, RIGHT/UP steps forward.
+ *
+ * @ingroup gui
+ */
+class uiStepper : public uiControl {
+
+public:
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A stepper must always have a parent window
+   * @param pos Top-left coordinates of the stepper relative to the parent
+   * @param size The stepper size. The buttons are squares as high as the stepper
+   * @param visible If true, the stepper is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiStepper(uiWindow * parent, const Point & pos, const Size & size, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiStepper();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets stepper style
+   *
+   * @return L-value representing stepper style
+   */
+  uiStepperStyle & stepperStyle() { return m_stepperStyle; }
+
+  /**
+   * @brief Sets the text shown between the buttons
+   *
+   * @param value Text (copied)
+   */
+  void setText(char const * value);
+
+  /**
+   * @brief Gets the text shown between the buttons
+   *
+   * @return The text
+   */
+  char const * text() { return m_text; }
+
+  /**
+   * @brief Step event delegate
+   *
+   * This delegate is called with -1 (left button) or +1 (right button)
+   */
+  Delegate<int> onStep;
+
+
+private:
+
+  void paintStepper();
+  Rect buttonRect(int index);
+
+
+  uiStepperStyle m_stepperStyle;
+  char *         m_text;
+  int            m_pressed;   // -1 = none, 0 = left, 1 = right
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiTileSelector
+
+
+/** @brief Contains the tile selector style */
+struct uiTileSelectorStyle {
+  RGB888           backgroundColor         = RGB888(128, 128, 128);  /**< Background color */
+  RGB888           tileBackgroundColor     = RGB888(0, 0, 0);        /**< Tile background color */
+  RGB888           tileBorderColor         = RGB888(64, 64, 64);     /**< Tile border color */
+  RGB888           selectedTileBorderColor = RGB888(0, 0, 255);      /**< Border color of the selected tile */
+  FontInfo const * textFont                = &FONT_std_12;           /**< Font of the captions */
+  RGB888           textColor               = RGB888(64, 64, 64);     /**< Caption color */
+  RGB888           selectedTextColor       = RGB888(0, 0, 255);      /**< Caption color of the selected tile */
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      backgroundColor         = RGB888(255, 255, 255);
+      tileBackgroundColor     = RGB888(255, 255, 255);
+      tileBorderColor         = RGB888(0, 0, 0);
+      selectedTileBorderColor = RGB888(0, 0, 0);
+      textColor               = RGB888(0, 0, 0);
+      selectedTextColor       = RGB888(0, 0, 0);
+    }
+  }
+};
+
+
+/** @brief Properties of the tile selector */
+struct uiTileSelectorProps {
+  uint8_t tileGap = 4;   /**< Space between tiles in pixels */
+};
+
+
+/**
+ * @brief A row of selectable tiles. The content of each tile is painted by the application (onPaintTile)
+ *
+ * There is one tile for each item (items()). The item text, when not empty, is drawn below its tile as a caption.
+ * Keyboard: LEFT and RIGHT select the previous and next tile.
+ *
+ * @ingroup gui
+ */
+class uiTileSelector : public uiControl {
+
+public:
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A tile selector must always have a parent window
+   * @param pos Top-left coordinates of the tile selector relative to the parent
+   * @param size The tile selector size (tiles and captions)
+   * @param visible If true, the tile selector is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiTileSelector(uiWindow * parent, const Point & pos, const Size & size, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiTileSelector();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets tile selector style
+   *
+   * @return L-value representing tile selector style
+   */
+  uiTileSelectorStyle & tileSelectorStyle() { return m_tileSelectorStyle; }
+
+  /**
+   * @brief Sets or gets tile selector properties
+   *
+   * @return L-value representing tile selector properties
+   */
+  uiTileSelectorProps & tileSelectorProps() { return m_tileSelectorProps; }
+
+  /**
+   * @brief A list of strings: one tile for each item, the text is the caption. Call repaint() after changing it
+   *
+   * @return L-value representing the items
+   */
+  StringList & items() { return m_items; }
+
+  /**
+   * @brief Gets the selected tile
+   *
+   * @return Index of the selected tile, -1 = none
+   */
+  int selectedItem() { return m_selected; }
+
+  /**
+   * @brief Selects a tile. This method does not call onChange
+   *
+   * @param index Index of the tile to select (-1 = none)
+   */
+  void selectItem(int index);
+
+  /**
+   * @brief Gets the area of a tile (border included), in client coordinates
+   *
+   * @param index Tile index
+   *
+   * @return Tile area
+   */
+  Rect tileRect(int index);
+
+  /**
+   * @brief Selection changed event delegate
+   *
+   * This delegate is called when the user selects a tile
+   */
+  Delegate<> onChange;
+
+  /**
+   * @brief Tile paint delegate
+   *
+   * Called to paint the content of a tile, after its background and border. Parameters: tile index, tile area
+   * (client coordinates) and true if the tile is selected. Paint using canvas().
+   */
+  Delegate<int, Rect const &, bool> onPaintTile;
+
+
+private:
+
+  void paintTileSelector();
+  int captionHeight();
+
+
+  uiTileSelectorStyle m_tileSelectorStyle;
+  uiTileSelectorProps m_tileSelectorProps;
+  StringList          m_items;
+  int                 m_selected;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiGraph
+
+
+/** @brief Contains the graph style */
+struct uiGraphStyle {
+  RGB888 backgroundColor = RGB888(0, 0, 0);        /**< Background color */
+  RGB888 gridColor       = RGB888(0, 64, 64);      /**< Grid lines color */
+  RGB888 lineColor       = RGB888(0, 255, 255);    /**< Curve color */
+  RGB888 fillColor       = RGB888(0, 0, 128);      /**< Color of the area below the curve (when uiGraphProps.fillArea is set) */
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      backgroundColor = RGB888(255, 255, 255);
+      gridColor       = RGB888(255, 255, 255);
+      lineColor       = RGB888(0, 0, 0);
+      fillColor       = RGB888(255, 255, 255);
+    }
+  }
+};
+
+
+/** @brief Properties of the graph */
+struct uiGraphProps {
+  uint8_t hGridLines = 1;   /**< Number of horizontal grid lines (evenly spaced) */
+  uint8_t vGridLines = 3;   /**< Number of vertical grid lines (evenly spaced) */
+  uint8_t margin     = 3;   /**< Space between the border and the plot area */
+  uint8_t fillArea   : 1;   /**< If true, the area below the curve is filled */
+
+  uiGraphProps()
+    : fillArea(false)
+  {
+  }
+};
+
+
+/**
+ * @brief Plots a sequence of values as a curve (waveforms, envelopes, frequency responses...)
+ *
+ * The values are spread over the whole plot width, the vertical scale is set with setRange(). Applications can
+ * paint additional elements (markers, labels) with onPaintBackground (before the curve) and onPaint (after it).
+ *
+ * Example:
+ *
+ *     int16_t values[100];
+ *     for (int i = 0; i < 100; ++i)
+ *       values[i] = 100 * sinf(i * 2 * M_PI / 100);
+ *     auto graph = new uiGraph(frame, Point(10, 30), Size(200, 64));
+ *     graph->setRange(-100, 100);
+ *     graph->setValues(values, 100);
+ *
+ * @ingroup gui
+ */
+class uiGraph : public uiControl {
+
+public:
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A graph must always have a parent window
+   * @param pos Top-left coordinates of the graph relative to the parent
+   * @param size The graph size
+   * @param visible If true, the graph is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiGraph(uiWindow * parent, const Point & pos, const Size & size, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiGraph();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets graph style
+   *
+   * @return L-value representing graph style
+   */
+  uiGraphStyle & graphStyle() { return m_graphStyle; }
+
+  /**
+   * @brief Sets or gets graph properties
+   *
+   * @return L-value representing graph properties
+   */
+  uiGraphProps & graphProps() { return m_graphProps; }
+
+  /**
+   * @brief Sets the vertical scale
+   *
+   * @param min Value at the bottom of the plot area
+   * @param max Value at the top of the plot area
+   */
+  void setRange(int min, int max);
+
+  /**
+   * @brief Sets the values to plot and repaints the graph
+   *
+   * @param values Values (copied)
+   * @param count Number of values (0 = no curve)
+   */
+  void setValues(int16_t const * values, int count);
+
+  /**
+   * @brief Gets the plot area, in client coordinates
+   *
+   * @return Plot area
+   */
+  Rect plotRect();
+
+  /**
+   * @brief Converts a value to a vertical coordinate (clipped to the plot area)
+   *
+   * @param value The value
+   *
+   * @return Y coordinate in client coordinates
+   */
+  int valueToY(int value);
+
+  /**
+   * @brief Converts a value index to a horizontal coordinate
+   *
+   * @param index Index of the value (0..count-1)
+   *
+   * @return X coordinate in client coordinates
+   */
+  int indexToX(int index);
+
+  /**
+   * @brief Background paint delegate
+   *
+   * Called after the grid and before the curve. The parameter is the plot area. Paint using canvas().
+   */
+  Delegate<Rect const &> onPaintBackground;
+
+  /**
+   * @brief Paint delegate
+   *
+   * Called after the curve. The parameter is the plot area. Paint using canvas().
+   */
+  Delegate<Rect const &> onPaint;
+
+
+private:
+
+  void paintGraph();
+
+
+  uiGraphStyle m_graphStyle;
+  uiGraphProps m_graphProps;
+  int16_t *    m_values;
+  int          m_count;
+  int          m_min;
+  int          m_max;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// uiPianoKeyboard
+
+
+/** @brief Contains the piano keyboard style */
+struct uiPianoKeyboardStyle {
+  RGB888           backgroundColor      = RGB888(0, 0, 0);        /**< Background color (gaps between keys) */
+  RGB888           topLineColor         = RGB888(128, 0, 0);      /**< Color of the line above the keys */
+  RGB888           whiteKeyColor        = RGB888(255, 255, 255);  /**< White keys color */
+  RGB888           whiteKeyFrontColor   = RGB888(170, 170, 170);  /**< Color of the front (bottom side) of white keys */
+  RGB888           blackKeyColor        = RGB888(0, 0, 0);        /**< Black keys color */
+  RGB888           blackKeyBevelColor   = RGB888(85, 85, 85);     /**< Color of the sides and front of black keys */
+  RGB888           pressedKeyColor      = RGB888(0, 128, 255);    /**< Color of pressed keys */
+  RGB888           pressedKeyFrontColor = RGB888(0, 64, 128);     /**< Color of the front of pressed keys */
+  FontInfo const * textFont             = &FONT_std_12;           /**< Font of the key labels and note names */
+  RGB888           labelColor           = RGB888(85, 85, 170);    /**< Key labels color on white keys */
+  RGB888           blackLabelColor      = RGB888(170, 170, 170);  /**< Key labels color on black keys */
+  RGB888           noteNameColor        = RGB888(170, 170, 170);  /**< Note names color */
+  RGB888           cNoteNameColor       = RGB888(0, 0, 170);      /**< Color of the "C" note names (drawn in bold) */
+  RGB888           pressedTextColor     = RGB888(0, 0, 0);        /**< Text color on pressed keys */
+
+  void adaptToDisplayColors(int displayColors) {
+    if (displayColors < 4) {
+      topLineColor         = RGB888(0, 0, 0);
+      whiteKeyFrontColor   = RGB888(255, 255, 255);
+      blackKeyBevelColor   = RGB888(0, 0, 0);
+      pressedKeyColor      = RGB888(0, 0, 0);
+      pressedKeyFrontColor = RGB888(0, 0, 0);
+      labelColor           = RGB888(0, 0, 0);
+      blackLabelColor      = RGB888(255, 255, 255);
+      noteNameColor        = RGB888(0, 0, 0);
+      cNoteNameColor       = RGB888(0, 0, 0);
+      pressedTextColor     = RGB888(255, 255, 255);
+    }
+  }
+};
+
+
+/** @brief Properties of the piano keyboard */
+struct uiPianoKeyboardProps {
+  uint8_t frontSize     = 6;   /**< Height of the front (bottom side) of the keys */
+  uint8_t topLineSize   = 2;   /**< Height of the line above the keys (0 = none) */
+  uint8_t showNoteNames : 1;   /**< If true, note names are drawn on white keys */
+
+  uiPianoKeyboardProps()
+    : showNoteNames(true)
+  {
+  }
+};
+
+
+/**
+ * @brief An on-screen piano keyboard, played with the mouse (dragging slides between notes) or by the application
+ *
+ * The application connects the notes to a sound source with onNoteOn and onNoteOff, and can press keys from
+ * other inputs (for example the PS/2 keyboard) with press() and release(). A key sounds while at least one
+ * source holds it pressed.
+ *
+ * Example:
+ *
+ *     auto piano = new uiPianoKeyboard(frame, Point(10, 100), Size(400, 120));
+ *     piano->onNoteOn  = [&](int note) { synth.noteOn(note); };
+ *     piano->onNoteOff = [&](int note) { synth.noteOff(note); };
+ *
+ * @ingroup gui
+ */
+class uiPianoKeyboard : public uiControl {
+
+public:
+
+  /** @brief Source of key presses: the mouse (used internally) */
+  static constexpr uint8_t MouseSource    = 1;
+
+  /** @brief Source of key presses: suggested value for the keyboard. Applications can use bits 1..7 */
+  static constexpr uint8_t KeyboardSource = 2;
+
+  /**
+   * @brief Creates an instance of the object
+   *
+   * @param parent The parent window. A piano keyboard must always have a parent window
+   * @param pos Top-left coordinates of the keyboard relative to the parent
+   * @param size The keyboard size. White keys share the width
+   * @param keysCount Number of keys (semitones). The default 25 shows two octaves plus the final C
+   * @param visible If true, the keyboard is immediately visible
+   * @param styleClassID Optional style class identifier
+   */
+  uiPianoKeyboard(uiWindow * parent, const Point & pos, const Size & size, int keysCount = 25, bool visible = true, uint32_t styleClassID = 0);
+
+  virtual ~uiPianoKeyboard();
+
+  virtual void processEvent(uiEvent * event);
+
+  /**
+   * @brief Sets or gets piano keyboard style
+   *
+   * @return L-value representing piano keyboard style
+   */
+  uiPianoKeyboardStyle & pianoKeyboardStyle() { return m_pianoKeyboardStyle; }
+
+  /**
+   * @brief Sets or gets piano keyboard properties
+   *
+   * @return L-value representing piano keyboard properties
+   */
+  uiPianoKeyboardProps & pianoKeyboardProps() { return m_pianoKeyboardProps; }
+
+  /**
+   * @brief Sets the note of the leftmost key. All pressed keys are released
+   *
+   * @param value MIDI note number of a white key (default 60 = C4)
+   */
+  void setBaseNote(int value);
+
+  /**
+   * @brief Gets the note of the leftmost key
+   *
+   * @return MIDI note number
+   */
+  int baseNote() { return m_baseNote; }
+
+  /**
+   * @brief Gets the number of keys
+   *
+   * @return Number of keys
+   */
+  int keysCount() { return m_keysCount; }
+
+  /**
+   * @brief Presses a key. onNoteOn is called when the key wasn't already pressed by another source
+   *
+   * Repeated presses from the same source are ignored (typematic repeats).
+   *
+   * @param index Key index (0 = leftmost key)
+   * @param source Source of the press: a bit flag (MouseSource, KeyboardSource or another bit)
+   */
+  void press(int index, uint8_t source);
+
+  /**
+   * @brief Releases a key. onNoteOff is called when no other source holds the key
+   *
+   * @param index Key index (0 = leftmost key)
+   * @param source Source of the release
+   */
+  void release(int index, uint8_t source);
+
+  /**
+   * @brief Releases all keys (onNoteOff is called for each pressed key)
+   */
+  void releaseAll();
+
+  /**
+   * @brief Determines whether a key is pressed
+   *
+   * @param index Key index (0 = leftmost key)
+   *
+   * @return True if the key is pressed by any source
+   */
+  bool isPressed(int index) { return m_pressed[index] != 0; }
+
+  /**
+   * @brief Sets the labels drawn on the keys (for example the computer keys that play them)
+   *
+   * @param labels Array of keysCount() strings (not copied). An item can be nullptr. nullptr = no labels
+   */
+  void setKeyLabels(char const * const * labels) { m_keyLabels = labels; repaint(); }
+
+  /**
+   * @brief Note on event delegate. The parameter is the MIDI note number
+   */
+  Delegate<int> onNoteOn;
+
+  /**
+   * @brief Note off event delegate. The parameter is the MIDI note number
+   */
+  Delegate<int> onNoteOff;
+
+
+private:
+
+  void paintPianoKeyboard();
+  void paintKey(int index);
+  bool isBlack(int index);
+  Rect keyRect(int index, bool forHitTest = false);
+  int keyAt(int x, int y);
+  void updateLayout();
+
+
+  uiPianoKeyboardStyle m_pianoKeyboardStyle;
+  uiPianoKeyboardProps m_pianoKeyboardProps;
+  int                  m_keysCount;
+  int                  m_baseNote;
+  uint8_t *            m_pressed;       // source flags
+  uint8_t *            m_whitesBefore;  // number of white keys before each key
+  int                  m_whiteKeys;
+  int                  m_mouseKey;
+  char const * const * m_keyLabels;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // uiSimpleMenu
 
 
@@ -3776,6 +4876,28 @@ using fabgl::uiCustomListBox;
 using fabgl::uiFileBrowser;
 using fabgl::uiSplitButton;
 using fabgl::uiSimpleMenu;
+using fabgl::uiKnob;
+using fabgl::uiKnobStyle;
+using fabgl::uiKnobProps;
+using fabgl::uiToggleSwitch;
+using fabgl::uiToggleSwitchStyle;
+using fabgl::uiLevelBar;
+using fabgl::uiLevelBarStyle;
+using fabgl::uiLevelBarProps;
+using fabgl::uiLedBar;
+using fabgl::uiLedBarStyle;
+using fabgl::uiLedBarProps;
+using fabgl::uiStepper;
+using fabgl::uiStepperStyle;
+using fabgl::uiTileSelector;
+using fabgl::uiTileSelectorStyle;
+using fabgl::uiTileSelectorProps;
+using fabgl::uiGraph;
+using fabgl::uiGraphStyle;
+using fabgl::uiGraphProps;
+using fabgl::uiPianoKeyboard;
+using fabgl::uiPianoKeyboardStyle;
+using fabgl::uiPianoKeyboardProps;
 
 
 

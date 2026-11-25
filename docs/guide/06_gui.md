@@ -90,10 +90,12 @@ Events are delivered through *delegates*: public members to which you assign a f
 | Delegate | Available on | Called when |
 |---|---|---|
 | onClick | uiButton, uiCheckBox, uiLabel, uiListBox | the control is clicked (or activated with the keyboard) |
-| onChange | uiTextEdit, uiCheckBox, uiSlider, uiComboBox, uiListBox, uiButton (switch kind) | the value changes |
+| onChange | uiTextEdit, uiCheckBox, uiSlider, uiComboBox, uiListBox, uiButton (switch kind), uiKnob, uiToggleSwitch, uiLevelBar, uiTileSelector | the value changes |
 | onSelect | uiSimpleMenu, uiSplitButton | an item is chosen |
+| onStep | uiStepper | an arrow button is pressed (-1 or +1) |
+| onNoteOn, onNoteOff | uiPianoKeyboard | a key is pressed or released (MIDI note number) |
 | onKeyDown, onKeyUp | uiFrame and derived windows | a key is pressed or released while the frame is active |
-| onPaint | uiFrame (no parameters), uiPaintBox (receives the area to paint) | the window must be repainted |
+| onPaint | uiFrame (no parameters), uiPaintBox, uiGraph (receive an area) | the window must be repainted |
 | onShow, onHide, onResize | uiFrame | the frame is shown, hidden or resized |
 | onTimer | uiFrame, uiApp | a timer created with setTimer() expires |
 
@@ -170,3 +172,36 @@ struct MyStyle : uiStyle {
 setStyle(&myStyle);
 new uiButton(frame, "Styled", Point(10, 10), Size(80, 20), uiButtonKind::Button, true, STYLE_BUTTON);
 ```
+
+
+# Synth and instrument controls {#gui_synth_controls}
+
+These controls are custom painted and fully styleable. They were designed for audio applications, but are
+generic:
+
+| Control | Description |
+|---|---|
+| fabgl::uiKnob | rotary knob with a ring of dots: drag up/down, mouse wheel, keyboard; double click restores the default value. The text below the knob is set with setValueText() / setValueTextFmt() inside onChange |
+| fabgl::uiToggleSwitch | on/off switch with an optional "ON" / "OFF" text |
+| fabgl::uiLevelBar | horizontal segmented bar (led meter look), read-only or editable with the mouse and the keyboard |
+| fabgl::uiLedBar | row of leds, each with a state (off or one of three colors) |
+| fabgl::uiStepper | a text between "previous" and "next" arrow buttons |
+| fabgl::uiTileSelector | row of selectable tiles painted by the application (onPaintTile), with optional captions |
+| fabgl::uiGraph | plots a sequence of values, optionally filling the area below the curve; onPaintBackground and onPaint add markers and labels |
+| fabgl::uiPianoKeyboard | on-screen piano keyboard played with the mouse (with glissando) or by the application (press() / release()) |
+
+```cpp
+auto cutoff = new uiKnob(frame, "CUTOFF", Point(10, 30), Size(60, 76));
+cutoff->onChange = [=]() {
+  synth.filter().setCutoff(ResonantLowPassFilter::cutoffFromPosition(cutoff->position()));
+  cutoff->setValueTextFmt("%d Hz", synth.filter().cutoff());
+};
+cutoff->setup(0, 100, 70);                 // range and default position (calls onChange)
+
+auto piano = new uiPianoKeyboard(frame, Point(10, 120), Size(400, 120));
+piano->onNoteOn  = [&](int note) { synth.noteOn(note); };
+piano->onNoteOff = [&](int note) { synth.noteOff(note); };
+```
+
+The @ref example_Synth example uses all of them, themed with a fabgl::uiStyle.
+

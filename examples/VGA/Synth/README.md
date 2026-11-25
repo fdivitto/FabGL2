@@ -6,16 +6,24 @@ fixed point inside the sound generator interrupt.
 
 ## Screen
 
-- **Waveform**: Sine, Square, Pulse 25%, Triangle, Sawtooth
-- **Octave**: `Z <` and `> X` buttons move the keyboard down and up one octave (from C1 to C6)
-- **Volume**: master volume
-- **Envelope (ADSR)**: Attack (0-1000 ms), Decay (0-1000 ms), Sustain (0-100 %), Release (0-2000 ms)
-- **Low-pass filter**: Cutoff (50-7000 Hz, logarithmic), Resonance (Q from 0.7, no resonance, upwards), On/Off
+A dark "hardware synth" panel with a custom 16-color palette:
+
+- **Header**: eight leds show the voices activity (green = playing, amber = releasing)
+- **Oscillator**: the selected waveform and one tile for each waveform (Sine, Square, Pulse 25%, Triangle, Sawtooth)
+- **Envelope (ADSR)**: the envelope shape and four knobs: Attack (0-1000 ms), Decay (0-1000 ms), Sustain (0-100 %),
+  Release (0-2000 ms)
+- **Low-pass filter**: the filter frequency response, the On/Off switch and two knobs: Cutoff (50-7000 Hz,
+  logarithmic), Resonance (Q from 0.7, no resonance, upwards)
 - **Now playing**: name and frequency of the last note
+- **Octave**: the arrow buttons move the keyboard down and up one octave (from C1 to C6)
+- **Master volume**: a segmented level bar
 - **On-screen keyboard**: two octaves plus the final C. Keys pressed from the PS/2 keyboard and from the mouse are
   highlighted; the letters of the PS/2 keys are drawn on the keys
 
-All the controls change the sound while you play.
+All the controls change the sound while you play, and the graphs follow them.
+
+Knobs: drag up or down with the mouse button pressed, or use the mouse wheel; double click restores the initial
+value. Master volume: click or drag on the bar, or use the mouse wheel.
 
 ## Keys
 
@@ -39,11 +47,15 @@ When more than 8 notes are requested, the synth reuses a voice that is releasing
 
 ## What it demonstrates
 
-- Custom `WaveformGenerator` subclasses (the voices) attached to `fabgl::SoundGenerator`
-- Real-time DSP inside the sound generator interrupt: ADSR envelope and RBJ biquad low-pass filter in Q28 fixed
-  point (the FPU cannot be used in the interrupt); coefficients are computed by the UI task and swapped atomically
-- Key down / key up handling with virtual keys, ignoring typematic repeats
-- A custom-painted GUI control (the piano keyboard) with mouse hit testing
+- `fabgl::PolySynth`: a pool of `SynthVoice` objects (oscillator, resonant low-pass filter, ADSR envelope) attached
+  to `fabgl::SoundGenerator`, with shared `ADSREnvelope` and `ResonantLowPassFilter` parameters. The DSP runs in
+  fixed point inside the sound generator interrupt (Q28 RBJ biquad)
+- The synth controls of the GUI: `uiKnob`, `uiToggleSwitch`, `uiLevelBar`, `uiLedBar`, `uiStepper`,
+  `uiTileSelector` (with tiles painted by the application), `uiGraph` (with overlays painted by the application)
+  and `uiPianoKeyboard`
+- A `uiStyle` that themes all the controls through style class IDs
+- A custom palette on `VGA16Controller` (`setPaletteItem()`)
+- Key down / key up handling with virtual keys: the PS/2 keyboard and the mouse press the same piano keys
 
 ## Hardware
 

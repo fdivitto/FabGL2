@@ -1,5 +1,0 @@
-<map id="SamplesGenerator" name="SamplesGenerator">
-<area shape="rect" id="Node000001" title="Samples generator." alt="" coords="9,79,139,105"/>
-<area shape="rect" id="Node000002" href="$classfabgl_1_1_waveform_generator.html" title="Abstract base class for waveform generators. A waveform generator is an audio channel that SoundGener..." alt="" coords="5,5,143,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,45,77,79,71,78,72,48"/>
-</map>

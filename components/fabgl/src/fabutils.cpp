@@ -24,6 +24,7 @@
  */
 
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -2009,5 +2010,13 @@ int calcI2STimingParams(int sampleRate, int * outA, int * outB, int * outN, int 
 
 
 
+char const * midiNoteName(int note, char * str, size_t len)
+{
+  static char const * names[12] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+  snprintf(str, len, "%s%d", names[((note % 12) + 12) % 12], note / 12 - 1);
+  return str;
 }
 
+
+
+}

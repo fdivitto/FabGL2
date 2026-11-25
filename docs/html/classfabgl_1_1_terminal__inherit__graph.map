@@ -1,7 +1,0 @@
-<map id="Terminal" name="Terminal">
-<area shape="rect" id="Node000001" title="An ANSI&#45;VT100 compatible display terminal." alt="" coords="5,153,76,178"/>
-<area shape="rect" id="Node000002" href="$structfabgl_1_1_stream.html" title="Abstract byte stream with Arduino&#45;like read and print methods." alt="" coords="9,79,72,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="43,118,43,153,38,152,38,122"/>
-<area shape="rect" id="Node000003" href="$structfabgl_1_1_print.html" title="Abstract output class with Arduino&#45;like print methods." alt="" coords="16,5,65,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="41,44,43,79,38,78,40,49"/>
-</map>

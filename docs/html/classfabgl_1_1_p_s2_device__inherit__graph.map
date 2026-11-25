@@ -1,7 +1,0 @@
-<map id="PS2Device" name="PS2Device">
-<area shape="rect" id="Node000001" title="Base class for PS/2 devices (such as mice and keyboards)." alt="" coords="45,5,132,31"/>
-<area shape="rect" id="Node000002" href="$classfabgl_1_1_keyboard.html" title="PS/2 keyboard driver." alt="" coords="5,79,82,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,43,53,80,49,77,71,45"/>
-<area shape="rect" id="Node000003" href="$classfabgl_1_1_mouse.html" title="PS/2 mouse driver." alt="" coords="105,79,166,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="106,41,130,79,125,78,103,46"/>
-</map>
