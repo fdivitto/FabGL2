@@ -71,10 +71,8 @@
 #include "progs/embedded/froggie.h"
 #include "progs/embedded/tammerfors.h"
 
-
-// non-free list
-char const *  LIST_URL    = "http://cloud.cbm8bit.com/adamcost/vic20list.txt";
-constexpr int MAXLISTSIZE = 8192;
+// from the web
+#include "progs/weblist.h"
 
 
 // Flash and SDCard configuration
@@ -88,13 +86,13 @@ char const * basepath = nullptr;
 
 
 // name of embedded programs directory
-char const * EMBDIR  = "Free";
+char const * EMBDIR  = "VIC20Store";
 
 // name of downloaded programs directory
-char const * DOWNDIR = "List";
+char const * DOWNDIR = "VIC20Store";
 
 // name of user directory (where LOAD and SAVE works)
-char const * USERDIR = "Free";    // same of EMBDIR
+char const * USERDIR = "VIC20Store";    // same of EMBDIR
 
 
 struct EmbeddedProgDef {
@@ -328,7 +326,7 @@ class Menu : public uiApp {
       cv->selectFont(&fabgl::FONT_std_12);
       cv->setPenColor(RGB888(255, 128, 0));
       cv->drawText(160, 358, "www.fabgl.com");
-      cv->drawText(130, 371, "2019/22 by Fabrizio Di Vittorio");
+      cv->drawText(130, 371, "2019/26 by Fabrizio Di Vittorio");
     };
 
     // programs list
@@ -474,22 +472,20 @@ class Menu : public uiApp {
     // "Download From" label
     new uiStaticLabel(rootWindow(), "Download From:", Point(5, 326), true, STYLE_LABELGROUP);
 
-    // Download List button (download programs listed and linked in LIST_URL)
-    auto downloadProgsBtn = new uiButton(rootWindow(), "List", Point(13, 345), Size(27, 20), uiButtonKind::Button, true, STYLE_BUTTON);
+    // Download Web button (download programs listed and linked in weblist.h)
+    auto downloadProgsBtn = new uiButton(rootWindow(), "Web", Point(13, 345), Size(27, 20), uiButtonKind::Button, true, STYLE_BUTTON);
     downloadProgsBtn->onClick = [&]() {
-      if (checkWiFi() && messageBox("Download Programs listed in \"LIST_URL\"", "Check your local laws for restrictions", "OK", "Cancel", nullptr, uiMessageBoxIcon::Warning) == uiMessageBoxResult::Button1) {
+      if (checkWiFi() && messageBox("Download Programs listed in \"weblist.h\"", "Check your local laws for restrictions", "OK", "Cancel", nullptr, uiMessageBoxIcon::Warning) == uiMessageBoxResult::Button1) {
         auto pframe = new DownloadProgressFrame(rootWindow());
         auto modalStatus = initModalWindow(pframe);
         processModalWindowEvents(modalStatus, 100);
         prepareForDownload();
-        char * list = downloadList();
-        char * plist = list;
-        int count = countListItems(list);
+        char const * const * plist = WEB_LIST;
+        int count = sizeof(WEB_LIST) / (2 * sizeof(char const *));
         int dcount = 0;
         for (int i = 0; i < count; ++i) {
-          char const * filename;
-          char const * URL;
-          plist = getNextListItem(plist, &filename, &URL);
+          char const * filename = *plist++;
+          char const * URL      = *plist++;
           pframe->label1->setText(filename);
           if (!processModalWindowEvents(modalStatus, 100))
             break;
@@ -497,7 +493,6 @@ class Menu : public uiApp {
             ++dcount;
           pframe->label2->setTextFmt("Downloaded %d/%d", dcount, count);
         }
-        free(list);
         // modify "abort" button to "OK"
         pframe->button->setText("OK");
         pframe->button->repaint();
@@ -718,65 +713,10 @@ class Menu : public uiApp {
     dir.changeDirectory(DOWNDIR);
   }
 
-  // download list from LIST_URL
-  // ret nullptr on fail
-  char * downloadList()
-  {
-    auto list = (char*) malloc(MAXLISTSIZE);
-    auto dest = list;
-    fabgl::HTTPRequest http;
-    int httpCode = http.open(LIST_URL);
-    if (httpCode == 200) {
-      int bufspace = MAXLISTSIZE;
-      while (bufspace > 1) {
-        int c = http.read(dest, bufspace - 1);
-        if (c <= 0)
-          break;
-        dest += c;
-        bufspace -= c;
-      }
-    }
-    http.close();
-    *dest = 0;
-    return list;
-  }
-
-  // count number of items in download list
-  int countListItems(char const * list)
-  {
-    int count = 0;
-    auto p = list;
-    while (*p++)
-      if (*p == 0x0a)
-        ++count;
-    return (count + 1) / 3;
-  }
-
-  // extract filename and URL from downloaded list
-  char * getNextListItem(char * list, char const * * filename, char const * * URL)
-  {
-    // bypass spaces
-    while (*list == 0x0a || *list == 0x0d || *list == 0x20)
-      ++list;
-    // get filename
-    *filename = list;
-    while (*list && *list != 0x0a && *list != 0x0d)
-      ++list;
-    *list++ = 0;
-    // bypass spaces
-    while (*list && (*list == 0x0a || *list == 0x0d || *list == 0x20))
-      ++list;
-    // get URL
-    *URL = list;
-    while (*list && *list != 0x0a && *list != 0x0d)
-      ++list;
-    *list++ = 0;
-    return list;
-  }
-
   // download specified filename from URL
   bool downloadURL(char const * URL, char const * filename)
   {
+    printf("Downloading %s from %s\n", filename, URL);
     FileBrowser & dir = fileBrowser->content();
     if (dir.exists(filename, false)) {
       return true;
@@ -808,8 +748,11 @@ class Menu : public uiApp {
         free(buf);
         fclose(f);
         success = (len == 0 || (len == -1 && dsize > 0));
+        if (!success)
+          remove(fullpath);   // don't leave a partial file, it would look already downloaded
       }
     }
+    printf("Download %s\n", success ? "OK" : "Failed");
     return success;
   }
 

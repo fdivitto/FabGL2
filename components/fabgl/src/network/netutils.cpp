@@ -33,6 +33,9 @@
 #include "esp_wifi_default.h"
 #include "nvs_flash.h"
 #include "esp_crt_bundle.h"
+#include "esp_heap_caps.h"
+#include "mbedtls/platform.h"
+#include "sdkconfig.h"
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 
@@ -293,6 +296,114 @@ void WiFiConnection::ipEventStaGotIP(void * arg, esp_event_base_t event_base, in
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+// TLS record buffer pool
+//
+// With mbedTLS dynamic buffers each received TLS record needs a buffer of its size, up to about 16.7 KB
+// (servers send full records for files larger than 16 KB). With little free RAM (VGA frame buffer) the
+// handshake allocations and the incoming network packets split the only free block large enough, then the
+// allocation fails (PSA_ERROR_INSUFFICIENT_MEMORY). When the app sets CONFIG_MBEDTLS_CUSTOM_MEM_ALLOC=y, mbedTLS
+// allocates through the functions below (installed with mbedtls_platform_set_calloc_free()): HTTPRequest
+// reserves a record-sized block while a connection is open, and only mbedTLS record buffers can use it.
+
+
+#if CONFIG_MBEDTLS_CUSTOM_MEM_ALLOC
+
+static constexpr size_t TLSRECORD_POOL_SIZE = CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN + 512;
+static portMUX_TYPE     s_tlsPoolMux        = portMUX_INITIALIZER_UNLOCKED;
+static void *           s_tlsPoolBuf        = nullptr;
+static bool             s_tlsPoolBufInUse   = false;
+static int              s_tlsPoolRefs       = 0;
+
+
+static void * tlsMemCalloc(size_t n, size_t size);
+static void tlsMemFree(void * ptr);
+
+
+static void tlsRecordPoolAcquire()
+{
+  // tlsMemFree() frees with heap_caps_free() what it didn't allocate, so mbedTLS can switch allocator at any time
+  static bool installed = false;
+  if (!installed) {
+    mbedtls_platform_set_calloc_free(tlsMemCalloc, tlsMemFree);
+    installed = true;
+  }
+  void * buf = nullptr;
+  portENTER_CRITICAL(&s_tlsPoolMux);
+  bool alloc = (s_tlsPoolRefs++ == 0 && s_tlsPoolBuf == nullptr);
+  portEXIT_CRITICAL(&s_tlsPoolMux);
+  if (alloc) {
+    buf = heap_caps_malloc(TLSRECORD_POOL_SIZE, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    portENTER_CRITICAL(&s_tlsPoolMux);
+    if (s_tlsPoolBuf == nullptr && s_tlsPoolRefs > 0) {
+      s_tlsPoolBuf = buf;
+      buf = nullptr;
+    }
+    portEXIT_CRITICAL(&s_tlsPoolMux);
+    heap_caps_free(buf);  // nullptr when stored
+  }
+}
+
+
+static void tlsRecordPoolRelease()
+{
+  void * buf = nullptr;
+  portENTER_CRITICAL(&s_tlsPoolMux);
+  if (s_tlsPoolRefs > 0 && --s_tlsPoolRefs == 0 && !s_tlsPoolBufInUse) {
+    buf = s_tlsPoolBuf;
+    s_tlsPoolBuf = nullptr;
+  }
+  portEXIT_CRITICAL(&s_tlsPoolMux);
+  heap_caps_free(buf);
+}
+
+
+static void * tlsMemCalloc(size_t n, size_t size)
+{
+  size_t len = n * size;
+  if (len >= CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN && len <= TLSRECORD_POOL_SIZE) {
+    void * buf = nullptr;
+    portENTER_CRITICAL(&s_tlsPoolMux);
+    if (s_tlsPoolBuf && !s_tlsPoolBufInUse) {
+      s_tlsPoolBufInUse = true;
+      buf = s_tlsPoolBuf;
+    }
+    portEXIT_CRITICAL(&s_tlsPoolMux);
+    if (buf) {
+      memset(buf, 0, len);
+      return buf;
+    }
+  }
+  return heap_caps_calloc(n, size, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+}
+
+
+static void tlsMemFree(void * ptr)
+{
+  if (ptr) {
+    portENTER_CRITICAL(&s_tlsPoolMux);
+    bool fromPool = (ptr == s_tlsPoolBuf);
+    if (fromPool) {
+      s_tlsPoolBufInUse = false;
+      if (s_tlsPoolRefs == 0)
+        s_tlsPoolBuf = nullptr;   // released while in use: free it now
+      else
+        ptr = nullptr;            // keep it for the next record
+    }
+    portEXIT_CRITICAL(&s_tlsPoolMux);
+    heap_caps_free(ptr);
+  }
+}
+
+#else
+
+static void tlsRecordPoolAcquire() { }
+static void tlsRecordPoolRelease() { }
+
+#endif
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
 // HTTPRequest
 
 
@@ -349,9 +460,12 @@ int HTTPRequest::GET(char const * URL)
     config.crt_bundle_attach = esp_crt_bundle_attach;
     config.buffer_size       = 2048;   // the default (512) is too small for the headers of many servers
     config.buffer_size_tx    = 1024;
+    tlsRecordPoolAcquire();
     m_client = esp_http_client_init(&config);
-    if (!m_client)
+    if (!m_client) {
+      tlsRecordPoolRelease();
       return 0;
+    }
   }
   return esp_http_client_perform(m_client) == ESP_OK ? esp_http_client_get_status_code(m_client) : 0;
 }
@@ -367,9 +481,12 @@ int HTTPRequest::open(char const * URL)
   config.disable_auto_redirect = true;
   config.buffer_size           = 2048;
   config.buffer_size_tx        = 1024;
+  tlsRecordPoolAcquire();
   m_client = esp_http_client_init(&config);
-  if (!m_client)
+  if (!m_client) {
+    tlsRecordPoolRelease();
     return 0;
+  }
 
   for (int redirects = 0; redirects < 8; ++redirects) {
     if (esp_http_client_open(m_client, 0) != ESP_OK)
@@ -402,6 +519,7 @@ void HTTPRequest::close()
     esp_http_client_close(m_client);
     esp_http_client_cleanup(m_client);
     m_client = nullptr;
+    tlsRecordPoolRelease();
   }
 }
 
