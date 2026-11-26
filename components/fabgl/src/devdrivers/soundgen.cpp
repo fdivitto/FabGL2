@@ -930,66 +930,140 @@ int ADSREnvelope::msToInc(int ms)
 
 
 ResonantLowPassFilter::ResonantLowPassFilter()
-  : m_active(0),
-    m_enabled(true),
+  : m_enabled(true),
     m_sampleRate(FABGL_SOUNDGEN_DEFAULT_SAMPLE_RATE),
     m_cutoff(2000),
-    m_q(2.0f)
+    m_cutoffIndex(0),
+    m_resonance(0.5f),
+    m_envAmount(0),
+    m_envAmountQ8(0)
 {
-  update();
+  setCutoff(m_cutoff);
+  updateResonance();    // also builds the table
 }
 
 
 void ResonantLowPassFilter::setSampleRate(int value)
 {
   m_sampleRate = value;
-  update();
+  buildTable();
+}
+
+
+// position of a frequency in the cutoff table (Q8)
+static int cutoffToIndex(float hz)
+{
+  using F = ResonantLowPassFilter;
+  float pos = logf(hz / F::MIN_CUTOFF) / logf((float) F::MAX_CUTOFF / F::MIN_CUTOFF);
+  return iclamp((int) lroundf(pos * F::MAX_CUTOFF_INDEX), 0, F::MAX_CUTOFF_INDEX);
 }
 
 
 void ResonantLowPassFilter::setCutoff(int hz)
 {
-  m_cutoff = iclamp(hz, MIN_CUTOFF, MAX_CUTOFF);
-  update();
+  m_cutoff      = iclamp(hz, MIN_CUTOFF, MAX_CUTOFF);
+  m_cutoffIndex = cutoffToIndex(m_cutoff);
 }
 
 
-void ResonantLowPassFilter::setResonance(float q)
+void ResonantLowPassFilter::setResonance(float value)
 {
-  m_q = tclamp(q, MIN_Q, MAX_Q);
-  update();
+  m_resonance = tclamp(value, 0.0f, MAX_RESONANCE);
+  updateResonance();
 }
 
 
-void ResonantLowPassFilter::update()
+void ResonantLowPassFilter::setEnvelopeAmount(int percent)
 {
-  float w0    = 2.0f * (float) M_PI * m_cutoff / m_sampleRate;
-  float cosw  = cosf(w0);
-  float alpha = sinf(w0) / (2.0f * m_q);
-  float a0    = 1.0f + alpha;
-  float scale = (float) (1 << COEFF_SHIFT) / a0;
-
-  int next = m_active ^ 1;
-  Coeffs & c = m_sets[next];
-  c.b0 = (int32_t) lroundf((1.0f - cosw) * 0.5f * scale);
-  c.b1 = (int32_t) lroundf((1.0f - cosw) * scale);
-  c.b2 = c.b0;
-  c.a1 = (int32_t) lroundf(-2.0f * cosw * scale);
-  c.a2 = (int32_t) lroundf((1.0f - alpha) * scale);
-  m_active = next;
+  m_envAmount   = iclamp(percent, -100, 100);
+  m_envAmountQ8 = m_envAmount * MAX_CUTOFF_INDEX / 100;
 }
 
 
+// feedback gain of the ladder. k = 4 is the self-oscillation threshold: above it (last 7% of the resonance range)
+// the oscillation grows until the feedback saturation limits it, like in the analog ladder filters
+static float ladderFeedback(float resonance)
+{
+  return 4.3f * resonance;
+}
+
+
+// input gain: partially compensates the passband attenuation 1 / (1 + k) caused by the feedback
+static float ladderInputGain(float k)
+{
+  return 1.0f + 0.5f * k;
+}
+
+
+void ResonantLowPassFilter::updateResonance()
+{
+  float k = ladderFeedback(m_resonance);
+  m_k     = (int) lroundf(k * (1 << COEFF_SHIFT));
+  m_comp  = (int) lroundf(ladderInputGain(k) * (1 << COEFF_SHIFT));
+  buildTable();
+}
+
+
+// coefficients for CUTOFF_STEPS frequencies on a logarithmic scale
+void ResonantLowPassFilter::buildTable()
+{
+  float scale = (float) (1 << COEFF_SHIFT);   // Q28
+  float q31   = 2147483648.0f;                // Q31 (values lower than 1)
+  float k     = ladderFeedback(m_resonance);
+  float comp  = ladderInputGain(k);
+  for (int i = 0; i < CUTOFF_STEPS; ++i) {
+    float hz  = MIN_CUTOFF * powf((float) MAX_CUTOFF / MIN_CUTOFF, (float) i / (CUTOFF_STEPS - 1));
+    float g   = tanf((float) M_PI * hz / m_sampleRate);   // prewarped cutoff
+    float G   = g / (1.0f + g);
+    float G2  = G * G, G3 = G2 * G, G4 = G3 * G;
+    float den = 1.0f + k * G4;
+    auto & t = m_table[i];
+    t.g  = (int32_t) llroundf(G * q31);
+    t.s1 = (int32_t) llroundf(G3 * (1.0f - G) * q31);
+    t.s2 = (int32_t) llroundf(G2 * (1.0f - G) * q31);
+    t.s3 = (int32_t) llroundf(G  * (1.0f - G) * q31);
+    t.s4 = (int32_t) llroundf((1.0f - G) * q31);
+    t.g4 = (int32_t) llroundf(G4 * q31);
+    t.fb = (int32_t) lroundf(k / den * scale);
+    t.in = (int32_t) lroundf(comp / den * scale);
+  }
+}
+
+
+// runs inside the sound generator interrupt: fixed point only, no divisions
+void ResonantLowPassFilter::calcCoeffs(int cutoffIndex, Coeffs & c)
+{
+  cutoffIndex = iclamp(cutoffIndex, 0, MAX_CUTOFF_INDEX);
+  int i = cutoffIndex >> 8, f = cutoffIndex & 0xff;
+  auto const & a = m_table[i];
+  auto const & b = m_table[i < CUTOFF_STEPS - 1 ? i + 1 : i];
+  // (b - a) is small between adjacent steps, but computed in 64 bit to be safe with Q31 values
+  auto lerp = [f](int32_t a, int32_t b) { return a + (int32_t) (((int64_t) (b - a) * f) >> 8); };
+  c.g    = lerp(a.g,  b.g);
+  c.s1   = lerp(a.s1, b.s1);
+  c.s2   = lerp(a.s2, b.s2);
+  c.s3   = lerp(a.s3, b.s3);
+  c.s4   = lerp(a.s4, b.s4);
+  c.g4   = lerp(a.g4, b.g4);
+  c.fb   = lerp(a.fb, b.fb);
+  c.in   = lerp(a.in, b.in);
+  c.k    = m_k;
+  c.comp = m_comp;
+}
+
+
+// the ladder of trapezoidal one-pole stages is the bilinear transform (prewarped at the cutoff) of the analog
+// prototype H(s) = 1 / ((1 + s)^4 + k), with s = j tan(pi f / fs) / tan(pi fc / fs)
 float ResonantLowPassFilter::responseDB(float freq)
 {
-  auto const & c = m_sets[m_active];
-  float k  = 1.0f / (1 << COEFF_SHIFT);
-  float b0 = c.b0 * k, b1 = c.b1 * k, b2 = c.b2 * k, a1 = c.a1 * k, a2 = c.a2 * k;
-  float w  = 2.0f * (float) M_PI * freq / m_sampleRate;
-  float c1 = cosf(w), s1 = sinf(w), c2 = cosf(2 * w), s2 = sinf(2 * w);
-  float nr = b0 + b1 * c1 + b2 * c2, ni = -(b1 * s1 + b2 * s2);
-  float dr = 1  + a1 * c1 + a2 * c2, di = -(a1 * s1 + a2 * s2);
-  return 10.0f * log10f((nr * nr + ni * ni) / (dr * dr + di * di) + 1e-12f);
+  float w  = tanf((float) M_PI * tclamp(freq, 1.0f, m_sampleRate * 0.499f) / m_sampleRate) /
+             tanf((float) M_PI * m_cutoff / m_sampleRate);
+  float k  = ladderFeedback(m_resonance);
+  // (1 + jw)^2 = (1 - w^2) + j 2w ; (1 + jw)^4 = (a + jb)^2
+  float a  = 1.0f - w * w, b = 2.0f * w;
+  float dr = a * a - b * b + k, di = 2.0f * a * b;
+  float gain = ladderInputGain(k);
+  return 10.0f * log10f(gain * gain / (dr * dr + di * di) + 1e-12f);
 }
 
 
@@ -1001,7 +1075,7 @@ int ResonantLowPassFilter::cutoffFromPosition(int position)
 
 float ResonantLowPassFilter::resonanceFromPosition(int position)
 {
-  return MIN_Q * powf(MAX_Q / MIN_Q, position / 100.0f);
+  return MAX_RESONANCE * tclamp(position, 0, 100) / 100.0f;
 }
 
 
@@ -1010,104 +1084,291 @@ float ResonantLowPassFilter::resonanceFromPosition(int position)
 // SynthVoice
 
 
+// 16 bit sine table (257 entries: the last one helps the interpolation), filled by the first SynthVoice constructor
+static int16_t s_synthSineTable[257];
+static bool    s_synthSineTableReady = false;
+
+
+static void initSynthSineTable()
+{
+  if (!s_synthSineTableReady) {
+    for (int i = 0; i < 257; ++i)
+      s_synthSineTable[i] = (int16_t) lroundf(32767.0f * sinf(i * 2.0f * (float) M_PI / 256.0f));
+    s_synthSineTableReady = true;
+  }
+}
+
+
+// interpolated sine (Q15) of a 32 bit phase
+__attribute__((always_inline)) static inline int synthSine(uint32_t phase)
+{
+  int i = phase >> 24;
+  int f = (phase >> 8) & 0xffff;
+  int a = s_synthSineTable[i];
+  return a + (((s_synthSineTable[i + 1] - a) * f) >> 16);
+}
+
+
+// PolyBLEP correction (band-limited step) for a discontinuity of height 2 at phase 0.
+// t = phase, dt = phase increment, both as fractions of a cycle in Q16. Returns Q15.
+// dt must be <= 16384 (frequency <= sample rate / 4): see SynthVoice::setFrequency()
+__attribute__((always_inline)) static inline int polyBLEP(int t, int dt)
+{
+  if (t < dt) {
+    int x = (t << 15) / dt;                 // 0..32767
+    return 2 * x - ((x * x) >> 15) - 32768;
+  }
+  if (t > 65536 - dt) {
+    int x = ((t - 65536) << 15) / dt;       // -32768..0
+    return ((x * x) >> 15) + 2 * x + 32768;
+  }
+  return 0;
+}
+
+
 SynthVoice::SynthVoice()
-  : m_gen(&m_sine),
-    m_envelope(nullptr),
+  : m_envelope(nullptr),
     m_filter(nullptr),
-    m_frequency(0),
+    m_filterEnvelope(nullptr),
+    m_lfo(nullptr),
+    m_filterCoeffs(),
+    m_controlCounter(0),
+    m_filterEnvState(SynthVoiceState::Idle),
+    m_filterLevel(0),
+    m_sampleRate(FABGL_SOUNDGEN_DEFAULT_SAMPLE_RATE),
+    m_waveform(SynthWaveform::Sawtooth),
+    m_phase(0),
+    m_phaseInc(0),
     m_note(-1),
     m_state(SynthVoiceState::Idle),
     m_level(0)
 {
-  m_pulse.setDutyCycle(64);
+  initSynthSineTable();
 }
 
 
-void SynthVoice::setup(ADSREnvelope * envelope, ResonantLowPassFilter * filter)
+void SynthVoice::setSampleRate(int value)
 {
-  m_envelope = envelope;
-  m_filter   = filter;
+  m_sampleRate = value;
 }
 
 
-void SynthVoice::setWaveform(SynthWaveform waveform)
+void SynthVoice::setup(ADSREnvelope * envelope, ResonantLowPassFilter * filter, ADSREnvelope * filterEnvelope, SynthLFO * lfo)
 {
-  WaveformGenerator * gens[] = { &m_sine, &m_square, &m_pulse, &m_triangle, &m_sawtooth };
-  auto gen = gens[(int) waveform];
-  gen->setSampleRate(sampleRate());
-  gen->setVolume(127);
-  gen->setFrequency(m_frequency);
-  m_gen = gen;
+  m_envelope       = envelope;
+  m_filter         = filter;
+  m_filterEnvelope = filterEnvelope;
+  m_lfo            = lfo;
 }
 
 
-void SynthVoice::setFrequency(int value)
+void SynthVoice::setFrequency(float value)
 {
-  m_frequency = value;
-  m_gen->setFrequency(value);
+  // limited to sample rate / 4: higher frequencies would alias anyway, and PolyBLEP needs it
+  float inc = value / m_sampleRate * 4294967296.0f;
+  m_phaseInc = (uint32_t) tclamp(inc, 0.0f, 1073741824.0f);
 }
 
 
-void SynthVoice::noteOn(int note, int frequency)
+void SynthVoice::noteOn(int note)
 {
+  if (m_state == SynthVoiceState::Idle) {
+    // safe: the interrupt doesn't touch idle voices
+    m_filterState.reset();
+    m_phase       = 0;
+    m_filterLevel = 0;
+  }
   m_note = note;
-  setFrequency(frequency);
-  if (m_state == SynthVoiceState::Idle)
-    m_filterState.reset();          // safe: the interrupt doesn't touch idle voices
-  m_state = SynthVoiceState::Attack;  // a retriggered voice restarts from its current level (no clicks)
-  enable(true);
+  setFrequency(440.0f * powf(2.0f, (note - 69) / 12.0f));
+  m_filterEnvState = SynthVoiceState::Attack;
+  m_controlCounter = 0;               // filter coefficients recalculated at the next sample
+  __sync_synchronize();               // the interrupt (maybe on the other core) must see the above before the new state
+  m_state = SynthVoiceState::Attack;  // a retriggered voice restarts from its current levels (no clicks)
 }
 
 
 void SynthVoice::noteOff()
 {
-  if (m_state != SynthVoiceState::Idle)
-    m_state = SynthVoiceState::Release;
+  if (m_state != SynthVoiceState::Idle) {
+    m_filterEnvState = SynthVoiceState::Release;
+    m_state          = SynthVoiceState::Release;
+  }
+}
+
+
+// envelope parameters, read once per block
+struct EnvelopeIncs {
+  int attack, decay, sustain, release;
+
+  EnvelopeIncs(ADSREnvelope * env)
+    : attack(env->attackInc()), decay(env->decayInc()), sustain(env->sustainLevel()), release(env->releaseInc())
+  {
+  }
+};
+
+
+// advances an envelope by one sample. Returns false when the release phase is over (state becomes Idle)
+__attribute__((always_inline)) static inline bool advanceEnvelope(EnvelopeIncs const & env, SynthVoiceState & state, int & level)
+{
+  switch (state) {
+    case SynthVoiceState::Attack:
+      level += env.attack;
+      if (level >= ADSREnvelope::MAX_LEVEL) {
+        level = ADSREnvelope::MAX_LEVEL;
+        state = SynthVoiceState::Decay;
+      }
+      break;
+    case SynthVoiceState::Decay:
+      level -= env.decay;
+      if (level <= env.sustain) {
+        level = env.sustain;
+        state = SynthVoiceState::Sustain;
+      }
+      break;
+    case SynthVoiceState::Sustain:
+      level = env.sustain;                  // follows the sustain level while the key is held
+      break;
+    case SynthVoiceState::Release:
+      level -= env.release;
+      if (level <= 0) {
+        level = 0;
+        state = SynthVoiceState::Idle;
+        return false;
+      }
+      break;
+    case SynthVoiceState::Idle:
+      return false;
+  }
+  return true;
+}
+
+
+// band-limited oscillator sample (Q15). t = phase (Q16), dt = phase increment (Q16)
+template <int WAVEFORM>
+__attribute__((always_inline)) static inline int oscillatorSample(uint32_t phase, int dt)
+{
+  int t = phase >> 16;
+  switch ((SynthWaveform) WAVEFORM) {
+    case SynthWaveform::Sine:
+      return synthSine(phase);
+    case SynthWaveform::Square:
+      return (t < 32768 ? 32767 : -32767) + polyBLEP(t, dt) - polyBLEP((t + 32768) & 0xffff, dt);
+    case SynthWaveform::Pulse:
+      return (t < 16384 ? 32767 : -32767) + polyBLEP(t, dt) - polyBLEP((t + 49152) & 0xffff, dt);
+    case SynthWaveform::Triangle:
+      return t < 32768 ? -32767 + 2 * t : 98303 - 2 * t;
+    default:  // Sawtooth
+      return (t - 32768) - polyBLEP(t, dt);
+  }
+}
+
+
+// Runs inside the sound generator interrupt: fixed point only.
+// The fields shared with the application (parameters, states) are read once per block and kept in local
+// variables (registers): volatile accesses and function calls for every sample are expensive.
+// A note on / note off arriving during the block is applied at the next block (at most CONTROL_PERIOD samples).
+template <int WAVEFORM, bool FILTER>
+void SynthVoice::renderLoop(int32_t * buffer, int count)
+{
+  uint32_t phase = m_phase;
+  uint32_t inc   = m_phaseInc;
+  int      dt    = imax(1, inc >> 16);
+
+  SynthVoiceState const state0  = m_state;
+  SynthVoiceState       state   = state0;
+  int                   level   = m_level;
+  EnvelopeIncs const    ampEnv(m_envelope);
+
+  SynthVoiceState const fstate0 = m_filterEnvState;
+  SynthVoiceState       fstate  = fstate0;
+  int                   flevel  = m_filterLevel;
+  EnvelopeIncs const    filterEnv(m_filterEnvelope ? m_filterEnvelope : m_envelope);
+
+  // separate passes over the block: each loop has few live variables, so they stay in registers
+  int32_t osc[CONTROL_PERIOD];   // oscillator, then filter output (Q15)
+  int32_t amp[CONTROL_PERIOD];   // amplitude envelope (0..4096)
+  count = imin(count, CONTROL_PERIOD);
+
+  // amplitude envelope and oscillator
+  int n = 0;
+  for (; n < count; ++n) {
+    if (!advanceEnvelope(ampEnv, state, level))
+      break;
+    amp[n] = level >> LEVEL_SHIFT;
+    osc[n] = oscillatorSample<WAVEFORM>(phase, dt);
+    phase += inc;
+  }
+
+  if (FILTER) {
+    // filter envelope (used for the coefficients of the next block)
+    if (m_filterEnvelope)
+      for (int i = 0; i < n; ++i)
+        advanceEnvelope(filterEnv, fstate, flevel);
+    // filter
+    auto filterState = m_filterState;
+    auto const & c   = m_filterCoeffs;
+    for (int i = 0; i < n; ++i)
+      osc[i] = m_filter->process(filterState, c, osc[i]);
+    m_filterState = filterState;
+  } else if (n > 0) {
+    // keep the filter state settled on the signal: enabling the filter doesn't click
+    m_filterState.s1 = m_filterState.s2 = m_filterState.s3 = m_filterState.s4 = osc[n - 1] << 8;
+  }
+
+  for (int i = 0; i < n; ++i)
+    buffer[i] += (osc[i] * amp[i]) >> 12;
+
+  m_phase       = phase;
+  m_level       = level;
+  m_filterLevel = flevel;
+  // write the states only if the application didn't change them meanwhile (note on / note off)
+  if (fstate != fstate0 && m_filterEnvState == fstate0)
+    m_filterEnvState = fstate;
+  if (state != state0 && m_state == state0) {
+    if (state == SynthVoiceState::Idle)
+      m_note = -1;
+    m_state = state;
+  }
 }
 
 
 // runs inside the sound generator interrupt: fixed point only
+void SynthVoice::render(int32_t * buffer, int count)
+{
+  if (!m_envelope || m_state == SynthVoiceState::Idle)
+    return;
+
+  // cutoff = base cutoff moved by the filter envelope and by the LFO, recalculated at control rate
+  bool filterOn = m_filter && m_filter->enabled();
+  if (filterOn) {
+    if (m_controlCounter <= 0) {
+      m_controlCounter = CONTROL_PERIOD;
+      int index = m_filter->cutoffIndex() + m_filter->envelopeOffset(filterEnvelopeLevel());
+      if (m_lfo)
+        index += m_lfo->cutoffOffset();
+      m_filter->calcCoeffs(index, m_filterCoeffs);
+    }
+    m_controlCounter -= count;
+  } else
+    m_controlCounter = 0;
+
+  #define FABGL_SYNTH_RENDER(W) (filterOn ? renderLoop<(int) W, true>(buffer, count) : renderLoop<(int) W, false>(buffer, count))
+  switch (m_waveform) {
+    case SynthWaveform::Sine:     FABGL_SYNTH_RENDER(SynthWaveform::Sine);     break;
+    case SynthWaveform::Square:   FABGL_SYNTH_RENDER(SynthWaveform::Square);   break;
+    case SynthWaveform::Pulse:    FABGL_SYNTH_RENDER(SynthWaveform::Pulse);    break;
+    case SynthWaveform::Triangle: FABGL_SYNTH_RENDER(SynthWaveform::Triangle); break;
+    default:                      FABGL_SYNTH_RENDER(SynthWaveform::Sawtooth); break;
+  }
+  #undef FABGL_SYNTH_RENDER
+}
+
+
 int SynthVoice::getSample()
 {
-  if (!m_envelope)
-    return 0;
-
-  switch (m_state) {
-    case SynthVoiceState::Attack:
-      m_level += m_envelope->attackInc();
-      if (m_level >= ADSREnvelope::MAX_LEVEL) {
-        m_level = ADSREnvelope::MAX_LEVEL;
-        m_state = SynthVoiceState::Decay;
-      }
-      break;
-    case SynthVoiceState::Decay:
-      m_level -= m_envelope->decayInc();
-      if (m_level <= m_envelope->sustainLevel()) {
-        m_level = m_envelope->sustainLevel();
-        m_state = SynthVoiceState::Sustain;
-      }
-      break;
-    case SynthVoiceState::Sustain:
-      m_level = m_envelope->sustainLevel();   // follows the sustain level while the key is held
-      break;
-    case SynthVoiceState::Release:
-      m_level -= m_envelope->releaseInc();
-      if (m_level <= 0) {
-        m_level = 0;
-        m_state = SynthVoiceState::Idle;
-        m_note  = -1;
-        enable(false);
-      }
-      break;
-    case SynthVoiceState::Idle:
-      return 0;
-  }
-
-  int sample = m_gen->getSample();                  // -128..127 (generator volume = 127)
-  if (m_filter && m_filter->enabled())
-    sample = m_filter->process(m_filterState, sample);
-  sample = sample * volume() / 127;                 // voice volume
-  return (sample * (m_level >> 16)) >> 8;           // envelope (0..256)
+  int32_t sample = 0;
+  render(&sample, 1);
+  return sample;
 }
 
 
@@ -1133,26 +1394,150 @@ char const * SynthVoice::waveformName(SynthWaveform waveform)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SynthLFO
+
+
+SynthLFO::SynthLFO()
+  : m_sampleRate(FABGL_SOUNDGEN_DEFAULT_SAMPLE_RATE),
+    m_waveform(LFOWaveform::Triangle),
+    m_rate(5.0f),
+    m_phase(0),
+    m_phaseInc(0),
+    m_value(0),
+    m_randomValue(0),
+    m_randomSeed(12345),
+    m_cutoffDepth(0),
+    m_cutoffDepthQ8(0),
+    m_ampDepth(0),
+    m_ampDepthQ12(0)
+{
+  initSynthSineTable();
+  setRate(m_rate);
+}
+
+
+void SynthLFO::setSampleRate(int value)
+{
+  m_sampleRate = value;
+  setRate(m_rate);
+}
+
+
+void SynthLFO::setRate(float hz)
+{
+  m_rate     = tclamp(hz, MIN_RATE, MAX_RATE);
+  m_phaseInc = (uint32_t) (m_rate / m_sampleRate * 4294967296.0f);
+}
+
+
+void SynthLFO::setCutoffDepth(int percent)
+{
+  m_cutoffDepth   = iclamp(percent, 0, 100);
+  m_cutoffDepthQ8 = m_cutoffDepth * (ResonantLowPassFilter::MAX_CUTOFF_INDEX / 2) / 100;
+}
+
+
+void SynthLFO::setAmpDepth(int percent)
+{
+  m_ampDepth    = iclamp(percent, 0, 100);
+  m_ampDepthQ12 = m_ampDepth * 4096 / 100;
+}
+
+
+// runs inside the sound generator interrupt: fixed point only
+void SynthLFO::advance(int samples)
+{
+  uint32_t prev  = m_phase;
+  uint32_t phase = prev + m_phaseInc * samples;
+  m_phase = phase;
+  int t = phase >> 16;                       // Q16
+  switch (m_waveform) {
+    case LFOWaveform::Triangle:
+      m_value = t < 32768 ? -32767 + 2 * t : 98303 - 2 * t;
+      break;
+    case LFOWaveform::Sine:
+      m_value = synthSine(phase);
+      break;
+    case LFOWaveform::Square:
+      m_value = t < 32768 ? 32767 : -32767;
+      break;
+    case LFOWaveform::Sawtooth:
+      m_value = iclamp(t - 32768, -32767, 32767);
+      break;
+    case LFOWaveform::Random:
+      if (phase < prev) {                    // new cycle: new random value
+        m_randomSeed  = m_randomSeed * 1664525 + 1013904223;
+        m_randomValue = iclamp((int32_t) m_randomSeed >> 16, -32767, 32767);
+      }
+      m_value = m_randomValue;
+      break;
+  }
+}
+
+
+float SynthLFO::rateFromPosition(int position)
+{
+  return MIN_RATE * powf(MAX_RATE / MIN_RATE, tclamp(position, 0, 100) / 100.0f);
+}
+
+
+int SynthLFO::waveformShape(LFOWaveform waveform, int phase)
+{
+  static const int8_t randomSteps[4] = { 60, -110, 115, -30 };
+  phase &= 255;
+  switch (waveform) {
+    case LFOWaveform::Triangle: return phase < 128 ? -127 + phase * 2 : 127 - (phase - 128) * 2;
+    case LFOWaveform::Sine:     return (int) lroundf(127.0f * sinf(phase * 2.0f * (float) M_PI / 256.0f));
+    case LFOWaveform::Square:   return phase < 128 ? 127 : -127;
+    case LFOWaveform::Sawtooth: return -127 + phase;
+    default:                    return randomSteps[phase / 64];   // Random
+  }
+}
+
+
+char const * SynthLFO::waveformName(LFOWaveform waveform)
+{
+  static char const * names[] = { "TRIANGLE", "SINE", "SQUARE", "SAWTOOTH", "RANDOM" };
+  return names[(int) waveform];
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // PolySynth
+
+
+// gain fractional bits (1.0 = 1 << GAIN_SHIFT)
+static constexpr int GAIN_SHIFT = 20;
 
 
 PolySynth::PolySynth(int voices)
   : m_soundGenerator(nullptr),
     m_voicesCount(voices),
     m_waveform(SynthWaveform::Sawtooth),
-    m_nextSteal(0)
+    m_nextSteal(0),
+    m_channel(this),
+    m_gain(1 << GAIN_SHIFT),
+    m_lfoGain(1 << GAIN_SHIFT)
 {
   m_voices = new SynthVoice[voices];
-  for (int i = 0; i < voices; ++i)
-    m_voices[i].setup(&m_envelope, &m_filter);
+  // default filter envelope: a short sweep that settles low (the amount is 0: the cutoff doesn't move)
+  m_filterEnvelope.setAttack(5);
+  m_filterEnvelope.setDecay(400);
+  m_filterEnvelope.setSustain(30);
+  m_filterEnvelope.setRelease(300);
+  for (int i = 0; i < voices; ++i) {
+    m_voices[i].setup(&m_envelope, &m_filter, &m_filterEnvelope, &m_lfo);
+    m_voices[i].setWaveform(m_waveform);
+  }
+  m_channel.setVolume(127);
 }
 
 
 PolySynth::~PolySynth()
 {
   if (m_soundGenerator)
-    for (int i = 0; i < m_voicesCount; ++i)
-      m_soundGenerator->detach(&m_voices[i]);
+    m_soundGenerator->detach(&m_channel);
   delete [] m_voices;
 }
 
@@ -1160,12 +1545,15 @@ PolySynth::~PolySynth()
 void PolySynth::begin(SoundGenerator * soundGenerator)
 {
   m_soundGenerator = soundGenerator;
-  m_envelope.setSampleRate(soundGenerator->sampleRate());
-  m_filter.setSampleRate(soundGenerator->sampleRate());
-  for (int i = 0; i < m_voicesCount; ++i) {
-    soundGenerator->attach(&m_voices[i]);
-    m_voices[i].setWaveform(m_waveform);
-  }
+  int sampleRate = soundGenerator->sampleRate();
+  m_envelope.setSampleRate(sampleRate);
+  m_filterEnvelope.setSampleRate(sampleRate);
+  m_filter.setSampleRate(sampleRate);
+  m_lfo.setSampleRate(sampleRate);
+  for (int i = 0; i < m_voicesCount; ++i)
+    m_voices[i].setSampleRate(sampleRate);
+  soundGenerator->attach(&m_channel);
+  m_channel.enable(true);
   soundGenerator->play(true);
 }
 
@@ -1173,12 +1561,8 @@ void PolySynth::begin(SoundGenerator * soundGenerator)
 void PolySynth::setWaveform(SynthWaveform value)
 {
   m_waveform = value;
-  if (m_soundGenerator) {
-    bool playing = m_soundGenerator->play(false);
-    for (int i = 0; i < m_voicesCount; ++i)
-      m_voices[i].setWaveform(value);
-    m_soundGenerator->play(playing);
-  }
+  for (int i = 0; i < m_voicesCount; ++i)
+    m_voices[i].setWaveform(value);
 }
 
 
@@ -1200,7 +1584,7 @@ void PolySynth::noteOn(int note)
   if (!voice)
     voice = &m_voices[m_nextSteal++ % m_voicesCount];
 
-  voice->noteOn(note, noteFrequency(note));
+  voice->noteOn(note);
 }
 
 
@@ -1216,6 +1600,60 @@ void PolySynth::allNotesOff()
 {
   for (int i = 0; i < m_voicesCount; ++i)
     m_voices[i].noteOff();
+}
+
+
+// level of a single voice at the full envelope level (Q15): leaves room for the peaks of more notes
+static constexpr int MIX_HEADROOM = 24576;   // 0.75
+
+
+// soft limiter (Q15): linear up to MIX_HEADROOM, then smoothly bent towards the full scale (never reached)
+static inline int softClip(int x)
+{
+  constexpr int R = 32767 - MIX_HEADROOM;
+  int a = x < 0 ? -x : x;
+  if (a <= MIX_HEADROOM)
+    return x;
+  int u = a - MIX_HEADROOM;
+  int y = MIX_HEADROOM + (int) ((int64_t) R * u / (R + u));
+  return x < 0 ? -y : y;
+}
+
+
+// runs inside the sound generator interrupt: fixed point only. Renders BLOCK_SIZE samples (-127..127)
+void PolySynth::renderBlock(int8_t * dest)
+{
+  m_lfo.advance(BLOCK_SIZE);
+
+  int32_t sum[BLOCK_SIZE] = { };
+  int levels = 0;
+  for (int i = 0; i < m_voicesCount; ++i) {
+    auto & voice = m_voices[i];
+    if (!voice.isIdle()) {
+      voice.render(sum, BLOCK_SIZE);
+      levels += voice.level();
+    }
+  }
+
+  // automatic gain: 1 up to a total envelope level of 1, then 1 / sqrt(total level). Different notes add up in power,
+  // not in amplitude: this keeps the loudness constant when more notes play. The peaks that exceed the headroom
+  // are bent by the soft limiter.
+  // The gain follows the target quickly when it must decrease, slowly when it increases (no level jumps when a note ends)
+  constexpr int ONE = SynthVoice::LEVEL_ONE;                   // 4096 = 64 * 64
+  int target    = (levels > ONE ? ONE * 64 / isqrt(levels) : ONE) << (GAIN_SHIFT - 12);
+  int lfoTarget = m_lfo.ampGain() << (GAIN_SHIFT - 12);
+  int volume    = m_channel.volume();
+
+  for (int i = 0; i < BLOCK_SIZE; ++i) {
+    m_gain += (target - m_gain) >> (target < m_gain ? 4 : 8);
+    // LFO tremolo, smoothed (about 2 ms) so the square and random waveforms don't click
+    m_lfoGain += (lfoTarget - m_lfoGain) >> 5;
+    int gain = (int) (((int64_t) m_gain * m_lfoGain) >> GAIN_SHIFT);
+    int out  = (int) (((int64_t) sum[i] * gain) >> GAIN_SHIFT);  // Q15
+    out = softClip((out * MIX_HEADROOM) >> 15);
+    out = out * volume / 127;
+    dest[i] = iclamp((out + 128) >> 8, -127, 127);              // to 8 bit, rounded
+  }
 }
 
 

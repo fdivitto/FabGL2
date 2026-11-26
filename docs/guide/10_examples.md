@@ -76,7 +76,7 @@ The "default pins" mentioned in the example pages are the ones of this table.
 | @subpage example_SoundChipSimulator "SoundChipSimulator" | Catalog of retro sound effects (ADSR envelope + frequency sweep) |
 | @subpage example_SpaceInvaders "SpaceInvaders" | Arcade shoot-'em-up game with sprites and sampled sounds |
 | @subpage example_Sprites "Sprites" | The simplest sprite example, with the supported bitmap formats |
-| @subpage example_Synth "Synth" | 8-voice polyphonic synthesizer with ADSR and resonant filter, played from the PS/2 keyboard |
+| @subpage example_Synth "Synth" | 8-voice polyphonic synthesizer with ADSR, resonant ladder filter (with envelope), LFO and 64 presets, played from the PS/2 keyboard |
 | @subpage example_TerminalCharSet "TerminalCharSet" | Shows the terminal character set with codes |
 | @subpage example_VIC20 "VIC20" | Commodore VIC-20 emulator with included games, cartridges and Internet downloads |
 

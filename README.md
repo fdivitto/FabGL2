@@ -186,7 +186,7 @@ how to use it (commands, keys, disk images...):
 | [SoundChipSimulator](examples/VGA/SoundChipSimulator) | Catalog of retro sound effects (ADSR envelope + frequency sweep) |
 | [SpaceInvaders](examples/VGA/SpaceInvaders) | Arcade shoot-'em-up game with sprites and sampled sounds |
 | [Sprites](examples/VGA/Sprites) | The simplest sprite example, with the supported bitmap formats |
-| [Synth](examples/VGA/Synth) | 8-voice polyphonic synthesizer with ADSR and resonant filter, played from the PS/2 keyboard |
+| [Synth](examples/VGA/Synth) | 8-voice polyphonic synthesizer with ADSR, resonant ladder filter (with envelope), LFO and 64 presets, played from the PS/2 keyboard |
 | [TerminalCharSet](examples/VGA/TerminalCharSet) | Shows the terminal character set with codes |
 | [VIC20](examples/VGA/VIC20) | Commodore VIC-20 emulator with included games, cartridges and Internet downloads |
 

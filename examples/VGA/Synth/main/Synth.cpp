@@ -33,20 +33,27 @@
  *    A   S   D   F   G   H   J   K   L   ;/ò  '/à
  *    C   D   E   F   G   A   B   C   D   E    F
  *
- *    Z / X  : octave down / up
- *    1 .. 5 : select waveform
+ *    Z / X          : octave down / up
+ *    1 .. 5         : select waveform
+ *    PGUP / PGDN    : previous / next preset
  *
  * The sound is produced by fabgl::PolySynth: each note is played by a voice (an oscillator followed by a
- * resonant low-pass filter, shaped by an ADSR envelope). The interface uses the FabGL synth controls
- * (uiKnob, uiToggleSwitch, uiLevelBar, uiLedBar, uiStepper, uiTileSelector, uiGraph, uiPianoKeyboard),
- * themed by a uiStyle and a custom 16-color palette.
+ * resonant low-pass filter, shaped by an ADSR envelope; a second ADSR envelope moves the filter cutoff; an LFO
+ * modulates cutoff and amplitude). The interface uses the FabGL synth controls (uiKnob, uiToggleSwitch,
+ * uiLevelBar, uiLedBar, uiStepper, uiTileSelector, uiGraph, uiPianoKeyboard), themed by a uiStyle and a custom
+ * 16-color palette.
+ *
+ * 64 presets (presets.h: classic synthesizer sounds) can be edited and saved to the NVS flash partition.
  */
 
 
 #include <math.h>
+#include <ctype.h>
 
 #include "fabgl.h"
 #include "fabui.h"
+
+#include "presets.h"
 
 
 using fabgl::uiStyle;
@@ -140,10 +147,12 @@ enum StyleClass {
   STYLE_TILES,
   STYLE_GRAPH,
   STYLE_PIANO,
-  STYLE_DISPLAY,        // black panel with border
-  STYLE_DISPLAY_NOTE,   // labels on the display
-  STYLE_DISPLAY_FREQ,
   STYLE_WAVE_NAME,      // label on a panel
+  STYLE_PRESET,         // preset selector (stepper with the preset number and name)
+  STYLE_BUTTON,
+  STYLE_DIALOG,         // save dialog frame
+  STYLE_DIALOG_LABEL,
+  STYLE_EDIT,           // preset name edit box (the only focusable control)
 };
 
 
@@ -151,8 +160,8 @@ struct SynthStyle : uiStyle {
 
   void setStyle(uiObject * object, uint32_t styleClassID)
   {
-    // keyboard events go to the main frame (it plays the notes)
-    ((uiWindow *) object)->windowProps().focusable = false;
+    // keyboard events go to the main frame (it plays the notes), except in the edit box of the save dialog
+    ((uiWindow *) object)->windowProps().focusable = styleClassID == STYLE_EDIT;
 
     switch (styleClassID) {
 
@@ -210,6 +219,7 @@ struct SynthStyle : uiStyle {
       }
 
       case STYLE_STEPPER:
+      case STYLE_PRESET:
       {
         auto & s = ((uiStepper *) object)->stepperStyle();
         s.backgroundColor                = ink(Ink::Panel);
@@ -218,8 +228,69 @@ struct SynthStyle : uiStyle {
         s.buttonBorderColor              = ink(Ink::Edge);
         s.arrowColor                     = ink(Ink::Text);
         s.mouseDownArrowColor            = ink(Ink::Background);
-        s.textFont                       = BigFont;
+        s.textFont                       = styleClassID == STYLE_PRESET ? MediumFont : BigFont;
         s.textColor                      = ink(Ink::Amber);
+        break;
+      }
+
+      case STYLE_BUTTON:
+      {
+        auto button = (uiButton *) object;
+        button->windowStyle().borderColor        = ink(Ink::Edge);
+        button->windowStyle().activeBorderColor  = ink(Ink::Edge);
+        button->windowStyle().focusedBorderColor = ink(Ink::Edge);
+        button->windowStyle().borderSize         = 1;
+        auto & s = button->buttonStyle();
+        s.backgroundColor          = ink(Ink::Background);
+        s.mouseOverBackgroundColor = ink(Ink::Panel);
+        s.mouseDownBackgroundColor = ink(Ink::Amber);
+        s.downBackgroundColor      = ink(Ink::Amber);
+        s.textColor                = ink(Ink::Text);
+        s.mouseOverTextColor       = ink(Ink::Amber);
+        s.downTextColor            = ink(Ink::Background);
+        s.textFont                 = SmallFont;
+        break;
+      }
+
+      case STYLE_DIALOG:
+      {
+        auto frame = (uiFrame *) object;
+        frame->windowStyle().borderColor        = ink(Ink::Amber);
+        frame->windowStyle().activeBorderColor  = ink(Ink::Amber);
+        frame->windowStyle().focusedBorderColor = ink(Ink::Amber);
+        frame->windowStyle().borderSize         = 1;
+        auto & s = frame->frameStyle();
+        s.backgroundColor            = ink(Ink::Panel);
+        s.titleBackgroundColor       = ink(Ink::Background);
+        s.activeTitleBackgroundColor = ink(Ink::Background);
+        s.titleColor                 = ink(Ink::Amber);
+        s.activeTitleColor           = ink(Ink::Amber);
+        s.titleFont                  = SmallFont;
+        break;
+      }
+
+      case STYLE_DIALOG_LABEL:
+      {
+        auto & s = ((uiStaticLabel *) object)->labelStyle();
+        s.backgroundColor = ink(Ink::Panel);
+        s.textColor       = ink(Ink::Text);
+        s.textFont        = SmallFont;
+        break;
+      }
+
+      case STYLE_EDIT:
+      {
+        auto edit = (uiTextEdit *) object;
+        edit->windowStyle().borderColor        = ink(Ink::Edge);
+        edit->windowStyle().activeBorderColor  = ink(Ink::Edge);
+        edit->windowStyle().focusedBorderColor = ink(Ink::Amber);
+        edit->windowStyle().borderSize         = 1;
+        auto & s = edit->textEditStyle();
+        s.backgroundColor          = ink(Ink::Background);
+        s.mouseOverBackgroundColor = ink(Ink::Background);
+        s.focusedBackgroundColor   = ink(Ink::Background);
+        s.textColor                = ink(Ink::Amber);
+        s.textFont                 = MediumFont;
         break;
       }
 
@@ -268,24 +339,13 @@ struct SynthStyle : uiStyle {
         break;
       }
 
-      case STYLE_DISPLAY:
-      {
-        auto panel = (uiPanel *) object;
-        panel->windowStyle().borderSize     = 1;
-        panel->windowStyle().borderColor    = ink(Ink::Edge);
-        panel->panelStyle().backgroundColor = ink(Ink::Background);
-        break;
-      }
-
-      case STYLE_DISPLAY_NOTE:
-      case STYLE_DISPLAY_FREQ:
       case STYLE_WAVE_NAME:
       {
         auto & s = ((uiLabel *) object)->labelStyle();
-        s.backgroundColor = ink(styleClassID == STYLE_WAVE_NAME ? Ink::Panel : Ink::Background);
-        s.textFont        = styleClassID == STYLE_DISPLAY_NOTE ? BigFont : MediumFont;
-        s.textColor       = ink(styleClassID == STYLE_DISPLAY_FREQ ? Ink::Text : Ink::Amber);
-        s.textAlign       = styleClassID == STYLE_DISPLAY_FREQ ? uiHAlign::Right : (styleClassID == STYLE_WAVE_NAME ? uiHAlign::Center : uiHAlign::Left);
+        s.backgroundColor = ink(Ink::Panel);
+        s.textFont        = MediumFont;
+        s.textColor       = ink(Ink::Amber);
+        s.textAlign       = uiHAlign::Center;
         break;
       }
 
@@ -401,9 +461,9 @@ static char const * KeyLabels[PIANO_KEYS] = {
 // Main frame
 //
 //   +--------------------------------------------------------------+
-//   | FabGL SYNTH                                   VOICES ######## |  header
-//   | [OSCILLATOR      ] [ENVELOPE        ] [LOW-PASS FILTER     ] |  panels: graph + controls
-//   | [NOW PLAYING  |  OCTAVE  |  MASTER VOLUME                   ] |  strip
+//   | FabGL SYNTH  8-VOICE POLYPHONIC SYNTHESIZER    VOICES ######## |  header
+//   | [OSCILLATOR/LFO  ] [ENVELOPE        ] [LOW-PASS FILTER     ] |  panels: graph + controls
+//   | [PRESET  SAVE/RESET  |  OCTAVE  |  MASTER VOLUME            ] |  strip
 //   | [ piano keyboard                                            ] |
 //   +--------------------------------------------------------------+
 
@@ -428,7 +488,11 @@ public:
     // voices activity
     int ledsW = synth.voicesCount() * 16 - 4;
     m_voiceLeds = new uiLedBar(this, Point(624 - ledsW, 19), Size(ledsW, 8), synth.voicesCount(), true, STYLE_LEDBAR);
-    onTimer = [&](uiTimerHandle) { updateVoiceLeds(); };
+    onTimer = [&](uiTimerHandle) {
+      updateVoiceLeds();
+      updatePresetModified();
+    };
+
 
     createOscillatorPanel(panelRect(0));
     createEnvelopePanel(panelRect(1));
@@ -438,12 +502,7 @@ public:
     // on screen keyboard
     m_piano = new uiPianoKeyboard(this, Point(12, 310), Size(616, 162), PIANO_KEYS, true, STYLE_PIANO);
     m_piano->setKeyLabels(KeyLabels);
-    m_piano->onNoteOn = [&](int note) {
-      synth.noteOn(note);
-      char str[8];
-      m_noteLabel->setText(fabgl::midiNoteName(note, str, sizeof(str)));
-      m_freqLabel->setTextFmt("%d Hz", PolySynth::noteFrequency(note));
-    };
+    m_piano->onNoteOn  = [&](int note) { synth.noteOn(note); };
     m_piano->onNoteOff = [&](int note) { synth.noteOff(note); };
     updateOctave();
 
@@ -463,6 +522,12 @@ public:
           break;
         case fabgl::VK_1: case fabgl::VK_2: case fabgl::VK_3: case fabgl::VK_4: case fabgl::VK_5:
           selectWaveform(key.VK - fabgl::VK_1);
+          break;
+        case fabgl::VK_PAGEUP:
+          selectPreset(m_presetIndex - 1);
+          break;
+        case fabgl::VK_PAGEDOWN:
+          selectPreset(m_presetIndex + 1);
           break;
         default:
           break;
@@ -484,7 +549,7 @@ private:
   static constexpr int PANEL_H = 182;
   static constexpr int GRAPH_H = 64;
   static constexpr int PanelCols[3] = { 8, 218, 428 };
-  static constexpr int StripCols[3] = { 18, 214, 370 };
+  static constexpr int StripCols[3] = { 18, 330, 484 };
 
   static Rect panelRect(int index)          { return Rect(PanelCols[index], PANEL_Y, PanelCols[index] + PANEL_W - 1, PANEL_Y + PANEL_H - 1); }
   static Rect stripRect()                   { return Rect(8, PANEL_Y + PANEL_H + 6, 631, PANEL_Y + PANEL_H + 6 + 63); }
@@ -522,6 +587,101 @@ private:
     m_waveName = new uiLabel(this, "", Point(panel.X1 + 8, controlsY() + 50), Size(PANEL_W - 16, 22), true, STYLE_WAVE_NAME);
 
     selectWaveform((int) synth.waveform());
+
+    createLFOPage(panel);
+
+    // the panel shows the oscillator (OSC) or the LFO
+    m_oscSelector = new uiTileSelector(this, Point(panel.X2 - 8 - 92, panel.Y1 + 4), Size(92, 16), true, STYLE_TILES);
+    m_oscSelector->items().append("");
+    m_oscSelector->items().append("");
+    m_oscSelector->onPaintTile = [&](int index, Rect const & r, bool selected) {
+      drawText(m_oscSelector->canvas(), SmallFont, selected ? Ink::Amber : Ink::Dim, (r.X1 + r.X2) / 2, r.Y1 + 2, index ? "LFO" : "OSC", Align::Center, true);
+    };
+    m_oscSelector->onChange = [&]() { selectOscillatorPage(m_oscSelector->selectedItem()); };
+    selectOscillatorPage(0);
+  }
+
+  // 0 = oscillator, 1 = LFO
+  void selectOscillatorPage(int index)
+  {
+    bool lfo = index == 1;
+    m_oscSelector->selectItem(index);
+    uiWindow * oscPage[] = { m_waveGraph, m_waveTiles, m_waveName };
+    uiWindow * lfoPage[] = { m_lfoTiles, m_lfoGraph, m_lfoKnobs[0], m_lfoKnobs[1], m_lfoKnobs[2] };
+    for (auto w : oscPage)
+      app()->showWindow(w, !lfo);
+    for (auto w : lfoPage)
+      app()->showWindow(w, lfo);
+  }
+
+
+  //// LFO (second page of the oscillator panel) ////
+
+  void createLFOPage(Rect const & panel)
+  {
+    static constexpr int TILES_H = 24;
+
+    // LFO waveform tiles and shape, in the graph area
+    m_lfoTiles = new uiTileSelector(this, Point(panel.X1 + 8, panel.Y1 + 24), Size(PANEL_W - 16, TILES_H), true, STYLE_TILES);
+    for (int i = 0; i < 5; ++i)
+      m_lfoTiles->items().append("");
+    m_lfoTiles->onPaintTile = [&](int index, Rect const & r, bool selected) { paintLFOIcon(index, r, selected); };
+    m_lfoTiles->onChange    = [&]() { selectLFOWaveform(m_lfoTiles->selectedItem()); };
+
+    m_lfoGraph = new uiGraph(this, Point(panel.X1 + 8, panel.Y1 + 24 + TILES_H + 4), Size(PANEL_W - 16, GRAPH_H - TILES_H - 4), true, STYLE_GRAPH);
+    m_lfoGraph->setRange(-127, 127);
+    m_lfoGraph->onPaint = [&](Rect const & plot) {
+      drawText(m_lfoGraph->canvas(), TinyFont, Ink::Dim, plot.X2 - 2, plot.Y1 + 2, SynthLFO::waveformName(synth.lfo().waveform()), Align::Right);
+    };
+
+    // rate (logarithmic scale), cutoff and amplitude modulation depths
+    int kw = (PANEL_W - 16) / 3, kx = panel.X1 + 8;
+    m_lfoKnobs[0] = addKnob(kx, kw, "RATE", 0, 100, 60, [&](uiKnob * k) {
+      synth.lfo().setRate(SynthLFO::rateFromPosition(k->position()));
+      int r10 = (int) lroundf(synth.lfo().rate() * 10);
+      k->setValueTextFmt("%d.%d Hz", r10 / 10, r10 % 10);
+    });
+    m_lfoKnobs[1] = addKnob(kx + kw, kw, "CUTOFF", 0, 100, 0, [&](uiKnob * k) {
+      synth.lfo().setCutoffDepth(k->position());
+      k->setValueTextFmt("%d %%", k->position());
+    });
+    m_lfoKnobs[2] = addKnob(kx + kw * 2, kw, "AMP", 0, 100, 0, [&](uiKnob * k) {
+      synth.lfo().setAmpDepth(k->position());
+      k->setValueTextFmt("%d %%", k->position());
+    });
+
+    selectLFOWaveform((int) synth.lfo().waveform());
+  }
+
+  void paintLFOIcon(int index, Rect const & r, bool selected)
+  {
+    auto cv  = m_lfoTiles->canvas();
+    int  x1  = r.X1 + 5, x2 = r.X2 - 5, cy = (r.Y1 + r.Y2) / 2, amp = 7;
+    int  px  = x1, py = cy - SynthLFO::waveformShape((LFOWaveform) index, 0) * amp / 127;
+    cv->setPenColor(ink(selected ? Ink::Amber : Ink::Text));
+    for (int x = x1 + 1; x <= x2; ++x) {
+      int y = cy - SynthLFO::waveformShape((LFOWaveform) index, (x - x1) * 255 / (x2 - x1)) * amp / 127;
+      cv->drawLine(px, py, x, y);
+      px = x;
+      py = y;
+    }
+  }
+
+  void selectLFOWaveform(int index)
+  {
+    if (index < 0 || index > (int) LFOWaveform::Random)
+      return;
+    if (index == (int) synth.lfo().waveform() && index == m_lfoTiles->selectedItem())
+      return;   // nothing changes: no repaint
+    auto waveform = (LFOWaveform) index;
+    synth.lfo().setWaveform(waveform);
+    m_lfoTiles->selectItem(index);
+    // two cycles
+    int count = m_lfoGraph->plotRect().width();
+    int16_t values[count];
+    for (int i = 0; i < count; ++i)
+      values[i] = SynthLFO::waveformShape(waveform, i * 512 / count);
+    m_lfoGraph->setValues(values, count);
   }
 
   // one cycle of the waveform inside a tile
@@ -543,6 +703,8 @@ private:
   {
     if (index < 0 || index > (int) SynthWaveform::Sawtooth)
       return;
+    if (index == (int) synth.waveform() && index == m_waveTiles->selectedItem())
+      return;   // nothing changes: no repaint
     auto waveform = (SynthWaveform) index;
     synth.setWaveform(waveform);
     m_waveTiles->selectItem(index);
@@ -568,20 +730,51 @@ private:
     m_envGraph->onPaintBackground = [&](Rect const & plot) { paintEnvelopeBackground(plot); };
     m_envGraph->onPaint           = [&](Rect const & plot) { paintEnvelopeOverlay(plot); };
 
+    // the knobs edit the selected envelope: amplitude (AMP) or filter cutoff (FILTER)
+    m_envSelector = new uiTileSelector(this, Point(panel.X2 - 8 - 92, panel.Y1 + 4), Size(92, 16), true, STYLE_TILES);
+    m_envSelector->items().append("");
+    m_envSelector->items().append("");
+    m_envSelector->onPaintTile = [&](int index, Rect const & r, bool selected) {
+      drawText(m_envSelector->canvas(), SmallFont, selected ? Ink::Amber : Ink::Dim, (r.X1 + r.X2) / 2, r.Y1 + 2, index ? "FILTER" : "AMP", Align::Center, true);
+    };
+    m_envSelector->onChange = [&]() { selectEnvelope(m_envSelector->selectedItem()); };
+
     int kw = (PANEL_W - 16) / 4, kx = panel.X1 + 8;
-    addKnob(kx + kw * 0, kw, "ATTACK",  0, 1000,  10, [&](uiKnob * k) { synth.envelope().setAttack(k->position());  k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
-    addKnob(kx + kw * 1, kw, "DECAY",   0, 1000, 200, [&](uiKnob * k) { synth.envelope().setDecay(k->position());   k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
-    addKnob(kx + kw * 2, kw, "SUSTAIN", 0, 100,   70, [&](uiKnob * k) { synth.envelope().setSustain(k->position()); k->setValueTextFmt("%d %%", k->position()); updateEnvelopeGraph(); });
-    addKnob(kx + kw * 3, kw, "RELEASE", 0, 2000, 300, [&](uiKnob * k) { synth.envelope().setRelease(k->position()); k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
+    m_envKnobs[0] = addKnob(kx + kw * 0, kw, "ATTACK",  0, 1000,  10, [&](uiKnob * k) { currentEnvelope().setAttack(k->position());  k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
+    m_envKnobs[1] = addKnob(kx + kw * 1, kw, "DECAY",   0, 1000, 200, [&](uiKnob * k) { currentEnvelope().setDecay(k->position());   k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
+    m_envKnobs[2] = addKnob(kx + kw * 2, kw, "SUSTAIN", 0, 100,   70, [&](uiKnob * k) { currentEnvelope().setSustain(k->position()); k->setValueTextFmt("%d %%", k->position()); updateEnvelopeGraph(); });
+    m_envKnobs[3] = addKnob(kx + kw * 3, kw, "RELEASE", 0, 2000, 300, [&](uiKnob * k) { currentEnvelope().setRelease(k->position()); k->setValueTextFmt("%d ms", k->position()); updateEnvelopeGraph(); });
+
+    selectEnvelope(0);
+  }
+
+  ADSREnvelope & currentEnvelope() { return m_editFilterEnvelope ? synth.filterEnvelope() : synth.envelope(); }
+
+  // 0 = amplitude envelope, 1 = filter envelope
+  void selectEnvelope(int index)
+  {
+    m_editFilterEnvelope = index == 1;
+    m_envSelector->selectItem(index);
+    auto & env = currentEnvelope();
+    int values[4] = { env.attack(), env.decay(), env.sustain(), env.release() };
+    for (int i = 0; i < 4; ++i) {
+      m_envKnobs[i]->setPosition(values[i]);
+      m_envKnobs[i]->onChange();     // value text, also when the position doesn't change
+    }
+    updateEnvelopeGraph();
   }
 
   // envelope shape on a fixed time scale: the shape changes as the times change
   void updateEnvelopeGraph()
   {
+    if (m_batchUpdate) {
+      m_envGraphDirty = true;
+      return;
+    }
     static constexpr int SUSTAIN_W = 30;     // width of the sustain segment
     static constexpr int MAX_MS    = 4000;   // max attack + decay + release
 
-    auto & env = synth.envelope();
+    auto & env = currentEnvelope();
     int w      = m_envGraph->plotRect().width();
     int avail  = w - 1 - SUSTAIN_W;
     int a      = env.attack()  * avail / MAX_MS;
@@ -643,25 +836,35 @@ private:
     m_filterGraph->onPaintBackground = [&](Rect const & plot) { paintFilterBackground(plot); };
     m_filterGraph->onPaint           = [&](Rect const & plot) { paintFilterOverlay(plot); };
 
-    // knobs 0..100 on logarithmic scales
-    int kw = (PANEL_W - 16) / 2, kx = panel.X1 + 8;
-    addKnob(kx, kw, "CUTOFF", 0, 100, 70, [&](uiKnob * k) {
+    // knobs 0..100 (cutoff on a logarithmic scale)
+    int kw = (PANEL_W - 16) / 3, kx = panel.X1 + 8;
+    m_cutoffKnob = addKnob(kx, kw, "CUTOFF", 0, 100, 70, [&](uiKnob * k) {
       synth.filter().setCutoff(ResonantLowPassFilter::cutoffFromPosition(k->position()));
       k->setValueTextFmt("%d Hz", synth.filter().cutoff());
       updateFilterGraph();
     });
-    addKnob(kx + kw, kw, "RESONANCE", 0, 100, 37, [&](uiKnob * k) {
+    m_resonanceKnob = addKnob(kx + kw, kw, "RESONANCE", 0, 100, 50, [&](uiKnob * k) {
       synth.filter().setResonance(ResonantLowPassFilter::resonanceFromPosition(k->position()));
-      int q10 = (int) lroundf(synth.filter().resonance() * 10);
-      k->setValueTextFmt("Q %d.%d", q10 / 10, q10 % 10);
+      k->setValueTextFmt("%d %%", k->position());
       updateFilterGraph();
     });
+    // how much the filter envelope moves the cutoff (100% = the whole range, about 7 octaves)
+    m_envAmountKnob = addKnob(kx + kw * 2, kw, "ENV AMT", -100, 100, 40, [&](uiKnob * k) {
+      synth.filter().setEnvelopeAmount(k->position());
+      k->setValueTextFmt("%+d %%", k->position());
+    });
 
-    auto filterSwitch = new uiToggleSwitch(this, Point(panel.X2 - 8 - 64, panel.Y1 + 4), Size(64, 16), synth.filter().enabled(), true, STYLE_SWITCH);
-    filterSwitch->onChange = [=, this]() {
-      synth.filter().setEnabled(filterSwitch->checked());
-      updateFilterGraph();
-    };
+    m_filterSwitch = new uiToggleSwitch(this, Point(panel.X2 - 8 - 64, panel.Y1 + 4), Size(64, 16), synth.filter().enabled(), true, STYLE_SWITCH);
+    m_filterSwitch->onChange = [&]() { enableFilter(m_filterSwitch->checked()); };
+  }
+
+  void enableFilter(bool value)
+  {
+    if (value == synth.filter().enabled() && value == m_filterSwitch->checked())
+      return;   // nothing changes: no repaint
+    synth.filter().setEnabled(value);
+    m_filterSwitch->setChecked(value);
+    updateFilterGraph();
   }
 
   int freqToX(Rect const & plot, float freq) { return plot.X1 + (int) lroundf(logf(freq / MIN_FREQ) / logf(MAX_FREQ / MIN_FREQ) * (plot.width() - 1)); }
@@ -669,6 +872,10 @@ private:
   // response in dB * 10 for each column of the plot area
   void updateFilterGraph()
   {
+    if (m_batchUpdate) {
+      m_filterGraphDirty = true;
+      return;
+    }
     auto & filter = synth.filter();
     if (!filter.enabled()) {
       m_filterGraph->setValues(nullptr, 0);
@@ -711,15 +918,20 @@ private:
   }
 
 
-  //// strip: now playing, octave, master volume ////
+  //// strip: presets, octave, master volume ////
 
   void createStrip(Rect const & strip)
   {
     int y = strip.Y1 + 22;
 
-    auto display = new uiPanel(this, Point(StripCols[0], y), Size(176, 36), true, STYLE_DISPLAY);
-    m_noteLabel = new uiLabel(display, "- -", Point(10, 4), Size(70, 26), true, STYLE_DISPLAY_NOTE);
-    m_freqLabel = new uiLabel(display, "", Point(80, 8), Size(84, 20), true, STYLE_DISPLAY_FREQ);
+    m_presetStepper = new uiStepper(this, Point(StripCols[0], y), Size(232, 36), true, STYLE_PRESET);
+    m_presetStepper->onStep = [&](int delta) { selectPreset(m_presetIndex + delta); };
+
+    auto save = new uiButton(this, "SAVE", Point(StripCols[0] + 238, y), Size(56, 17), uiButtonKind::Button, true, STYLE_BUTTON);
+    save->onClick = [&]() { savePresetDialog(); };
+
+    auto reset = new uiButton(this, "RESET", Point(StripCols[0] + 238, y + 19), Size(56, 17), uiButtonKind::Button, true, STYLE_BUTTON);
+    reset->onClick = [&]() { applyPreset(FactoryPresets[m_presetIndex]); };
 
     m_octave = new uiStepper(this, Point(StripCols[1], y), Size(134, 36), true, STYLE_STEPPER);
     m_octave->onStep = [&](int delta) { changeOctave(delta); };
@@ -728,6 +940,207 @@ private:
     volume->setRange(0, 127);
     volume->onChange = [=]() { soundGenerator.setVolume(volume->position()); };
     volume->setPosition(100);
+  }
+
+
+  //// presets ////
+
+  static constexpr char const * PREFS_NAMESPACE = "synth";
+  static constexpr int          PREFS_VERSION   = 1;     // change it when the Preset layout changes
+
+public:
+
+  // factory presets, replaced by the ones saved to NVS. Starts with preset 01
+  void loadPresets()
+  {
+    memcpy(m_presets, FactoryPresets, sizeof(m_presets));
+    fabgl::Preferences prefs;
+    if (prefs.begin(PREFS_NAMESPACE, true)) {
+      if (prefs.getInt("version", 0) == PREFS_VERSION) {
+        for (int i = 0; i < PRESETS_COUNT; ++i) {
+          char key[8];
+          snprintf(key, sizeof(key), "p%02d", i);
+          Preset preset;
+          if (prefs.getBytes(key, &preset, sizeof(Preset)) == sizeof(Preset)) {
+            preset.name[PRESET_NAME_SIZE - 1] = 0;
+            m_presets[i] = preset;
+          }
+        }
+      }
+      prefs.end();
+    }
+    m_presetIndex = -1;
+    selectPreset(0);
+  }
+
+private:
+
+  // loads a preset in the controls (the current changes, if any, are lost)
+  void selectPreset(int index)
+  {
+    m_presetIndex = (index + PRESETS_COUNT) % PRESETS_COUNT;
+    applyPreset(m_presets[m_presetIndex]);
+  }
+
+  // Sets the controls (and so the synth) to the preset sound.
+  // Only the controls whose value changes are updated, and the graphs are recalculated once at the end: many
+  // repaints would take several frames, showing the controls erased and redrawn (flickering).
+  void applyPreset(Preset const & p)
+  {
+    synth.allNotesOff();
+    m_batchUpdate = true;
+
+    selectWaveform(p.wave);
+
+    auto & env = synth.envelope();
+    env.setAttack(p.attack);
+    env.setDecay(p.decay);
+    env.setSustain(p.sustain);
+    env.setRelease(p.release);
+    auto & fenv = synth.filterEnvelope();
+    fenv.setAttack(p.fAttack);
+    fenv.setDecay(p.fDecay);
+    fenv.setSustain(p.fSustain);
+    fenv.setRelease(p.fRelease);
+    auto & shown = currentEnvelope();
+    setKnob(m_envKnobs[0], shown.attack());
+    setKnob(m_envKnobs[1], shown.decay());
+    setKnob(m_envKnobs[2], shown.sustain());
+    setKnob(m_envKnobs[3], shown.release());
+    updateEnvelopeGraph();
+
+    enableFilter(p.filterOn);
+    setKnob(m_cutoffKnob, p.cutoff);
+    setKnob(m_resonanceKnob, p.resonance);
+    setKnob(m_envAmountKnob, p.envAmount);
+
+    selectLFOWaveform(p.lfoWave);
+    setKnob(m_lfoKnobs[0], p.lfoRate);
+    setKnob(m_lfoKnobs[1], p.lfoCutoff);
+    setKnob(m_lfoKnobs[2], p.lfoAmp);
+
+    m_batchUpdate = false;
+    if (m_envGraphDirty)
+      updateEnvelopeGraph();
+    if (m_filterGraphDirty)
+      updateFilterGraph();
+    m_envGraphDirty = m_filterGraphDirty = false;
+
+    m_presetModified = -1;   // updatePresetModified() updates the text
+    updatePresetModified();
+  }
+
+  // Sets a knob (its onChange applies the value). Knobs and synth parameters are always in sync: a knob already
+  // at the value needs nothing (no repaint)
+  static void setKnob(uiKnob * knob, int value)
+  {
+    if (knob->position() != value)
+      knob->setPosition(value);
+  }
+
+  // the current sound, from the controls
+  void capturePreset(Preset & p)
+  {
+    memset(&p, 0, sizeof(Preset));
+    strlcpy(p.name, m_presets[m_presetIndex].name, PRESET_NAME_SIZE);
+    p.wave      = (uint8_t) synth.waveform();
+    auto & env  = synth.envelope();
+    p.attack    = env.attack();
+    p.decay     = env.decay();
+    p.sustain   = env.sustain();
+    p.release   = env.release();
+    auto & fenv = synth.filterEnvelope();
+    p.fAttack   = fenv.attack();
+    p.fDecay    = fenv.decay();
+    p.fSustain  = fenv.sustain();
+    p.fRelease  = fenv.release();
+    p.filterOn  = synth.filter().enabled();
+    p.cutoff    = m_cutoffKnob->position();
+    p.resonance = m_resonanceKnob->position();
+    p.envAmount = m_envAmountKnob->position();
+    p.lfoWave   = (uint8_t) synth.lfo().waveform();
+    p.lfoRate   = m_lfoKnobs[0]->position();
+    p.lfoCutoff = m_lfoKnobs[1]->position();
+    p.lfoAmp    = m_lfoKnobs[2]->position();
+  }
+
+  // shows "NN NAME", with "*" when the sound differs from the stored preset
+  void updatePresetModified()
+  {
+    Preset current;
+    capturePreset(current);
+    int modified = current.sameSound(m_presets[m_presetIndex]) ? 0 : 1;
+    if (modified != m_presetModified) {
+      m_presetModified = modified;
+      char text[32];
+      snprintf(text, sizeof(text), "%02d %s%s", m_presetIndex + 1, m_presets[m_presetIndex].name, modified ? " *" : "");
+      m_presetStepper->setText(text);
+    }
+  }
+
+  void savePresetDialog()
+  {
+    static constexpr int W = 300, H = 160;
+    auto dialog = new uiFrame(app()->rootWindow(), "SAVE PRESET", Point((640 - W) / 2, 120), Size(W, H), false, STYLE_DIALOG);
+    dialog->frameProps().resizeable        = false;
+    dialog->frameProps().hasMaximizeButton = false;
+    dialog->frameProps().hasMinimizeButton = false;
+
+    // destination
+    new uiStaticLabel(dialog, "DESTINATION", Point(14, 28), true, STYLE_DIALOG_LABEL);
+    int slot = m_presetIndex;
+    auto slotStepper = new uiStepper(dialog, Point(14, 44), Size(W - 28, 30), true, STYLE_PRESET);
+    auto updateSlot = [=, this](int value) {
+      char text[32];
+      snprintf(text, sizeof(text), "%02d %s", value + 1, m_presets[value].name);
+      slotStepper->setText(text);
+    };
+    updateSlot(slot);
+    slotStepper->onStep = [&, updateSlot](int delta) {
+      slot = (slot + delta + PRESETS_COUNT) % PRESETS_COUNT;
+      updateSlot(slot);
+    };
+
+    // name
+    new uiStaticLabel(dialog, "NAME", Point(14, 82), true, STYLE_DIALOG_LABEL);
+    auto edit = new uiTextEdit(dialog, m_presets[m_presetIndex].name, Point(14, 98), Size(W - 28, 24), true, STYLE_EDIT);
+
+    auto ok = new uiButton(dialog, "SAVE", Point(W - 14 - 140 - 8, H - 30), Size(70, 20), uiButtonKind::Button, true, STYLE_BUTTON);
+    ok->onClick = [=]() { dialog->exitModal(1); };
+    auto cancel = new uiButton(dialog, "CANCEL", Point(W - 14 - 70, H - 30), Size(70, 20), uiButtonKind::Button, true, STYLE_BUTTON);
+    cancel->onClick = [=]() { dialog->exitModal(0); };
+
+    app()->setFocusedWindow(edit);
+    if (app()->showModalWindow(dialog) == 1) {
+      // name: upper case, at most 16 characters, "NONAME" when empty
+      char name[PRESET_NAME_SIZE] = { };
+      int len = 0;
+      for (auto c = edit->text(); *c && len < PRESET_NAME_SIZE - 1; ++c)
+        name[len++] = toupper(*c);
+      while (len > 0 && name[len - 1] == ' ')
+        name[--len] = 0;
+      savePreset(slot, len ? name : "NONAME");
+    }
+    app()->destroyWindow(dialog);
+    app()->setFocusedWindow(this);
+  }
+
+  // saves the current sound to a preset slot (NVS) and selects it
+  void savePreset(int slot, char const * name)
+  {
+    Preset preset;
+    capturePreset(preset);
+    strlcpy(preset.name, name, PRESET_NAME_SIZE);
+    m_presets[slot] = preset;
+    fabgl::Preferences prefs;
+    if (prefs.begin(PREFS_NAMESPACE)) {
+      char key[8];
+      snprintf(key, sizeof(key), "p%02d", slot);
+      prefs.putBytes(key, &preset, sizeof(Preset));
+      prefs.putInt("version", PREFS_VERSION);
+      prefs.end();
+    }
+    selectPreset(slot);
   }
 
 
@@ -749,14 +1162,15 @@ private:
     fillRect(cv, Ink::Amber, Rect(16, 41, logoEnd, 43));
 
     // panels
-    drawPanel(cv, panelRect(0), "OSCILLATOR", "KEYS 1-5");
-    drawPanel(cv, panelRect(1), "ENVELOPE", "ADSR");
+    drawPanel(cv, panelRect(0), "OSCILLATOR");
+    drawPanel(cv, panelRect(1), "ENVELOPE");
     drawPanel(cv, panelRect(2), "LOW-PASS");
 
     // strip
     Rect r = stripRect();
     drawPanel(cv, r, nullptr);
-    drawText(cv, SmallFont, Ink::Text, StripCols[0], r.Y1 + 5, "NOW PLAYING", Align::Left, true);
+    drawText(cv, SmallFont, Ink::Text, StripCols[0], r.Y1 + 5, "PRESET", Align::Left, true);
+    drawText(cv, SmallFont, Ink::Dim,  StripCols[0] + 232, r.Y1 + 5, "PGUP / PGDN", Align::Right);
     drawText(cv, SmallFont, Ink::Text, StripCols[1], r.Y1 + 5, "OCTAVE", Align::Left, true);
     drawText(cv, SmallFont, Ink::Dim,  StripCols[1] + 134, r.Y1 + 5, "Z / X", Align::Right);
     drawText(cv, SmallFont, Ink::Text, StripCols[2], r.Y1 + 5, "MASTER VOLUME", Align::Left, true);
@@ -792,12 +1206,28 @@ private:
   uiTileSelector *  m_waveTiles;
   uiLabel *         m_waveName;
   uiGraph *         m_waveGraph;
+  uiTileSelector *  m_oscSelector;
+  uiTileSelector *  m_lfoTiles;
+  uiGraph *         m_lfoGraph;
+  uiKnob *          m_lfoKnobs[3];
   uiGraph *         m_envGraph;
+  uiTileSelector *  m_envSelector;
+  uiKnob *          m_envKnobs[4];
+  bool              m_editFilterEnvelope = false;
   uiGraph *         m_filterGraph;
   uiLedBar *        m_voiceLeds;
-  uiLabel *         m_noteLabel;
-  uiLabel *         m_freqLabel;
   uiStepper *       m_octave;
+  uiStepper *       m_presetStepper;
+  uiKnob *          m_cutoffKnob;
+  uiKnob *          m_resonanceKnob;
+  uiKnob *          m_envAmountKnob;
+  uiToggleSwitch *  m_filterSwitch;
+  Preset            m_presets[PRESETS_COUNT];
+  int               m_presetIndex    = 0;
+  int               m_presetModified = -1;   // -1 = unknown
+  bool              m_batchUpdate    = false;
+  bool              m_envGraphDirty  = false;
+  bool              m_filterGraphDirty = false;
   int               m_envX[5] = { };   // envelope vertices (plot area coordinates)
   int               m_envY[5] = { };   // envelope levels (0..100)
 };
@@ -817,6 +1247,7 @@ class SynthApp : public uiApp {
     setStyle(&synthStyle);
 
     auto frame = new SynthFrame(rootWindow());
+    frame->loadPresets();
     showWindow(frame, true);
     setActiveWindow(frame);
     setFocusedWindow(frame);

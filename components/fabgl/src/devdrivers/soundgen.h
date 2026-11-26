@@ -670,10 +670,21 @@ private:
 /**
  * @brief Resonant low-pass filter parameters, shared by the voices of a synthesizer
  *
- * Second order (12 dB/octave) "RBJ cookbook" biquad. The coefficients are calculated in floating point when a
- * parameter changes and used in fixed point (Q28) by SynthVoice inside the sound generator interrupt.
- * Two coefficient sets are kept: a change writes the inactive set and then swaps them, so the interrupt never
- * sees a half-updated set. Each voice keeps its own filter state (ResonantLowPassFilter::State).
+ * Four pole (24 dB/octave) ladder filter, modeled on the classic analog synthesizer filters: four one-pole stages
+ * in series with a negative feedback from the output to the input. The feedback creates the resonance peak at the
+ * cutoff frequency; at the maximum resonance the filter self-oscillates (it "sings" at the cutoff frequency).
+ * A soft saturation of the feedback signal keeps the resonance bounded, like in the analog filters: small signals
+ * see the linear filter, while the self-oscillation grows until the saturation limits it (about at full scale).
+ *
+ * The stages are "zero delay feedback" (topology-preserving transform) one-pole filters: cutoff and resonance stay
+ * accurate up to MAX_CUTOFF.
+ *
+ * Each voice has its own cutoff: the base cutoff (setCutoff()) moved by the voice filter envelope, scaled by the
+ * envelope amount (setEnvelopeAmount()). Each voice keeps its own filter state and coefficients
+ * (ResonantLowPassFilter::State, ResonantLowPassFilter::Coeffs), interpolated by SynthVoice every few samples from
+ * a table of CUTOFF_STEPS cutoff frequencies on a logarithmic scale. The table is calculated in floating point when
+ * the sample rate or the resonance change: the sound generator interrupt (no floating point unit there) only
+ * interpolates it, with no divisions.
  *
  * @ingroup audio
  */
@@ -681,7 +692,7 @@ class ResonantLowPassFilter {
 
 public:
 
-  /** @brief Fractional bits of the coefficients */
+  /** @brief Fractional bits of the coefficients that can be greater than 1 (fb, in, k, comp) */
   static constexpr int COEFF_SHIFT = 28;
 
   /** @brief Minimum cutoff frequency in Hertz */
@@ -690,22 +701,31 @@ public:
   /** @brief Maximum cutoff frequency in Hertz (must be lower than half the sample rate) */
   static constexpr int MAX_CUTOFF  = 7000;
 
-  /** @brief Minimum resonance (Q): no resonance (Butterworth) */
-  static constexpr float MIN_Q     = 0.707f;
+  /** @brief Maximum resonance: the filter self-oscillates */
+  static constexpr float MAX_RESONANCE = 1.0f;
 
-  /** @brief Maximum resonance (Q) */
-  static constexpr float MAX_Q     = 12.0f;
+  /** @brief Number of cutoff frequencies of the coefficients table (logarithmic scale from MIN_CUTOFF to MAX_CUTOFF) */
+  static constexpr int CUTOFF_STEPS = 256;
 
-  /** @brief Biquad coefficients (Q28 fixed point) */
+  /** @brief Maximum cutoff index (Q8 fixed point: 8 fractional bits) */
+  static constexpr int MAX_CUTOFF_INDEX = (CUTOFF_STEPS - 1) << 8;
+
+  /** @brief Filter coefficients of a voice (fixed point: Q31 when lower than 1, Q28 otherwise) */
   struct Coeffs {
-    int32_t b0, b1, b2, a1, a2;
+    int32_t g;               // one-pole stage gain G = g / (1 + g) (Q31)
+    int32_t s1, s2, s3, s4;  // contribution of the stage states to the output: G^3(1-G), G^2(1-G), G(1-G), 1-G (Q31)
+    int32_t fb;              // feedback k / (1 + k G^4) (Q28)
+    int32_t in;              // input gain (with passband compensation) / (1 + k G^4) (Q28)
+    int32_t g4;              // G^4 (Q31)
+    int32_t k;               // feedback k (Q28)
+    int32_t comp;            // input gain (with passband compensation) (Q28)
   };
 
-  /** @brief Filter state of one voice */
+  /** @brief Filter state of one voice (states of the four stages, Q23) */
   struct State {
-    int32_t x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    int32_t s1 = 0, s2 = 0, s3 = 0, s4 = 0;
 
-    void reset() { x1 = x2 = y1 = y2 = 0; }
+    void reset() { s1 = s2 = s3 = s4 = 0; }
   };
 
   ResonantLowPassFilter();
@@ -728,14 +748,25 @@ public:
   int cutoff()                    { return m_cutoff; }
 
   /**
+   * @brief Sets how much the filter envelope moves the cutoff frequency
+   *
+   * @param percent -100..100. 100 = at the full envelope level the cutoff moves up by the whole range
+   *                (MIN_CUTOFF to MAX_CUTOFF, about 7 octaves). Negative values move it down. 0 = no envelope
+   */
+  void setEnvelopeAmount(int percent);
+
+  /** @brief Gets the filter envelope amount (-100..100) */
+  int envelopeAmount()            { return m_envAmount; }
+
+  /**
    * @brief Sets the resonance
    *
-   * @param q Quality factor (MIN_Q..MAX_Q). MIN_Q = no resonance
+   * @param value Resonance (0..MAX_RESONANCE). 0 = no resonance, MAX_RESONANCE = self-oscillation
    */
-  void setResonance(float q);
+  void setResonance(float value);
 
-  /** @brief Gets the resonance (quality factor) */
-  float resonance()               { return m_q; }
+  /** @brief Gets the resonance (0..MAX_RESONANCE) */
+  float resonance()               { return m_resonance; }
 
   /**
    * @brief Enables or disables (bypasses) the filter
@@ -750,9 +781,11 @@ public:
   /**
    * @brief Calculates the magnitude response of the filter (floating point: do not call from the sound generator interrupt)
    *
+   * This is the response of the linear filter (no saturation).
+   *
    * @param freq Frequency in Hertz
    *
-   * @return Gain at "freq" in dB
+   * @return Gain at "freq" in dB (very high values when the filter self-oscillates)
    */
   float responseDB(float freq);
 
@@ -766,48 +799,118 @@ public:
   static int cutoffFromPosition(int position);
 
   /**
-   * @brief Maps a linear position (for example a knob) to a resonance on a logarithmic scale
+   * @brief Maps a linear position (for example a knob) to a resonance
    *
    * @param position Position (0..100)
    *
-   * @return Resonance (MIN_Q..MAX_Q)
+   * @return Resonance (0..MAX_RESONANCE)
    */
   static float resonanceFromPosition(int position);
+
+  /**
+   * @brief Gets the cutoff index of the base cutoff frequency (used by SynthVoice)
+   *
+   * @return Index in the cutoff table (0..MAX_CUTOFF_INDEX, Q8)
+   */
+  int cutoffIndex()               { return m_cutoffIndex; }
+
+  /**
+   * @brief Calculates the cutoff index offset produced by the filter envelope (fixed point, used by SynthVoice)
+   *
+   * @param level Envelope level (0..SynthVoice::LEVEL_ONE)
+   *
+   * @return Offset to add to cutoffIndex() (Q8)
+   */
+  int envelopeOffset(int level)   { return (m_envAmountQ8 * level) >> 12; }
+
+  /**
+   * @brief Calculates the coefficients for a cutoff (fixed point, used by SynthVoice inside the sound generator interrupt)
+   *
+   * @param cutoffIndex Index in the cutoff table (0..MAX_CUTOFF_INDEX, Q8: values between two steps are interpolated)
+   * @param c Receives the coefficients
+   */
+  void calcCoeffs(int cutoffIndex, Coeffs & c);
 
   /**
    * @brief Filters one sample (fixed point, used inside the sound generator interrupt)
    *
    * @param state State of the voice
-   * @param sample Input sample (-128..127)
+   * @param c Coefficients of the voice (see calcCoeffs())
+   * @param sample Input sample (Q15: -32768..32767)
    *
-   * @return Filtered sample (-128..127, clipped)
+   * @return Filtered sample (Q15). The resonance can take it beyond the input range: it is not clipped here
    */
-  int process(State & state, int sample)
+  __attribute__((always_inline)) int process(State & state, Coeffs const & c, int sample)
   {
-    // direct form I. Samples are scaled by 256 to keep precision.
-    auto const & c = m_sets[m_active];
-    int32_t x0 = sample << 8;
-    int64_t acc = (int64_t) c.b0 * x0 + (int64_t) c.b1 * state.x1 + (int64_t) c.b2 * state.x2
-                - (int64_t) c.a1 * state.y1 - (int64_t) c.a2 * state.y2;
-    int32_t y0 = (int32_t) (acc >> COEFF_SHIFT);
-    y0 = iclamp(y0, -(1 << 20), (1 << 20));        // safety net against runaway (never reached when stable)
-    state.x2 = state.x1;
-    state.x1 = x0;
-    state.y2 = state.y1;
-    state.y1 = y0;
-    return iclamp(y0 >> 8, -128, 127);             // resonance can exceed the 8 bit range: clip
+    // 32 bit arithmetic only (high word of the 32x32 products): 64 bit sums need too many registers on the ESP32
+    int32_t x = sample << 8;                                  // Q23
+
+    // the output is y4 = G^4 u + S, where S depends only on the stage states. Solving u = comp x - k y4 for u
+    // (zero delay feedback) gives the linear solution u = (comp x - k S) / (1 + k G^4) ...
+    int32_t S  = (mulHigh(c.s1, state.s1) + mulHigh(c.s2, state.s2) + mulHigh(c.s3, state.s3) + mulHigh(c.s4, state.s4)) << 1;
+    int32_t u  = (mulHigh(c.in, x) - mulHigh(c.fb, S)) << 4;
+    // ... then the feedback is saturated: u = comp x - k sat(y4). When y4 is in the linear range u doesn't change
+    int32_t y4 = (mulHigh(c.g4, u) << 1) + S;
+    int32_t sy = saturate(y4);
+    if (sy != y4)
+      u = (mulHigh(c.comp, x) - mulHigh(c.k, sy)) << 4;
+
+    // four one-pole stages (trapezoidal integrators)
+    u = stage(c.g, state.s1, u);
+    u = stage(c.g, state.s2, u);
+    u = stage(c.g, state.s3, u);
+    u = stage(c.g, state.s4, u);
+
+    return iclamp(u >> 8, -(1 << 18), (1 << 18));          // safety net
   }
 
 private:
 
-  void update();
+  // high word of the 64 bit product: a single instruction (mulsh) on the ESP32
+  __attribute__((always_inline)) static int32_t mulHigh(int32_t a, int32_t b)
+  {
+    return (int32_t) (((int64_t) a * b) >> 32);
+  }
 
-  Coeffs        m_sets[2];
-  volatile int  m_active;
+  __attribute__((always_inline)) static int32_t stage(int32_t g, int32_t & s, int32_t x)
+  {
+    int32_t v = mulHigh(g, x - s) << 1;                       // g is Q31
+    int32_t y = v + s;
+    s = y + v;
+    return y;
+  }
+
+  // soft saturation (Q23): linear up to 1.0, then smoothly bent towards 2.0 (applied to the feedback)
+  __attribute__((always_inline)) static int32_t saturate(int32_t x)
+  {
+    constexpr int32_t K = 1 << 23;
+    int32_t a = x < 0 ? -x : x;
+    if (a <= K)
+      return x;
+    int32_t d = a - K;
+    int32_t y = K + (int32_t) (((int64_t) K * d) / (K + d));
+    return x < 0 ? -y : y;
+  }
+
+  void buildTable();
+  void updateResonance();
+
+  // coefficients that depend only on the cutoff
+  // coefficients for each cutoff of the table (fb and in depend also on the resonance)
+  struct Step {
+    int32_t g, s1, s2, s3, s4, g4, fb, in;
+  };
+
+  Step          m_table[CUTOFF_STEPS];
   volatile bool m_enabled;
   int           m_sampleRate;
   int           m_cutoff;
-  float         m_q;
+  volatile int  m_cutoffIndex;
+  float         m_resonance;
+  volatile int  m_k;              // feedback (Q28)
+  volatile int  m_comp;           // input gain (Q28)
+  int           m_envAmount;
+  volatile int  m_envAmountQ8;    // cutoff index offset at the full envelope level (Q8)
 };
 
 
@@ -825,6 +928,162 @@ enum class SynthWaveform {
 
 
 /** \ingroup Enumerations
+ * @brief Waveforms of SynthLFO
+ */
+enum class LFOWaveform {
+  Triangle,   /**< Triangle */
+  Sine,       /**< Sine */
+  Square,     /**< Square */
+  Sawtooth,   /**< Sawtooth (rising) */
+  Random,     /**< Random values held for one cycle (sample and hold) */
+};
+
+
+/**
+ * @brief Low frequency oscillator of a synthesizer: modulates the filter cutoff (wah) and the amplitude (tremolo)
+ *
+ * One LFO is shared by all the voices of PolySynth: it is free running (not restarted by the notes).
+ * The parameters can be changed while the voices are playing. The LFO runs in fixed point inside the sound
+ * generator interrupt.
+ *
+ * @ingroup audio
+ */
+class SynthLFO {
+
+public:
+
+  /** @brief Minimum rate in Hertz */
+  static constexpr float MIN_RATE = 0.1f;
+
+  /** @brief Maximum rate in Hertz */
+  static constexpr float MAX_RATE = 20.0f;
+
+  SynthLFO();
+
+  /**
+   * @brief Sets the sample rate (PolySynth sets it automatically)
+   *
+   * @param value Sample rate in Hertz
+   */
+  void setSampleRate(int value);
+
+  /**
+   * @brief Selects the waveform
+   *
+   * @param value The waveform
+   */
+  void setWaveform(LFOWaveform value)   { m_waveform = value; }
+
+  /** @brief Gets the waveform */
+  LFOWaveform waveform()                { return m_waveform; }
+
+  /**
+   * @brief Sets the rate (frequency)
+   *
+   * @param hz Rate in Hertz (MIN_RATE..MAX_RATE)
+   */
+  void setRate(float hz);
+
+  /** @brief Gets the rate in Hertz */
+  float rate()                          { return m_rate; }
+
+  /**
+   * @brief Sets how much the LFO moves the filter cutoff
+   *
+   * @param percent 0..100. 100 = the cutoff moves up and down by half the cutoff range (about 3.5 octaves)
+   */
+  void setCutoffDepth(int percent);
+
+  /** @brief Gets the cutoff modulation depth (0..100) */
+  int cutoffDepth()                     { return m_cutoffDepth; }
+
+  /**
+   * @brief Sets how much the LFO changes the amplitude (tremolo)
+   *
+   * @param percent 0..100. 100 = the amplitude goes from full level down to silence
+   */
+  void setAmpDepth(int percent);
+
+  /** @brief Gets the amplitude modulation depth (0..100) */
+  int ampDepth()                        { return m_ampDepth; }
+
+  /**
+   * @brief Advances the LFO (fixed point, used by PolySynth inside the sound generator interrupt)
+   *
+   * @param samples Number of samples
+   */
+  void advance(int samples = 1);
+
+  /**
+   * @brief Gets the current LFO value
+   *
+   * @return Value in Q15 (-32767..32767)
+   */
+  int value()                           { return m_value; }
+
+  /**
+   * @brief Gets the current cutoff modulation (fixed point, used by SynthVoice)
+   *
+   * @return Offset to add to the cutoff index (Q8, see ResonantLowPassFilter::calcCoeffs())
+   */
+  int cutoffOffset()                    { return (m_value * m_cutoffDepthQ8) >> 15; }
+
+  /**
+   * @brief Gets the current amplitude modulation (fixed point, used by PolySynth)
+   *
+   * @return Gain (0..4096 = 1.0)
+   */
+  int ampGain()                         { return 4096 - ((m_ampDepthQ12 * (32767 - m_value)) >> 16); }
+
+  /**
+   * @brief Maps a linear position (for example a knob) to a rate on a logarithmic scale
+   *
+   * @param position Position (0..100)
+   *
+   * @return Rate in Hertz (MIN_RATE..MAX_RATE)
+   */
+  static float rateFromPosition(int position);
+
+  /**
+   * @brief Calculates the shape of a waveform, for display purposes (not for the sound generator interrupt)
+   *
+   * Random returns a fixed pattern of steps.
+   *
+   * @param waveform The waveform
+   * @param phase Phase in a cycle (0..255)
+   *
+   * @return Sample value (-127..127)
+   */
+  static int waveformShape(LFOWaveform waveform, int phase);
+
+  /**
+   * @brief Gets the name of a waveform
+   *
+   * @param waveform The waveform
+   *
+   * @return Name in upper case (for example "TRIANGLE")
+   */
+  static char const * waveformName(LFOWaveform waveform);
+
+private:
+
+  int                    m_sampleRate;
+  volatile LFOWaveform   m_waveform;
+  float                  m_rate;
+  uint32_t               m_phase;
+  volatile uint32_t      m_phaseInc;
+  int                    m_value;
+  int                    m_randomValue;
+  uint32_t               m_randomSeed;
+  int                    m_cutoffDepth;
+  volatile int           m_cutoffDepthQ8;
+  int                    m_ampDepth;
+  volatile int           m_ampDepthQ12;
+};
+
+
+
+/** \ingroup Enumerations
  * @brief States of SynthVoice envelope
  */
 enum class SynthVoiceState {
@@ -837,46 +1096,60 @@ enum class SynthVoiceState {
 
 
 /**
- * @brief A synthesizer voice: an oscillator followed by a resonant low-pass filter, shaped by an ADSR envelope
+ * @brief A synthesizer voice: a band-limited oscillator followed by a resonant low-pass filter, shaped by an ADSR envelope
  *
- * The envelope and the filter parameters are shared objects (see setup()). Usually voices are managed by PolySynth.
- * A voice must be attached to the SoundGenerator before setWaveform() is called.
+ * A second ADSR envelope (the filter envelope) and the LFO move the cutoff frequency of the voice filter.
+ * The oscillator runs at 16 bit resolution with a 32 bit phase accumulator. Square, pulse and sawtooth waveforms are
+ * band-limited (PolyBLEP): their discontinuities are smoothed, so the harmonics above half the sample rate don't
+ * fold back as unwanted (non harmonic) tones.
+ * The envelopes and the filter parameters are shared objects (see setup()). Usually voices are managed by PolySynth,
+ * which mixes them into one SoundGenerator channel.
  *
  * @ingroup audio
  */
-class SynthVoice : public WaveformGenerator {
+class SynthVoice {
 
 public:
 
   SynthVoice();
 
   /**
-   * @brief Sets the shared envelope and filter parameters
+   * @brief Sets the sample rate (PolySynth sets it automatically)
    *
-   * @param envelope Envelope parameters
-   * @param filter Filter parameters (nullptr = no filter)
+   * @param value Sample rate in Hertz
    */
-  void setup(ADSREnvelope * envelope, ResonantLowPassFilter * filter);
+  void setSampleRate(int value);
 
   /**
-   * @brief Selects the oscillator waveform
+   * @brief Sets the shared envelopes and filter parameters
    *
-   * Must be called after the voice has been attached to the sound generator (when the sample rate is known).
-   * Stop the sound generator while changing the waveform of a playing voice.
+   * @param envelope Amplitude envelope parameters
+   * @param filter Filter parameters (nullptr = no filter)
+   * @param filterEnvelope Filter envelope parameters (nullptr = no filter envelope)
+   * @param lfo LFO that modulates the filter cutoff (nullptr = no LFO)
+   */
+  void setup(ADSREnvelope * envelope, ResonantLowPassFilter * filter, ADSREnvelope * filterEnvelope = nullptr, SynthLFO * lfo = nullptr);
+
+  /**
+   * @brief Selects the oscillator waveform. It can be changed while the voice is playing
    *
    * @param waveform The waveform
    */
-  void setWaveform(SynthWaveform waveform);
+  void setWaveform(SynthWaveform waveform)   { m_waveform = waveform; }
 
-  void setFrequency(int value);
+  /**
+   * @brief Sets the oscillator frequency
+   *
+   * @param value Frequency in Hertz
+   */
+  void setFrequency(float value);
 
   /**
    * @brief Starts a note (attack phase). A voice still playing restarts from its current level
    *
-   * @param note MIDI note number (used by note())
-   * @param frequency Frequency in Hertz
+   * @param note MIDI note number (60 = C4, 69 = A4 = 440 Hz)
    */
-  void noteOn(int note, int frequency);
+  void noteOn(int note);
 
   /**
    * @brief Releases the note (release phase)
@@ -904,7 +1177,45 @@ public:
    */
   bool isIdle()             { return m_state == SynthVoiceState::Idle; }
 
+  /**
+   * @brief Calculates the next samples and adds them to a buffer (fixed point, used inside the sound generator interrupt)
+   *
+   * Advances envelopes, oscillator and filter. The filter coefficients are recalculated every CONTROL_PERIOD
+   * samples: PolySynth renders blocks of CONTROL_PERIOD samples. Rendering blocks avoids a chain of function calls
+   * for every sample, which is expensive on the ESP32 (register window spills).
+   *
+   * @param buffer Samples are added to this buffer: Q15 (-32768..32767 at the full envelope level; the filter
+   *               resonance can exceed this range)
+   * @param count Number of samples
+   */
+  void render(int32_t * buffer, int count);
+
+  /**
+   * @brief Calculates the next sample (fixed point, used inside the sound generator interrupt). See render()
+   *
+   * @return Sample in Q15
+   */
   int getSample();
+
+  /** @brief The filter coefficients are recalculated every CONTROL_PERIOD samples */
+  static constexpr int CONTROL_PERIOD = 16;
+
+  /**
+   * @brief Gets the current level of the amplitude envelope
+   *
+   * @return Level (0..LEVEL_ONE)
+   */
+  int level()               { return m_level >> LEVEL_SHIFT; }
+
+  /**
+   * @brief Gets the current level of the filter envelope
+   *
+   * @return Level (0..LEVEL_ONE)
+   */
+  int filterEnvelopeLevel() { return m_filterLevel >> LEVEL_SHIFT; }
+
+  /** @brief Envelope level returned by level() at the full level */
+  static constexpr int LEVEL_ONE = 4096;
 
   /**
    * @brief Calculates the shape of a waveform, for display purposes (uses floating point: not for the sound generator interrupt)
@@ -927,17 +1238,23 @@ public:
 
 private:
 
-  SineWaveformGenerator          m_sine;
-  SquareWaveformGenerator        m_square;
-  SquareWaveformGenerator        m_pulse;
-  TriangleWaveformGenerator      m_triangle;
-  SawtoothWaveformGenerator      m_sawtooth;
+  static constexpr int LEVEL_SHIFT = 12;   // ADSREnvelope::MAX_LEVEL (1 << 24) >> 12 = LEVEL_ONE
 
-  WaveformGenerator *            m_gen;
+  template <int WAVEFORM, bool FILTER> void renderLoop(int32_t * buffer, int count);
+
   ADSREnvelope *                 m_envelope;
   ResonantLowPassFilter *        m_filter;
+  ADSREnvelope *                 m_filterEnvelope;
+  SynthLFO *                     m_lfo;
   ResonantLowPassFilter::State   m_filterState;
-  int                            m_frequency;
+  ResonantLowPassFilter::Coeffs  m_filterCoeffs;
+  int                            m_controlCounter;
+  volatile SynthVoiceState       m_filterEnvState;
+  int                            m_filterLevel;
+  int                            m_sampleRate;
+  volatile SynthWaveform         m_waveform;
+  uint32_t                       m_phase;
+  volatile uint32_t              m_phaseInc;
   int                            m_note;
   volatile SynthVoiceState       m_state;
   int                            m_level;
@@ -946,8 +1263,12 @@ private:
 
 
 /**
- * @brief A polyphonic synthesizer: a pool of SynthVoice objects sharing one envelope and one filter
+ * @brief A polyphonic synthesizer: a pool of SynthVoice objects sharing the envelopes and the filter parameters
  *
+ * The voices are mixed (at 16 bit resolution) into a single SoundGenerator channel. The mix is scaled by an
+ * automatic gain of 1 / sqrt(sum of the envelope levels), so the loudness stays about the same when more notes
+ * play together, and the gain changes smoothly when notes start or end. A soft limiter bends the peaks that
+ * exceed the headroom (a single note uses 3/4 of the full scale) instead of clipping them.
  * When all voices are busy a new note steals a releasing voice, otherwise the oldest one.
  *
  * Example:
@@ -958,6 +1279,10 @@ private:
  *     synth.begin(&soundGenerator);
  *     synth.envelope().setRelease(500);
  *     synth.filter().setCutoff(1000);
+ *     synth.filter().setEnvelopeAmount(40);
+ *     synth.filterEnvelope().setDecay(400);
+ *     synth.lfo().setRate(5.0f);
+ *     synth.lfo().setCutoffDepth(20);
  *     synth.noteOn(60);    // C4
  *     ...
  *     synth.noteOff(60);
@@ -978,7 +1303,7 @@ public:
   ~PolySynth();
 
   /**
-   * @brief Attaches the voices to the sound generator and starts playing
+   * @brief Attaches the synthesizer to the sound generator and starts playing
    *
    * @param soundGenerator The sound generator
    */
@@ -1013,8 +1338,20 @@ public:
    */
   void allNotesOff();
 
-  /** @brief Gets the envelope parameters, shared by all voices */
+  /** @brief Gets the amplitude envelope parameters, shared by all voices */
   ADSREnvelope & envelope()         { return m_envelope; }
+
+  /**
+   * @brief Gets the filter envelope parameters, shared by all voices
+   *
+   * The filter envelope moves the cutoff frequency, by the amount set with ResonantLowPassFilter::setEnvelopeAmount()
+   */
+  ADSREnvelope & filterEnvelope()   { return m_filterEnvelope; }
+
+  /**
+   * @brief Gets the LFO, shared by all voices: it modulates the filter cutoff and the amplitude
+   */
+  SynthLFO & lfo()                  { return m_lfo; }
 
   /** @brief Gets the filter parameters, shared by all voices */
   ResonantLowPassFilter & filter()  { return m_filter; }
@@ -1032,23 +1369,61 @@ public:
   SynthVoice & voice(int index)     { return m_voices[index]; }
 
   /**
+   * @brief Gets the sound generator channel that plays the mix of the voices
+   *
+   * Its volume (WaveformGenerator::setVolume()) is the synthesizer volume.
+   *
+   * @return The channel
+   */
+  WaveformGenerator & channel()     { return m_channel; }
+
+  /**
    * @brief Calculates the frequency of a note (equal temperament, A4 = 440 Hz)
    *
    * @param note MIDI note number
    *
-   * @return Frequency in Hertz
+   * @return Frequency in Hertz (rounded)
    */
   static int noteFrequency(int note);
 
 private:
 
+  // samples rendered at once (see SynthVoice::render())
+  static constexpr int BLOCK_SIZE = SynthVoice::CONTROL_PERIOD;
+
+  // the SoundGenerator channel: plays the mix of the voices, rendered in blocks
+  class Channel : public WaveformGenerator {
+  public:
+    Channel(PolySynth * synth) : m_synth(synth), m_pos(BLOCK_SIZE) { }
+    int getSample()
+    {
+      if (m_pos >= BLOCK_SIZE) {
+        m_synth->renderBlock(m_block);
+        m_pos = 0;
+      }
+      return m_block[m_pos++];
+    }
+    void setFrequency(int value)    { }
+  private:
+    PolySynth * m_synth;
+    int8_t      m_block[BLOCK_SIZE];
+    int         m_pos;
+  };
+
+  void renderBlock(int8_t * dest);
+
   SoundGenerator *      m_soundGenerator;
   ADSREnvelope          m_envelope;
+  ADSREnvelope          m_filterEnvelope;
   ResonantLowPassFilter m_filter;
+  SynthLFO              m_lfo;
   SynthVoice *          m_voices;
   int                   m_voicesCount;
   SynthWaveform         m_waveform;
   int                   m_nextSteal;
+  Channel               m_channel;
+  int                   m_gain;
+  int                   m_lfoGain;
 };
 
 

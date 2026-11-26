@@ -314,6 +314,8 @@ using fabgl::SynthWaveform;
 using fabgl::SynthVoiceState;
 using fabgl::SynthVoice;
 using fabgl::PolySynth;
+using fabgl::LFOWaveform;
+using fabgl::SynthLFO;
 using fabgl::SamplesGenerator;
 using fabgl::WaveformGenerator;
 using fabgl::TermType;

@@ -74,9 +74,21 @@ complete uses.
 
 fabgl::PolySynth plays notes with a pool of voices (8 by default). Each voice (fabgl::SynthVoice) is an oscillator
 (sine, square, 25% pulse, triangle or sawtooth) followed by a resonant low-pass filter and shaped by an ADSR
-envelope. All voices share one fabgl::ADSREnvelope and one fabgl::ResonantLowPassFilter, whose parameters can be
-changed while notes are playing. When all voices are busy, a new note steals a releasing voice, otherwise the
+envelope. The filter is a four-pole (24 dB/octave) ladder, like the classic analog synthesizer filters: high
+resonance values emphasize the cutoff frequency, the maximum values make it self-oscillate. A second ADSR envelope
+(PolySynth::filterEnvelope()) moves the cutoff of each voice, by the amount set with
+ResonantLowPassFilter::setEnvelopeAmount(): the classic synth "sweep". A low frequency oscillator
+(PolySynth::lfo(), fabgl::SynthLFO: triangle, sine, square, sawtooth or random) modulates the cutoff of all voices
+(wah) and the amplitude (tremolo). All voices share
+one fabgl::ADSREnvelope and one fabgl::ResonantLowPassFilter, whose parameters can be changed while notes are
+playing. When all voices are busy, a new note steals a releasing voice, otherwise the
 oldest one.
+
+The voices work at 16 bit resolution: square, pulse and sawtooth are band-limited (PolyBLEP), so their harmonics
+above half the sample rate don't fold back as non-harmonic tones. PolySynth mixes the voices into one
+SoundGenerator channel (PolySynth::channel()) with an automatic gain of 1 / sqrt(sum of the envelope levels): the
+loudness stays about the same when more notes play together and changes smoothly when notes start or end. A soft
+limiter bends the peaks instead of clipping them.
 
 ```cpp
 SoundGenerator soundGenerator;
@@ -91,7 +103,16 @@ synth.envelope().setSustain(70);         // percent
 synth.envelope().setRelease(300);        // ms
 
 synth.filter().setCutoff(1500);          // Hz (50..7000)
-synth.filter().setResonance(4.0f);       // Q (0.707 = no resonance .. 12)
+synth.filter().setResonance(0.6f);       // 0 = no resonance .. 1 (self-oscillation above ~0.93)
+
+synth.filterEnvelope().setDecay(400);    // the filter envelope moves the cutoff of each voice...
+synth.filterEnvelope().setSustain(20);
+synth.filter().setEnvelopeAmount(50);    // ...by up to 50% of the cutoff range (-100..100)
+
+synth.lfo().setWaveform(LFOWaveform::Sine);
+synth.lfo().setRate(5.0f);               // Hz (0.1..20)
+synth.lfo().setCutoffDepth(20);          // percent: wah
+synth.lfo().setAmpDepth(30);             // percent: tremolo
 
 synth.noteOn(60);                        // MIDI note: 60 = C4, 69 = A4 (440 Hz)
 // ...
@@ -101,7 +122,8 @@ synth.noteOff(60);
 Envelope and filter run in fixed point inside the sound generator interrupt (the FPU cannot be used there). The
 filter coefficients are calculated in floating point when a parameter changes. For user interfaces:
 ResonantLowPassFilter::responseDB() returns the filter response at a frequency, cutoffFromPosition() and
-resonanceFromPosition() map a 0..100 control to logarithmic scales, SynthVoice::waveformShape() returns the
-shape of a waveform, fabgl::midiNoteName() and PolySynth::noteFrequency() convert MIDI note numbers.
+resonanceFromPosition() map a 0..100 control to the cutoff (logarithmic scale) and to the resonance,
+SynthLFO::rateFromPosition() to the LFO rate, SynthVoice::waveformShape() and SynthLFO::waveformShape() return
+the shape of a waveform, fabgl::midiNoteName() and PolySynth::noteFrequency() convert MIDI note numbers.
 The @ref example_Synth example combines the synthesizer with the synth controls of the GUI (see @ref gui_synth_controls).
 

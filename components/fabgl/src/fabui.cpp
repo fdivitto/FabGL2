@@ -5434,7 +5434,8 @@ uiKnob::uiKnob(uiWindow * parent, char const * label, const Point & pos, const S
     m_max(99),
     m_default(0),
     m_dragY(0),
-    m_dragPosition(0)
+    m_dragPosition(0),
+    m_changing(false)
 {
   objectType().uiKnob = true;
 
@@ -5465,8 +5466,10 @@ void uiKnob::setup(int min, int max, int defaultPosition)
   m_default  = iclamp(defaultPosition, m_min, m_max);
   m_position = m_default;
   snprintf(m_valueText, sizeof(m_valueText), "%d", m_position);
-  repaint();
+  m_changing = true;
   onChange();
+  m_changing = false;
+  repaint();
 }
 
 
@@ -5476,8 +5479,11 @@ void uiKnob::setPosition(int value)
   if (value != m_position) {
     m_position = value;
     snprintf(m_valueText, sizeof(m_valueText), "%d", m_position);
-    repaint();
+    // onChange() usually sets the value text: one repaint for both
+    m_changing = true;
     onChange();
+    m_changing = false;
+    repaint();
   }
 }
 
@@ -5492,7 +5498,8 @@ void uiKnob::setLabel(char const * value)
 void uiKnob::setValueText(char const * value)
 {
   strlcpy(m_valueText, value ? value : "", sizeof(m_valueText));
-  repaint();
+  if (!m_changing)
+    repaint();
 }
 
 
@@ -5502,7 +5509,8 @@ void uiKnob::setValueTextFmt(const char * format, ...)
   va_start(ap, format);
   vsnprintf(m_valueText, sizeof(m_valueText), format, ap);
   va_end(ap);
-  repaint();
+  if (!m_changing)
+    repaint();
 }
 
 

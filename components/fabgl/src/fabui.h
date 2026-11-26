@@ -3181,6 +3181,7 @@ private:
   int         m_default;
   int         m_dragY;
   int         m_dragPosition;
+  bool        m_changing;      // inside setPosition(): onChange() may set the value text, repainted once
 };
 
 
