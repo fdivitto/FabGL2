@@ -1411,11 +1411,21 @@ bool FileBrowser::mountSDCard(bool formatOnFail, char const * mountPath, size_t 
   if (r == ESP_OK || r == ESP_ERR_INVALID_STATE) {  // ESP_ERR_INVALID_STATE: bus already initialized
     // The SD card leaves MISO floating when it is not selected. The IDF SDSPI driver waits (up to 40 ms) for MISO
     // to be high before each command: without a pull-up every command times out and every sector read takes ~80 ms.
-    gpio_pullup_en(int2gpio(MISO));
+    // GPIO 34..39 (e.g. MISO = 35 on the FabGL boards) are input only, without internal pull-up.
+    if (GPIO_IS_VALID_OUTPUT_GPIO(int2gpio(MISO)))
+      gpio_pullup_en(int2gpio(MISO));
 
     sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
     slot_config.gpio_cs = int2gpio(CS);
     slot_config.host_id = (spi_host_device_t) host.slot;
+    // TTGO VGA32 (ESP32-PICO-D4): MISO stays low while the card is not selected, even with the pull-up, so waiting
+    // for MISO high times out (40 ms) twice per sector read: do not wait. Busy states are still handled after each
+    // command.
+    // Other boards keep the wait: the 0xFF bytes it clocks with CS high resync the card after another device used
+    // the bus. On the ESP32-SBC-FabGL the MCP23S17 probe (Machine::init() of PCEmulator) shares CS with the SD card:
+    // without the wait the next sector read failed. There MISO idles high, so the wait ends after two bytes.
+    if (getChipPackage() == ChipPackage::ESP32PICOD4)
+      slot_config.wait_for_miso = -1;
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = { };
     mount_config.format_if_mount_failed = formatOnFail;

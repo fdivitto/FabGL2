@@ -1,2 +1,6 @@
 /docs/__pycache__
 *.pyc
+/docs/html
+/examples/VGA/PCEmulator/Disks
+docs/index.html
+docs/doxygen_warnings.log

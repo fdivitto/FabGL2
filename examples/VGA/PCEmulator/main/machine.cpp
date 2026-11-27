@@ -102,6 +102,7 @@ Machine::Machine() :
     m_diskFilename(),
     m_diskChanged(),
     m_disk(),
+    m_diskRead(),
     m_frameBuffer(nullptr),
     m_bootDrive(0),
     m_sysReqCallback(nullptr),
@@ -116,6 +117,8 @@ Machine::~Machine()
     free(m_diskFilename[i]);
     if (m_disk[i])
       fclose(m_disk[i]);
+    if (m_diskRead[i])
+      fclose(m_diskRead[i]);
   }
   vTaskDelete(m_taskHandle);
   free(s_videoMemory);
@@ -164,6 +167,10 @@ void Machine::setDriveImage(int drive, char const * filename, int cylinders, int
     fclose(m_disk[drive]);
     m_disk[drive] = nullptr;
   }
+  if (m_diskRead[drive]) {
+    fclose(m_diskRead[drive]);
+    m_diskRead[drive] = nullptr;
+  }
 
   if (m_diskFilename[drive]) {
     free(m_diskFilename[drive]);
@@ -182,6 +189,9 @@ void Machine::setDriveImage(int drive, char const * filename, int cylinders, int
     m_diskFilename[drive] = strdup(filename);
     m_disk[drive] = FileBrowser(m_baseDir).openFile(filename, "r+b");
     if (m_disk[drive]) {
+
+      // reads go through a second, read-only handle (see diskRead())
+      m_diskRead[drive] = FileBrowser(m_baseDir).openFile(filename, "rb");
 
       // get image file size
       fseek(m_disk[drive], 0L, SEEK_END);

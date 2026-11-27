@@ -853,6 +853,16 @@ void BIOS::diskHandlerEntry()
 }
 
 
+// writes to the read/write handle, then flushes it, so the read-only handle (see Machine::diskRead()) reads the new data
+size_t BIOS::diskWrite(int drive, void const * data, size_t count)
+{
+  auto file = m_machine->disk(drive);
+  size_t r = fwrite(data, 1, count, file);
+  fflush(file);
+  return r;
+}
+
+
 void BIOS::diskHandler_floppy()
 {
   int drive   = i8086::DL();
@@ -895,12 +905,12 @@ void BIOS::diskHandler_floppy()
         diskHandler_floppyExit(4, true);  // sector not found
         return;
       }
-      fseek(m_machine->disk(drive), pos, 0);
+      fseek(service == 0x02 ? m_machine->diskRead(drive) : m_machine->disk(drive), pos, 0);
       size_t sects = i8086::AL();
       if (service != 0x04) {
         sects = service == 0x02 ?
-                  fread(m_memory + dest, 1, count, m_machine->disk(drive)) :
-                  fwrite(m_memory + dest, 1, count, m_machine->disk(drive));
+                  fread(m_memory + dest, 1, count, m_machine->diskRead(drive)) :
+                  diskWrite(drive, m_memory + dest, count);
         sects /= 512;
       }
       i8086::setAL(sects);
@@ -937,7 +947,7 @@ void BIOS::diskHandler_floppy()
           return;
         }
         fseek(m_machine->disk(drive), 512 * ((track * 2 + head) * SPT + (tsect - 1)), 0);
-        fwrite(buf, 1, 512, m_machine->disk(drive));
+        diskWrite(drive, buf, 512);
         //printf("  track=%d head=%d sect=%d pos=%d fill=%02X\n", track, head, tsect, 512 * ((track * 2 + head) * SPT + (tsect - 1)), fillByte);
       }
       free(buf);
@@ -1153,12 +1163,12 @@ void BIOS::diskHandler_HD()
         diskHandler_HDExit(4, true);  // sector not found
         return;
       }
-      fseek(m_machine->disk(drive), pos, 0);
+      fseek(service == 0x02 ? m_machine->diskRead(drive) : m_machine->disk(drive), pos, 0);
       size_t sects = i8086::AL();
       if (service != 0x04) {
         sects = service == 0x02 ?
-                  fread(m_memory + dest, 1, count, m_machine->disk(drive)) :
-                  fwrite(m_memory + dest, 1, count, m_machine->disk(drive));
+                  fread(m_memory + dest, 1, count, m_machine->diskRead(drive)) :
+                  diskWrite(drive, m_memory + dest, count);
         sects /= 512;
       }
       i8086::setAL(sects);

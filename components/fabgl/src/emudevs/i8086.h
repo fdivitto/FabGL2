@@ -1,4 +1,28 @@
- 
+/*
+  Created by Fabrizio Di Vittorio (fdivitto2013@gmail.com) - <http://www.fabgl.com>
+  Copyright (c) 2019-2026 Fabrizio Di Vittorio.
+  All rights reserved.
+
+
+* Please contact fdivitto2013@gmail.com if you need a commercial license.
+
+
+* This library and related software is available under GPL v3.
+
+  FabGL is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  FabGL is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with FabGL.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #pragma once
 
@@ -18,6 +42,11 @@
 namespace fabgl {
 
 
+/**
+ * @brief Intel 8086 (with some 80186 extensions) CPU emulator
+ *
+ * The whole CPU state is kept in a single internal structure (see i8086.cpp), so all members are static.
+ */
 class i8086 {
 
 public:
@@ -33,18 +62,9 @@ public:
   typedef bool (*Interrupt)(void * context, int num);
 
 
-  static void setCallbacks(void * context, ReadPort readPort, WritePort writePort, WriteVideoMemory8 writeVideoMemory8, WriteVideoMemory16 writeVideoMemory16, ReadVideoMemory8 readVideoMemory8, ReadVideoMemory16 readVideoMemory16,Interrupt interrupt) {
-    s_context            = context;
-    s_readPort           = readPort;
-    s_writePort          = writePort;
-    s_writeVideoMemory8  = writeVideoMemory8;
-    s_writeVideoMemory16 = writeVideoMemory16;
-    s_readVideoMemory8   = readVideoMemory8;
-    s_readVideoMemory16  = readVideoMemory16;
-    s_interrupt          = interrupt;
-  }
+  static void setCallbacks(void * context, ReadPort readPort, WritePort writePort, WriteVideoMemory8 writeVideoMemory8, WriteVideoMemory16 writeVideoMemory16, ReadVideoMemory8 readVideoMemory8, ReadVideoMemory16 readVideoMemory16, Interrupt interrupt);
 
-  static void setMemory(uint8_t * memory) { s_memory = memory; }
+  static void setMemory(uint8_t * memory);
 
   static void reset();
 
@@ -107,43 +127,11 @@ public:
 
   static uint16_t IP();
 
-  static bool halted()                                    { return s_halted; }
+  static bool halted();
 
   static bool IRQ(uint8_t interrupt_num);
 
   static void step();
-
-
-private:
-
-  static uint8_t WMEM8(int addr, uint8_t value);
-  static uint16_t WMEM16(int addr, uint16_t value);
-  static uint8_t RMEM8(int addr);
-  static uint16_t RMEM16(int addr);
-
-  static uint16_t make_flags();
-  static void set_flags(int new_flags);
-
-  static void pc_interrupt(uint8_t interrupt_num);
-
-  static uint8_t raiseDivideByZeroInterrupt();
-
-  static void stepEx(uint8_t const * opcode_stream);
-
-
-  static void *             s_context;
-  static ReadPort           s_readPort;
-  static WritePort          s_writePort;
-  static WriteVideoMemory8  s_writeVideoMemory8;
-  static WriteVideoMemory16 s_writeVideoMemory16;
-  static ReadVideoMemory8   s_readVideoMemory8;
-  static ReadVideoMemory16  s_readVideoMemory16;
-  static Interrupt          s_interrupt;
-
-  static bool               s_pendingIRQ;
-  static uint8_t            s_pendingIRQIndex;
-  static uint8_t *          s_memory;
-  static bool               s_halted;
 
 };
 

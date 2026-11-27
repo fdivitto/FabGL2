@@ -32,3 +32,7 @@ CONFIG_SPIRAM=y
 CONFIG_SPIRAM_USE_MEMMAP=y
 CONFIG_SPIRAM_CACHE_WORKAROUND=n
 CONFIG_SPIRAM_IGNORE_NOTFOUND=y
+
+# FAT fast seek (in-memory cluster map) for disk images, opened read-only for reads (see Machine::diskRead())
+CONFIG_FATFS_USE_FASTSEEK=y
+CONFIG_FATFS_FAST_SEEK_BUFFER_SIZE=128

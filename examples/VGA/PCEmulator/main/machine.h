@@ -107,6 +107,9 @@ public:
   GraphicsAdapter * graphicsAdapter()  { return &m_graphicsAdapter; }
 
   FILE * disk(int index)               { return m_disk[index]; }
+
+  // read-only handle of the same image: on FAT it can use fast seek (backward seeks don't walk the cluster chain)
+  FILE * diskRead(int index)           { return m_diskRead[index] ? m_diskRead[index] : m_disk[index]; }
   char const * diskFilename(int index) { return m_diskFilename[index]; }
   uint64_t diskSize(int index)         { return m_diskSize[index]; }
   uint16_t diskCylinders(int index)    { return m_diskCylinders[index]; }
@@ -179,6 +182,7 @@ private:
   char *                   m_diskFilename[DISKCOUNT];
   bool                     m_diskChanged[DISKCOUNT];
   FILE *                   m_disk[DISKCOUNT];
+  FILE *                   m_diskRead[DISKCOUNT];
   uint64_t                 m_diskSize[DISKCOUNT];
   uint16_t                 m_diskCylinders[DISKCOUNT];
   uint8_t                  m_diskHeads[DISKCOUNT];

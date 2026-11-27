@@ -462,7 +462,7 @@ void setup()
   if (!esp_psram_is_initialized())
     ibox.message("Error!", "This app requires a board with PSRAM!", nullptr, nullptr);
 
-  if (!FileBrowser::mountSDCard(false, SD_MOUNT_PATH, 8))   // @TODO: reduce to 4?
+  if (!FileBrowser::mountSDCard(false, SD_MOUNT_PATH, 12))   // two handles for each disk image (see Machine::diskRead())
     ibox.message("Error!", "This app requires a SD-CARD!", nullptr, nullptr);
 
   // uncomment to format SD!

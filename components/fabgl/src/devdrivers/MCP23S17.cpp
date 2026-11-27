@@ -88,6 +88,12 @@ bool MCP23S17::begin(int MISO, int MOSI, int CLK, int CS, int CSActiveState, int
   m_CS      = int2gpio(CS);
   m_SPIHost = (spi_host_device_t) host;
 
+  // Without CS the MCP23S17 is always selected: it cannot share the bus with the SD card (it would see the SD
+  // traffic). Do not even probe it: the probe clocks the bus, and the SD card, mounted without waiting for MISO
+  // before commands (TTGO VGA32, see FileBrowser::mountSDCard()), then failed the next sector read.
+  if (m_CS == GPIO_UNUSED && FileBrowser::mountedSDCard() && m_SPIHost == SPI2_HOST)
+    return false;
+
   bool r = SPIBegin(CSActiveState) && initDevice(0);
   if (!r)
     end();
