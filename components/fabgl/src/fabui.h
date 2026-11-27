@@ -4649,6 +4649,8 @@ public:
 
   void cleanWindowReferences(uiWindow * window);
 
+  void purgeEvents(uiEvtHandler * dest);
+
   /**
    * @brief Enables or disables mouse and keyboard events
    *

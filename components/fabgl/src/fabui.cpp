@@ -230,6 +230,8 @@ uiApp::uiApp()
 {
   objectType().uiApp = true;
   setApp(this);
+  m_eventsQueue  = nullptr;
+  m_asyncRunWait = nullptr;
 }
 
 
@@ -361,7 +363,10 @@ uiApp & uiApp::runAsync(BitmappedDisplayController * displayController, int task
   m_displayController = displayController;
   m_keyboard          = keyboard;
   m_mouse             = mouse;
-  m_asyncRunWait      = nullptr;
+  // created here: if it were created by joinAsyncRun() a fast quitting app would never signal it
+  if (m_asyncRunWait)
+    vSemaphoreDelete(m_asyncRunWait);
+  m_asyncRunWait      = xSemaphoreCreateBinary();
 
   if (CoreUsage::busiestCore() == -1)
     xTaskCreate(&asyncRunTask, "", taskStack, this, 5, nullptr);
@@ -374,7 +379,8 @@ uiApp & uiApp::runAsync(BitmappedDisplayController * displayController, int task
 
 void uiApp::joinAsyncRun()
 {
-  m_asyncRunWait = xSemaphoreCreateBinary();
+  if (!m_asyncRunWait)
+    return;
   xSemaphoreTake(m_asyncRunWait, portMAX_DELAY);
   vSemaphoreDelete(m_asyncRunWait);
   m_asyncRunWait = nullptr;
@@ -1079,6 +1085,26 @@ void uiApp::cleanWindowReferences(uiWindow * window)
     m_modalWindow = nullptr;
   if (m_caretWindow == window)
     m_caretWindow = nullptr;
+  if (m_lastFocusedWindow == window)
+    m_lastFocusedWindow = nullptr;
+  if (m_keyDownHandler == window)
+    m_keyDownHandler = nullptr;
+  purgeEvents(window);
+}
+
+
+// removes queued events directed to "dest" (about to be deleted): dispatching them would use freed memory
+void uiApp::purgeEvents(uiEvtHandler * dest)
+{
+  if (!m_eventsQueue)
+    return;
+  uiEvent evt;
+  for (int count = uxQueueMessagesWaiting(m_eventsQueue); count > 0; --count) {
+    if (xQueueReceive(m_eventsQueue, &evt, 0) != pdTRUE)
+      break;
+    if (evt.dest != dest)
+      xQueueSendToBack(m_eventsQueue, &evt, 0);
+  }
 }
 
 
@@ -1426,6 +1452,9 @@ uiWindow::uiWindow(uiWindow * parent, const Point & pos, const Size & size, bool
 uiWindow::~uiWindow()
 {
   freeChildren();
+  // children are deleted by freeChildren() too: every window clears its own references and queued events
+  if (app())
+    app()->cleanWindowReferences(this);
 }
 
 
@@ -1494,8 +1523,7 @@ void uiWindow::removeChild(uiWindow * child, bool freeChild)
       child->m_next->m_prev = child->m_prev;
 
     if (freeChild) {
-      delete child;
-      app()->cleanWindowReferences(child);
+      delete child;   // the destructor calls cleanWindowReferences()
     } else
       child->m_prev = child->m_next = nullptr;
 

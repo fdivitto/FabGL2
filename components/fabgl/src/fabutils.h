@@ -1074,6 +1074,8 @@ bool calcParity(uint8_t v);
 // why these? this is like heap_caps_malloc with MALLOC_CAP_32BIT. Unfortunately
 // heap_caps_realloc crashes, so we need this workaround.
 void * realloc32(void * ptr, size_t size);
+// oldSize = size of the current buffer (bytes, multiple of 4): only that much is copied
+void * realloc32(void * ptr, size_t oldSize, size_t size);
 void free32(void * ptr);
 
 

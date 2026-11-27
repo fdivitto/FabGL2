@@ -348,10 +348,10 @@ int Bitmap::getAlpha(int x, int y)
       break;
     }
     case PixelFormat::RGBA2222:
-      r = ((RGBA2222*)data)[y * height + x].A;
+      r = ((RGBA2222*)data)[y * width + x].A;
       break;
     case PixelFormat::RGBA8888:
-      r = ((RGBA8888*)data)[y * height + x].A;
+      r = ((RGBA8888*)data)[y * width + x].A;
       break;
   }
   return r;
@@ -514,7 +514,7 @@ void BitmappedDisplayController::primitivesExecutionWait()
 {
   if (m_backgroundPrimitiveExecutionEnabled) {
     while (uxQueueMessagesWaiting(m_execQueue) > 0)
-      ;
+      taskYIELD();  // let same priority tasks run instead of spinning
   }
 }
 

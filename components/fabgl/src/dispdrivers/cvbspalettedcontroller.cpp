@@ -231,7 +231,7 @@ void CVBSPalettedController::primitiveExecTask(void * arg)
         ctrl->execPrimitive(prim, updateRect, false);
         if (ctrl->m_primitiveProcessingSuspended)
           break;
-      } while (!ctrl->backgroundPrimitiveTimeoutEnabled() || (startCycle + ctrl->m_primitiveExecTimeoutCycles > getCycleCount()));
+      } while (!ctrl->backgroundPrimitiveTimeoutEnabled() || (getCycleCount() - startCycle < ctrl->m_primitiveExecTimeoutCycles));  // difference: safe on counter wrap
       ctrl->showSprites(updateRect);
       ctrl->m_taskProcessingPrimitives = false;
     }

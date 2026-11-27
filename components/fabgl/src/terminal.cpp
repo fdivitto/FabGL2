@@ -233,6 +233,7 @@ void Terminal::activate(TerminalTransition transition)
         // textual controller, use temporary buffer to perform animation
         auto txtCtrl = static_cast<TextualDisplayController*>(m_displayController);
         auto map = (uint32_t*) heap_caps_malloc(sizeof(uint32_t) * m_columns * m_rows, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+        if (map) {  // no memory: skip the animation
         memcpy(map, s_activeTerminal->m_glyphsBuffer.map, sizeof(uint32_t) * m_columns * m_rows);
         txtCtrl->enableCursor(false);
         txtCtrl->setTextMap(map, m_rows);
@@ -260,6 +261,7 @@ void Terminal::activate(TerminalTransition transition)
         }
         txtCtrl->setTextMap(m_glyphsBuffer.map, m_rows);
         free(map);
+        }
       }
     }
 
@@ -394,6 +396,7 @@ void Terminal::end()
     m_keyboard->injectVirtualKey(VirtualKey::VK_ESCAPE, true, false);
     #endif
     vTaskDelete(m_keyboardReaderTaskHandle);
+    m_keyboardReaderTaskHandle = nullptr;
   }
 
   xTimerDelete(m_blinkTimer, portMAX_DELAY);
@@ -414,6 +417,7 @@ void Terminal::end()
 
   if (m_outputQueue)
     vQueueDelete(m_outputQueue);
+  m_outputQueue = nullptr;
 
   freeFont();
   freeTabStops();
@@ -423,6 +427,7 @@ void Terminal::end()
   m_mutex = nullptr;
 
   delete m_canvas;
+  m_canvas = nullptr;
 
   if (isActive())
     s_activeTerminal = nullptr;
@@ -643,6 +648,9 @@ void Terminal::loadFont(FontInfo const * font)
   if (m_maxRows > 0 && m_maxRows < m_rows)
     m_rows = m_maxRows;
 
+  // saved cursor states hold tab stops of m_columns bytes: invalid (overflow in restoreCursorState()) if columns change
+  clearSavedCursorStates();
+
   freeTabStops();
   m_emuState.tabStop = (uint8_t*) malloc(m_columns);
   resetTabStops();
@@ -658,8 +666,7 @@ void Terminal::loadFont(FontInfo const * font)
   m_glyphsBuffer.columns      = m_columns;
   m_glyphsBuffer.rows         = m_rows;
 
-  m_alternateMap = nullptr;
-  m_alternateScreenBuffer = false;
+  m_alternateScreenBuffer = false;   // alternate map already freed by freeGlyphsMap()
 
   if (!m_bitmappedDisplayController && isActive()) {
     // associate map with textual display controller
@@ -678,7 +685,7 @@ void Terminal::flush(bool waitVSync)
   #endif
   if (m_bitmappedDisplayController && isActive()) {
     while (uxQueueMessagesWaiting(m_inputQueue) > 0)
-      ;
+      vTaskDelay(1);  // do not spin: the consumer task may run on this core
     m_canvas->waitCompletion(waitVSync);
   }
 }
@@ -1431,6 +1438,10 @@ void Terminal::useAlternateScreenBuffer(bool value)
     if (!m_alternateMap) {
       // first usage, need to setup the alternate screen
       m_alternateMap = (uint32_t*) heap_caps_malloc(sizeof(uint32_t) * m_columns * m_rows, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+      if (!m_alternateMap) {
+        m_alternateScreenBuffer = !value;  // no memory, stay on the current buffer
+        return;
+      }
       clearMap(m_alternateMap);
       m_alternateCursorX = 1;
       m_alternateCursorY = 1;

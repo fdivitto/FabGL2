@@ -159,6 +159,19 @@ void * realloc32(void * ptr, size_t size)
 }
 
 
+void * realloc32(void * ptr, size_t oldSize, size_t size)
+{
+  uint32_t * newBuffer = (uint32_t*) heap_caps_malloc(size, MALLOC_CAP_32BIT);
+  if (newBuffer == nullptr)
+    return nullptr;   // the old buffer is still valid
+  if (ptr) {
+    moveItems(newBuffer, (uint32_t*)ptr, tmin(oldSize, size) / sizeof(uint32_t));
+    heap_caps_free(ptr);
+  }
+  return newBuffer;
+}
+
+
 void free32(void * ptr)
 {
   heap_caps_free(ptr);
@@ -578,7 +591,7 @@ void StringList::copyFrom(StringList const & src)
 
 void StringList::copySelectionMapFrom(StringList const & src)
 {
-  int maskLen = (31 + m_allocated) / 32;
+  int maskLen = (31 + imin(m_allocated, src.m_allocated)) / 32;
   for (int i = 0; i < maskLen; ++i)
     m_selMap[i] = src.m_selMap[i];
 }
@@ -587,6 +600,7 @@ void StringList::copySelectionMapFrom(StringList const & src)
 void StringList::checkAllocatedSpace(int requiredItems)
 {
   if (m_allocated < requiredItems) {
+    int const oldAllocated = m_allocated;
     if (m_allocated == 0) {
       // first time allocates exact space
       m_allocated = requiredItems;
@@ -595,8 +609,9 @@ void StringList::checkAllocatedSpace(int requiredItems)
       while (m_allocated < requiredItems)
         m_allocated *= 2;
     }
-    m_items  = (char const**) realloc32(m_items, m_allocated * sizeof(char const *));
-    m_selMap = (uint32_t*) realloc32(m_selMap, (31 + m_allocated) / 32 * sizeof(uint32_t));
+    // copy only the old content (realloc32(ptr, size) read "size" bytes past the old buffer)
+    m_items  = (char const**) realloc32(m_items, oldAllocated * sizeof(char const *), m_allocated * sizeof(char const *));
+    m_selMap = (uint32_t*) realloc32(m_selMap, (31 + oldAllocated) / 32 * sizeof(uint32_t), (31 + m_allocated) / 32 * sizeof(uint32_t));
   }
 }
 
@@ -1200,43 +1215,57 @@ bool FileBrowser::truncate(char const * name, size_t size)
   char fullpath[strlen(m_dir) + 1 + strlen(name) + 1];
   sprintf(fullpath, "%s/%s", m_dir, name);
 
-  // in future maybe...
-  //::truncate(name, size);
+  // native truncate: in place, no copy (FAT shrinks and extends with zeros, SPIFFS shrinks)
+  if (::truncate(fullpath, size) == 0)
+    return true;
 
+  // fallback: copy the first "size" bytes into a new file
   bool retval = false;
 
-  // for now...
-  char * tempFilename = createTempFilename();
-  if (::rename(fullpath, tempFilename) == 0) {
-    void * buf = malloc(BUFLEN);
-    if (buf) {
-      auto fr = fopen(tempFilename, "rb");
-      if (fr) {
-        auto fw = fopen(fullpath, "wb");
-        if (fw) {
+  void * buf = malloc(BUFLEN);
+  char * tempFilename = buf ? createTempFilename() : nullptr;
+  if (tempFilename && ::rename(fullpath, tempFilename) == 0) {
+    auto fr = fopen(tempFilename, "rb");
+    if (fr) {
+      auto fw = fopen(fullpath, "wb");
+      if (fw) {
 
+        while (size > 0) {
+          auto l = fread(buf, 1, tmin(size, BUFLEN), fr);
+          if (l == 0)
+            break;
+          if (fwrite(buf, 1, l, fw) != l)
+            break;
+          size -= l;
+        }
+
+        // just in case truncate is used to expand the file
+        if (size > 0) {
+          memset(buf, 0, BUFLEN);
           while (size > 0) {
-            auto l = fread(buf, 1, tmin(size, BUFLEN), fr);
-            if (l == 0)
+            auto l = tmin(size, BUFLEN);
+            if (fwrite(buf, 1, l, fw) != l)
               break;
-            fwrite(buf, 1, l, fw);
             size -= l;
           }
-
-          // just in case truncate is used to expand the file
-          for (; size > 0; --size)
-            fputc(0, fw);
-
-          retval = true;
-          fclose(fw);
         }
-        fclose(fr);
+
+        retval = (size == 0);
+        if (fclose(fw) != 0)
+          retval = false;
       }
+      fclose(fr);
     }
-    free(buf);
-    unlink(tempFilename);
+    if (retval) {
+      unlink(tempFilename);
+    } else {
+      // failed: put the original file back
+      unlink(fullpath);
+      ::rename(tempFilename, fullpath);
+    }
   }
   free(tempFilename);
+  free(buf);
   return retval;
 }
 

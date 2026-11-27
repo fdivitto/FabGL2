@@ -416,7 +416,7 @@ int Mouse::availableStatus()
 
 MouseStatus Mouse::getNextStatus(int timeOutMS)
 {
-  MouseStatus status;
+  MouseStatus status = m_status;   // on timeout returns the current status (was uninitialized)
   if (m_absoluteQueue)
     xQueueReceive(m_absoluteQueue, &status, msToTicks(timeOutMS));
   return status;
