@@ -8,30 +8,34 @@ and demos) and can download many more from the Internet. Watch it on
 ## Getting started
 
 At boot the emulator copies the included programs into the `VIC20Store` directory (on the SD card if present,
-otherwise on the internal SPIFFS partition) and shows the **configuration screen**:
+otherwise on the internal SPIFFS partition) and shows the **configuration screen**, from top to bottom:
 
-- on the left, the **program list** (the `VIC20Store` directory)
-- on the right, the buttons and the settings
-- at the bottom, the free space and the download buttons
+- **PROGRAMS**: the program list (the `VIC20Store` directory). Each program shows an icon (cassette = `.PRG`,
+  cartridge = `.CRT`, folder), its name without the tags and, on the right, the RAM expansion it needs and the
+  cartridge load address. Below the list, the storage in use (SD card or flash) and the free space
+- **MACHINE**: RAM expansion, joystick emulation and keyboard layout
+- the **RUN**, **LOAD**, **RESET** and **HARD RESET** buttons
+- **DOWNLOAD**: the **AUTO** and **URL...** buttons
 
-Select a program and press `Enter` (or double-click it, or press **Load**): the emulator sets the needed RAM
+Select a program and press `Enter` (or double-click it, or press **LOAD**): the emulator sets the needed RAM
 expansion, loads the program and runs it. Press `F12` to go back to the configuration screen at any time, and `F12`
-(or `Esc`) again to return to the VIC-20.
+(or `Esc`) again to return to the VIC-20. `Tab` moves the keyboard focus between the controls (cyan border); the tile
+selectors and the keyboard layout change with the `Left` / `Right` keys.
 
 ## Configuration screen
 
 | Control | Function |
 |---|---|
-| **Run [F12]** | Runs (or resumes) the VIC-20 |
-| **Load** | Loads and runs the selected program |
-| **Soft Reset** | Resets the VIC-20 (the cartridge stays inserted) |
-| **Hard Reset** | Removes the cartridge and resets the VIC-20 |
-| **HELP [F1]** | Shows the keyboard shortcuts |
-| **Keyboard Layout** | Layout of the PS/2 keyboard (US, UK, DE, IT, ...) |
-| **RAM Expansion** | Unexpanded, 3K, 8K, 16K, 24K, 27K (24K+3K), 32K, 35K (32K+3K). Set automatically from the file name when a program is loaded |
-| **Joystick** | *None*, *Cursor Keys* or *Mouse* (see below) |
-| **Download From: Web** | Downloads all the programs listed in `main/progs/weblist.h` (about 90 games and cartridges from zimmers.net). Asks for the WiFi network the first time |
-| **Download From: URL** | Downloads a single program: type the URL and then the file name to give it (see the naming rules below) |
+| **HELP** (`F1`) | Shows the keyboard shortcuts |
+| **RAM EXPANSION** | Unexpanded (`--`), 3K, 8K, 16K, 24K, 27K (24K+3K), 32K, 35K (32K+3K). Set automatically from the file name when a program is selected |
+| **JOYSTICK** | *None*, *Cursor Keys* or *Mouse* (see below). Saved in the flash |
+| **KEYBOARD** | Layout of the PS/2 keyboard (US, UK, DE, IT, ...). Saved in the flash |
+| **RUN** (`F12`) | Runs (or resumes) the VIC-20 |
+| **LOAD** | Loads and runs the selected program |
+| **RESET** | Resets the VIC-20 (the cartridge stays inserted) |
+| **HARD RESET** | Removes the cartridge and resets the VIC-20 |
+| **AUTO** | Downloads from the Internet all the games listed in `main/progs/weblist.h` (about 90 games and cartridges from zimmers.net), with a progress bar. Asks for the WiFi network and password the first time |
+| **URL...** | Downloads a single program: type the URL, the file name follows the last part of the URL and can be changed (see the naming rules below) |
 
 In the program list, `Del` deletes the selected file or directory (asks a confirmation).
 
@@ -101,7 +105,9 @@ SAVE "NAME",8
 
 - The `fabgl::MOS6502` CPU core, with emulated VIC 6561 (video and audio), VIA 6522 and IEC serial bus drive
 - Rendering an emulated video chip on a `fabgl::VGAController` frame buffer
-- A GUI (`uiApp`, `uiFileBrowser`) to manage programs, settings saved with `fabgl::Preferences`
+- A themed GUI (`uiApp`, `uiStyle`): a `uiFileBrowser` with custom painted items (`onPaintItem`), `uiTileSelector`,
+  `uiStepper`, `uiProgressBar`, styled dialogs and message boxes (`uiAppProps::dialogStyleClasses`); settings saved
+  with `fabgl::Preferences`
 - HTTP and HTTPS downloads with `fabgl::HTTPRequest` (see the TLS memory settings in `sdkconfig.defaults`)
 
 ## Hardware

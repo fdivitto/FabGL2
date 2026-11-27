@@ -2171,6 +2171,15 @@ public:
    */
   Delegate<> onDblClick;
 
+  /**
+   * @brief Item paint delegate
+   *
+   * When assigned, it replaces the default item painting (the text). Parameters: item index, item area (client
+   * coordinates) and true if the item is selected. The background is already filled with the listbox style colors
+   * and the pen color is set to the text color. Paint using canvas(). Example: icons, columns, badges.
+   */
+  Delegate<int, Rect const &, bool> onPaintItem;
+
 
 
 protected:
@@ -4258,15 +4267,33 @@ struct uiStyle {
 
 
 /**
+ * @brief Style classes of the windows created by uiApp::messageBox() and uiApp::inputBox()
+ *
+ * Each value is passed to uiStyle::setStyle() (see uiApp::setStyle()) when the dialog creates the window. 0 (the
+ * default) keeps the default style.
+ *
+ * @ingroup gui
+ */
+struct uiDialogStyleClasses {
+  uint32_t frame    = 0;   /**< Style class of the dialog frame (uiFrame) */
+  uint32_t label    = 0;   /**< Style class of the message text (uiStaticLabel) */
+  uint32_t button   = 0;   /**< Style class of the buttons (uiButton) */
+  uint32_t textEdit = 0;   /**< Style class of the input box edit field (uiTextEdit) */
+  uint32_t panel    = 0;   /**< Style class of the panel that contains the buttons (uiPanel). With 0 the panel has the frame background and a gray border */
+};
+
+
+/**
  * @brief Properties of the application
  *
  * @ingroup gui
  */
 struct uiAppProps {
-  uint16_t caretBlinkingTime = 500;   /**< Caret blinking period in milliseconds */
-  uint16_t doubleClickTime   = 250;   /**< Maximum delay in milliseconds between two clicks for them to be recognized as a double click */
-  bool     realtimeReshaping = false; /**< If true, a window is continuously repainted while being resized; otherwise an inverted outline rectangle is shown */
-  bool     realtimeMoving    = false; /**< If true, a window is continuously repainted while being moved; otherwise an inverted outline rectangle is shown */
+  uint16_t             caretBlinkingTime = 500;   /**< Caret blinking period in milliseconds */
+  uint16_t             doubleClickTime   = 250;   /**< Maximum delay in milliseconds between two clicks for them to be recognized as a double click */
+  bool                 realtimeReshaping = false; /**< If true, a window is continuously repainted while being resized; otherwise an inverted outline rectangle is shown */
+  bool                 realtimeMoving    = false; /**< If true, a window is continuously repainted while being moved; otherwise an inverted outline rectangle is shown */
+  uiDialogStyleClasses dialogStyleClasses;        /**< Style classes of the message box and input box windows */
 };
 
 
@@ -4840,6 +4867,8 @@ using fabgl::uiButtonKind;
 using fabgl::uiTimerHandle;
 using fabgl::uiTextEdit;
 using fabgl::uiApp;
+using fabgl::uiAppProps;
+using fabgl::uiDialogStyleClasses;
 using fabgl::uiFrame;
 using fabgl::uiButton;
 using fabgl::uiLabel;

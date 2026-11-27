@@ -130,6 +130,17 @@ frame->onPaint = [=]() {
 };
 ```
 
+List boxes (fabgl::uiListBox, fabgl::uiFileBrowser...) paint their items with the onPaintItem delegate when it is
+assigned: icons, columns, tags. The item background is already filled with the selection colors:
+
+```cpp
+fileBrowser->onPaintItem = [=](int index, Rect const & r, bool selected) {
+  auto cv   = fileBrowser->canvas();
+  auto item = fileBrowser->content().get(index);
+  cv->drawText(&fabgl::FONT_std_12, r.X1 + 14, r.Y1 + 2, item->name);   // leaves room for an icon
+};
+```
+
 
 # Timers and modal windows {#gui_timers}
 
@@ -172,6 +183,18 @@ struct MyStyle : uiStyle {
 setStyle(&myStyle);
 new uiButton(frame, "Styled", Point(10, 10), Size(80, 20), uiButtonKind::Button, true, STYLE_BUTTON);
 ```
+
+The windows created by uiApp::messageBox() and uiApp::inputBox() get the style classes listed in
+fabgl::uiDialogStyleClasses (uiAppProps::dialogStyleClasses), so they can match the application theme:
+
+```cpp
+appProps().dialogStyleClasses.frame  = STYLE_DIALOG;
+appProps().dialogStyleClasses.label  = STYLE_DIALOG_LABEL;
+appProps().dialogStyleClasses.button = STYLE_BUTTON;
+```
+
+The @ref example_VIC20 example themes its whole interface this way (custom painted program list, tile selectors,
+dialogs).
 
 
 # Synth and instrument controls {#gui_synth_controls}

@@ -569,6 +569,11 @@ struct Delegate {
       m_closure(m_func, params...);
   }
 
+  // true if a callable is assigned
+  explicit operator bool() const {
+    return m_func != nullptr;
+  }
+
 private:
 
   void (*m_closure)(void * func, const Params & ...params);

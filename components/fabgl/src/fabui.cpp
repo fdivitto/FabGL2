@@ -1139,7 +1139,9 @@ uiMessageBoxResult uiApp::messageBox(char const * title, char const * text, char
   const int frameX = (m_canvas->getWidth() - requiredWidth) / 2;
   const int frameY = (m_canvas->getHeight() - requiredHeight) / 2;
 
-  auto mainFrame = new uiFrame(m_rootWindow, title, Point(frameX, frameY), Size(requiredWidth, requiredHeight), false);
+  auto const & styles = m_appProps.dialogStyleClasses;
+
+  auto mainFrame = new uiFrame(m_rootWindow, title, Point(frameX, frameY), Size(requiredWidth, requiredHeight), false, styles.frame);
   mainFrame->frameProps().resizeable        = false;
   mainFrame->frameProps().hasMaximizeButton = false;
   mainFrame->frameProps().hasMinimizeButton = false;
@@ -1152,33 +1154,35 @@ uiMessageBoxResult uiApp::messageBox(char const * title, char const * text, char
   }
 
   int y = font->height + titleHeight + (textHeight - font->height) / 2;
-  new uiStaticLabel(mainFrame, text, Point(x, y));
+  new uiStaticLabel(mainFrame, text, Point(x, y), true, styles.label);
 
   // setup panel (where buttons are positioned)
 
   y += textHeight + titleHeight;
-  auto panel = new uiPanel(mainFrame, Point(0, y), Size(mainFrame->size().width, mainFrame->size().height - y));
-  panel->windowStyle().borderColor = RGB888(128, 128, 128);
-  panel->panelStyle().backgroundColor = mainFrame->frameStyle().backgroundColor;
+  auto panel = new uiPanel(mainFrame, Point(0, y), Size(mainFrame->size().width, mainFrame->size().height - y), true, styles.panel);
+  if (!styles.panel) {
+    panel->windowStyle().borderColor = RGB888(128, 128, 128);
+    panel->panelStyle().backgroundColor = mainFrame->frameStyle().backgroundColor;
+  }
 
   // setup buttons
 
   y = (panel->size().height - buttonsHeight) / 2;
   x = mainFrame->windowStyle().borderSize + requiredWidth - buttonsWidth * totButtons - buttonsSpace * totButtons;  // right aligned
 
-  auto button1 = button1Text ? new uiButton(panel, button1Text, Point(x, y), Size(buttonsWidth, buttonsHeight)) : nullptr;
+  auto button1 = button1Text ? new uiButton(panel, button1Text, Point(x, y), Size(buttonsWidth, buttonsHeight), uiButtonKind::Button, true, styles.button) : nullptr;
   if (button1) {
     button1->onClick = [&]() { mainFrame->exitModal(1); };
     x += buttonsWidth + buttonsSpace;
   }
 
-  auto button2 = button2Text ? new uiButton(panel, button2Text, Point(x, y), Size(buttonsWidth, buttonsHeight)) : nullptr;
+  auto button2 = button2Text ? new uiButton(panel, button2Text, Point(x, y), Size(buttonsWidth, buttonsHeight), uiButtonKind::Button, true, styles.button) : nullptr;
   if (button2) {
     button2->onClick = [&]() { mainFrame->exitModal(2); };
     x += buttonsWidth + buttonsSpace;
   }
 
-  auto button3 = button3Text ? new uiButton(panel, button3Text, Point(x, y), Size(buttonsWidth, buttonsHeight)) : nullptr;
+  auto button3 = button3Text ? new uiButton(panel, button3Text, Point(x, y), Size(buttonsWidth, buttonsHeight), uiButtonKind::Button, true, styles.button) : nullptr;
   if (button3) {
     button3->onClick = [&]() { mainFrame->exitModal(3); };
     x += buttonsWidth + buttonsSpace;
@@ -1229,7 +1233,9 @@ uiMessageBoxResult uiApp::inputBox(char const * title, char const * text, char *
   const int frameX           = (m_canvas->getWidth() - requiredWidth) / 2;
   const int frameY           = (m_canvas->getHeight() - requiredHeight) / 2;
 
-  auto mainFrame = new uiFrame(m_rootWindow, title, Point(frameX, frameY), Size(requiredWidth, requiredHeight), false);
+  auto const & styles = m_appProps.dialogStyleClasses;
+
+  auto mainFrame = new uiFrame(m_rootWindow, title, Point(frameX, frameY), Size(requiredWidth, requiredHeight), false, styles.frame);
   mainFrame->frameProps().resizeable        = false;
   mainFrame->frameProps().hasMaximizeButton = false;
   mainFrame->frameProps().hasMinimizeButton = false;
@@ -1242,29 +1248,31 @@ uiMessageBoxResult uiApp::inputBox(char const * title, char const * text, char *
 
   int x = 10;
   int y = font->height + titleHeight + (textHeight - font->height) / 2;
-  new uiStaticLabel(mainFrame, text, Point(x, y));
+  new uiStaticLabel(mainFrame, text, Point(x, y), true, styles.label);
 
-  auto edit = new uiTextEdit(mainFrame, inOutString, Point(x + textExtent + 5, y - 4), Size(editExtent - 15, textHeight + 6));
+  auto edit = new uiTextEdit(mainFrame, inOutString, Point(x + textExtent + 5, y - 4), Size(editExtent - 15, textHeight + 6), true, styles.textEdit);
 
   // setup panel (where buttons are positioned)
 
   y += textHeight + titleHeight;
-  auto panel = new uiPanel(mainFrame, Point(0, y), Size(mainFrame->size().width, mainFrame->size().height - y));
-  panel->windowStyle().borderColor = RGB888(128, 128, 128);
-  panel->panelStyle().backgroundColor = mainFrame->frameStyle().backgroundColor;
+  auto panel = new uiPanel(mainFrame, Point(0, y), Size(mainFrame->size().width, mainFrame->size().height - y), true, styles.panel);
+  if (!styles.panel) {
+    panel->windowStyle().borderColor = RGB888(128, 128, 128);
+    panel->panelStyle().backgroundColor = mainFrame->frameStyle().backgroundColor;
+  }
 
   // setup buttons
 
   y = (panel->size().height - buttonsHeight) / 2;
   x = mainFrame->windowStyle().borderSize + requiredWidth - buttonsWidth * totButtons - buttonsSpace * totButtons;  // right aligned
 
-  auto button1 = button1Text ? new uiButton(panel, button1Text, Point(x, y), Size(buttonsWidth, buttonsHeight)) : nullptr;
+  auto button1 = button1Text ? new uiButton(panel, button1Text, Point(x, y), Size(buttonsWidth, buttonsHeight), uiButtonKind::Button, true, styles.button) : nullptr;
   if (button1) {
     button1->onClick = [&]() { mainFrame->exitModal(1); };
     x += buttonsWidth + buttonsSpace;
   }
 
-  auto button2 = button2Text ? new uiButton(panel, button2Text, Point(x, y), Size(buttonsWidth, buttonsHeight)) : nullptr;
+  auto button2 = button2Text ? new uiButton(panel, button2Text, Point(x, y), Size(buttonsWidth, buttonsHeight), uiButtonKind::Button, true, styles.button) : nullptr;
   if (button2) {
     button2->onClick = [&]() { mainFrame->exitModal(2); };
     x += buttonsWidth + buttonsSpace;
@@ -4212,8 +4220,12 @@ void uiCustomListBox::paintListBox()
 
     if (index < items_getCount()) {
       // text
-      canvas()->setPenColor(items_selected(index) ? m_listBoxStyle.selectedTextColor : m_listBoxStyle.textColor);
-      items_draw(index, itmRect);
+      bool selected = items_selected(index);
+      canvas()->setPenColor(selected ? m_listBoxStyle.selectedTextColor : m_listBoxStyle.textColor);
+      if (onPaintItem)
+        onPaintItem(index, itmRect, selected);
+      else
+        items_draw(index, itmRect);
     }
 
     // move to next item
@@ -6203,9 +6215,10 @@ Rect uiTileSelector::tileRect(int index)
   Rect cRect = uiControl::clientRect(uiOrigin::Window);
   int count  = imax(m_items.count(), 1);
   int gap    = m_tileSelectorProps.tileGap;
-  int tileW  = (cRect.width() - gap * (count - 1)) / count;
-  int x      = cRect.X1 + index * (tileW + gap);
-  return Rect(x, cRect.Y1, x + tileW - 1, cRect.Y2 - captionHeight());
+  int avail  = cRect.width() - gap * (count - 1);   // the remainder is spread over the tiles: they fill the width
+  int x1     = cRect.X1 + index * gap + avail * index / count;
+  int x2     = cRect.X1 + index * gap + avail * (index + 1) / count - 1;
+  return Rect(x1, cRect.Y1, x2, cRect.Y2 - captionHeight());
 }
 
 
