@@ -272,6 +272,7 @@
 #include "dispdrivers/vgadirectcontroller.h"
 #include "dispdrivers/cvbs16controller.h"
 #include "fabui.h"
+#include "uitheme.h"
 #include "inputbox.h"
 #include "comdrivers/ps2controller.h"
 #include "comdrivers/tsi2c.h"

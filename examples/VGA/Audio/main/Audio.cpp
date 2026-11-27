@@ -38,6 +38,9 @@ fabgl::VGA16Controller DisplayController;
 fabgl::PS2Controller   PS2Controller;
 SoundGenerator         soundGenerator;
 
+// dark theme of the library: palette, windows and controls (uitheme.h)
+fabgl::uiDarkTheme     theme;
+
 
 void setup()
 {
@@ -46,6 +49,7 @@ void setup()
 
   DisplayController.begin();
   DisplayController.setResolution(VGA_640x480_60Hz);
+  theme.setupPalette(&DisplayController);
 
   // adjust this to center screen in your monitor
   //DisplayController.moveScreen(20, -2);
@@ -73,7 +77,7 @@ class ChannelFrame : public uiFrame {
 public:
 
   ChannelFrame(uiWindow * parent)
-   : uiFrame(parent, "", Point(0, 0), Size(408, 80))
+   : uiFrame(parent, "", Point(0, 0), Size(408, 98))
   {
     static int channel_ = 0;
     static int y = 4, x = 4;
@@ -81,7 +85,7 @@ public:
 
     app()->moveWindow(this, x, y);
     y += size().height + 4;
-    if (y + size().height > parent->size().height) {
+    if (y + size().height > parent->size().height - 4) {
       x += 25;
       y = x;
     }
@@ -91,9 +95,12 @@ public:
 
     setTitleFmt("Channel %d", ++channel_);
 
+    int cx = clientPos().X;
+    int cy = clientPos().Y;
+
     // volume slider
-    volumeLabel = new uiLabel(this, "", Point(5, 20));
-    volumeSlider = new uiSlider(this, Point(72, 19), Size(150, 17), uiOrientation::Horizontal);
+    volumeLabel = new uiLabel(this, "", Point(cx + 4, cy + 6));
+    volumeSlider = new uiSlider(this, Point(cx + 86, cy + 5), Size(140, 18), uiOrientation::Horizontal);
     volumeSlider->onChange = [&]() {
       volumeLabel->setTextFmt("Volume %d", volumeSlider->position());
       if (curGen)
@@ -103,10 +110,8 @@ public:
     volumeSlider->setPosition(100);
 
     // generator combobox
-    new uiStaticLabel(this, "Type", Point(230, 20));
-    genComboBox = new uiComboBox(this, Point(260, 20), Size(140, 16), 35);
-    genComboBox->listBoxStyle().textFont = &fabgl::FONT_std_12;
-    genComboBox->textEditStyle().textFont = &fabgl::FONT_std_12;
+    new uiStaticLabel(this, "Type", Point(cx + 236, cy + 6));
+    genComboBox = new uiComboBox(this, Point(cx + 272, cy + 4), Size(126, 20), 104);
     genComboBox->items().append("Sine Wave");
     genComboBox->items().append("Square Wave");
     genComboBox->items().append("Triangle Wave");
@@ -121,8 +126,8 @@ public:
     };
 
     // frequency slider
-    frequencyLabel = new uiLabel(this, "", Point(5, 39));
-    frequencySlider = new uiSlider(this, Point(72, 38), Size(330, 17), uiOrientation::Horizontal);
+    frequencyLabel = new uiLabel(this, "", Point(cx + 4, cy + 30));
+    frequencySlider = new uiSlider(this, Point(cx + 86, cy + 29), Size(312, 18), uiOrientation::Horizontal);
     frequencySlider->onChange = [&]() {
       frequencyLabel->setTextFmt("Freq %d Hz", frequencySlider->position());
       if (curGen)
@@ -133,8 +138,8 @@ public:
     startingFreq += 50;
 
     // enable checkbox
-    new uiStaticLabel(this, "Enable", Point(5, 76-17));
-    enableCheck = new uiCheckBox(this, Point(77, 75-17), Size(17, 17));
+    enableCheck = new uiCheckBox(this, Point(cx + 4, cy + 54), Size(16, 16));
+    new uiStaticLabel(this, "Enable", Point(cx + 26, cy + 54));
     enableCheck->onChange = [&]() {
       if (curGen)
         curGen->enable(enableCheck->checked());
@@ -183,15 +188,17 @@ class CommandsFrame : public uiFrame {
 
 public:
   CommandsFrame(uiWindow * parent)
-   : uiFrame(parent, "Main Controls", Point(500, 4), Size(133, 200))
+   : uiFrame(parent, "Main Controls", Point(496, 4), Size(140, 212))
   {
-    frameStyle().titleFont = &fabgl::FONT_std_12;
     frameProps().resizeable = false;
     frameProps().hasMaximizeButton = false;
     frameProps().hasMinimizeButton = false;
     frameProps().hasCloseButton = false;
 
-    auto addChannelBtn = new uiButton(this, "Add Channel", Point(7, 22), Size(80, 16));
+    int cx = clientPos().X;
+    int cy = clientPos().Y;
+
+    auto addChannelBtn = new uiButton(this, "Add Channel", Point(cx + 6, cy + 6), Size(90, 24), uiButtonKind::Button, true, fabgl::uiThemeStyle::ButtonAccent);
     addChannelBtn->onClick = [=, this]() {
       if (heap_caps_get_free_size(MALLOC_CAP_8BIT) < 5000)
         app()->messageBox("Out of memory!", "I'm sorry, there is no more memory available!", "OK");
@@ -199,31 +206,29 @@ public:
         new ChannelFrame(parent);
     };
 
-    auto resetBtn = new uiButton(this, "Reset", Point(7, 45), Size(80, 16));
+    auto resetBtn = new uiButton(this, "Reset", Point(cx + 6, cy + 38), Size(90, 24));
     resetBtn->onClick = [=, this]() {
       if (app()->messageBox("Reset ESP32", "Are you sure?", "Yes", "No", nullptr, uiMessageBoxIcon::Question) == uiMessageBoxResult::Button1)
         esp_restart();
     };
-    
+
     // global enable checkbox
-    new uiStaticLabel(this, "Enable", Point(7, 70));
-    auto enableCheck = new uiCheckBox(this, Point(48, 68), Size(17, 17));
+    auto enableCheck = new uiCheckBox(this, Point(cx + 6, cy + 72), Size(16, 16));
+    new uiStaticLabel(this, "Enable", Point(cx + 28, cy + 72));
     enableCheck->setChecked(true);
     enableCheck->onChange = [=]() {
       soundGenerator.play(enableCheck->checked());
     };
 
     // main volume slider
-    auto volumeLabel = new uiLabel(this, "", Point(90, 182));
-    auto volumeSlider = new uiSlider(this, Point(100, 20), Size(17, 160), uiOrientation::Vertical);
+    auto volumeLabel = new uiLabel(this, "", Point(cx + 78, cy + 166));
+    auto volumeSlider = new uiSlider(this, Point(cx + 108, cy + 6), Size(18, 154), uiOrientation::Vertical);
     volumeSlider->onChange = [=]() {
       volumeLabel->setTextFmt("Vol %d", volumeSlider->position());
       soundGenerator.setVolume(volumeSlider->position());
     };
     volumeSlider->setup(0, 127, 16);
     volumeSlider->setPosition(100);
-
-
   }
 
 };
@@ -233,7 +238,8 @@ class MyApp : public uiApp {
 
   void init() {
 
-    rootWindow()->frameStyle().backgroundColor = RGB888(0, 0, 64);
+    // the theme styles every window and control, message boxes and desktop included
+    theme.apply(this);
 
     new ChannelFrame(rootWindow());
     new ChannelFrame(rootWindow());

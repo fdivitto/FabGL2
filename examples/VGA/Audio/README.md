@@ -36,6 +36,9 @@ arrow keys move the sliders.
   `SawtoothWaveformGenerator`, `NoiseWaveformGenerator`, and `SamplesGenerator` for 8-bit sampled sounds
   (converted from WAV with `tools/wav2header`)
 - GUI: frames, sliders, combo boxes, check boxes, buttons, message boxes
+- The dark theme of the library (`fabgl::uiDarkTheme`): `setupPalette()` after `setResolution()` and `apply()` in
+  `init()`; the controls are created without style class and get the theme by type, the *Add Channel* button uses
+  the `ButtonAccent` class
 
 ## Hardware
 

@@ -96,6 +96,14 @@ void InputBox::begin(char const * modeline, int viewPortWidth, int viewPortHeigh
 }
 
 
+void InputApp::init()
+{
+  if (form->inputBox->onInitApp)
+    form->inputBox->onInitApp(this);
+  form->init(this, false);
+}
+
+
 void InputBox::begin(BitmappedDisplayController * displayController)
 {
   m_dispCtrl = displayController;

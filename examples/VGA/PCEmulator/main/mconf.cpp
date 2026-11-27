@@ -221,6 +221,8 @@ void MachineConf::saveToFile(FILE * file)
 
 struct ConfigDialog : public uiApp {
 
+  using Style = fabgl::uiThemeStyle;
+
   MachineConf     * mconf;
   MachineConfItem * item;
 
@@ -243,12 +245,16 @@ struct ConfigDialog : public uiApp {
 
 
   void init() {
+    theme.apply(this);
     rootWindow()->frameStyle().backgroundColor = backgroundColor;
 
     rootWindow()->onPaint = [&]() { drawInfo(canvas()); };
 
-    mainFrame = new uiFrame(rootWindow(), "Machine Configuration", UIWINDOW_PARENTCENTER, Size(460, 250));
+    // below the header
+    const int W = rootWindow()->clientSize().width;
+    mainFrame = new uiFrame(rootWindow(), "Machine Configuration", Point(8, 58), Size(W - 16, 300), true, Style::Dialog);
     mainFrame->frameProps().resizeable        = false;
+    mainFrame->frameProps().moveable          = false;
     mainFrame->frameProps().hasMaximizeButton = false;
     mainFrame->frameProps().hasMinimizeButton = false;
     mainFrame->frameProps().hasCloseButton    = false;
@@ -260,98 +266,98 @@ struct ConfigDialog : public uiApp {
       }
     };
 
-    int x = 6;
-    int y = 24;
-    constexpr int oy = 3;
-    constexpr int hh = 20;
-    constexpr int dy = hh + 9;
+    const int cx = mainFrame->clientPos().X;
+    const int cy = mainFrame->clientPos().Y;
+    const int cw = mainFrame->clientSize().width;
+
+    const int lx = cx + 10;          // labels
+    const int ex = cx + 104;         // edits
+    const int right = cx + cw - 10;  // right margin
+    constexpr int hh = 24;           // controls height
+    constexpr int oy = 4;            // label offset
+    constexpr int dy = hh + 8;
+    constexpr int bw = 28;           // browse buttons width
+    constexpr int nw = 40;           // geometry edits width
+
+    int y = cy + 10;
 
     // description
-    new uiStaticLabel(mainFrame, "Description", Point(x, y + oy));
-    descEdit = new uiTextEdit(mainFrame, item->desc, Point(70, y), Size(270, hh));
+    new uiStaticLabel(mainFrame, "Description", Point(lx, y + oy));
+    descEdit = new uiTextEdit(mainFrame, item->desc, Point(ex, y), Size(right - ex, hh));
 
     y += dy;
 
-    // floppy 0
-    new uiStaticLabel(mainFrame, "Floppy 0", Point(x, y + oy));
-    FD0PathEdit = new uiTextEdit(mainFrame, item->disk[0], Point(60, y), Size(260, hh));
-    browseFD0Button = new uiButton(mainFrame, "...", Point(322, y), Size(20, hh));
-    browseFD0Button->onClick = [&]() { browseFilename(FD0PathEdit); };
+    // a path edit with its browse button
+    auto pathRow = [&](char const * label, char const * value, int width, uiTextEdit * * edit, uiButton * * browse) {
+      new uiStaticLabel(mainFrame, label, Point(lx, y + oy));
+      *edit   = new uiTextEdit(mainFrame, value, Point(ex, y), Size(width - bw - 4, hh));
+      *browse = new uiButton(mainFrame, "...", Point(ex + width - bw, y), Size(bw, hh));
+      auto e  = *edit;
+      (*browse)->onClick = [this, e]() { browseFilename(e); };
+    };
 
-
+    // floppy drives
+    pathRow("Floppy A", item->disk[0], right - ex, &FD0PathEdit, &browseFD0Button);
     y += dy;
+    pathRow("Floppy B", item->disk[1], right - ex, &FD1PathEdit, &browseFD1Button);
+    y += dy + 12;
 
-    // floppy 1
-    new uiStaticLabel(mainFrame, "Floppy 1", Point(x, y + oy));
-    FD1PathEdit = new uiTextEdit(mainFrame, item->disk[1], Point(60, y), Size(260, hh));
-    browseFD1Button = new uiButton(mainFrame, "...", Point(322, y), Size(20, hh));
-    browseFD1Button->onClick = [&]() { browseFilename(FD1PathEdit); };
-
+    // hard disks: path + geometry (cylinders, heads, sectors)
+    const int pathW = right - ex - 3 * (nw + 4) - 4;
+    const int gx    = ex + pathW + 8;
+    new uiStaticLabel(mainFrame, "Cylinders", Point(gx - 2, y - 16), true, Style::LabelDim);
+    new uiStaticLabel(mainFrame, "Heads", Point(gx + nw + 4, y - 16), true, Style::LabelDim);
+    new uiStaticLabel(mainFrame, "Sectors", Point(gx + 2 * (nw + 4), y - 16), true, Style::LabelDim);
+    auto geometryRow = [&](int drive, uiTextEdit * * cyl, uiTextEdit * * hds, uiTextEdit * * sec) {
+      *cyl = new uiTextEdit(mainFrame, "", Point(gx, y), Size(nw, hh));
+      (*cyl)->setTextFmt("%hu", item->cylinders[drive]);
+      *hds = new uiTextEdit(mainFrame, "", Point(gx + nw + 4, y), Size(nw, hh));
+      (*hds)->setTextFmt("%hu", item->heads[drive]);
+      *sec = new uiTextEdit(mainFrame, "", Point(gx + 2 * (nw + 4), y), Size(nw, hh));
+      (*sec)->setTextFmt("%hu", item->sectors[drive]);
+    };
+    pathRow("Hard Disk C", item->disk[2], pathW, &HD0PathEdit, &browseHD0Button);
+    geometryRow(2, &HD0CylEdit, &HD0HdsEdit, &HD0SecEdit);
     y += dy;
-
-    // HDD 0
-    new uiStaticLabel(mainFrame, "HDD 0", Point(x, y + oy));
-    HD0PathEdit = new uiTextEdit(mainFrame, item->disk[2], Point(60, y), Size(260, hh));
-    browseHD0Button = new uiButton(mainFrame, "...", Point(322, y), Size(20, hh));
-    browseHD0Button->onClick = [&]() { browseFilename(HD0PathEdit); };
-    new uiStaticLabel(mainFrame, "Cyls", Point(350, y - 13));
-    HD0CylEdit  = new uiTextEdit(mainFrame, "", Point(350, y), Size(34, hh));
-    HD0CylEdit->setTextFmt("%hu", item->cylinders[2]);
-    new uiStaticLabel(mainFrame, "Head", Point(385, y - 13));
-    HD0HdsEdit  = new uiTextEdit(mainFrame, "", Point(385, y), Size(34, hh));
-    HD0HdsEdit->setTextFmt("%hu", item->heads[2]);
-    new uiStaticLabel(mainFrame, "Sect", Point(420, y - 13));
-    HD0SecEdit  = new uiTextEdit(mainFrame, "", Point(420, y), Size(34, hh));
-    HD0SecEdit->setTextFmt("%hu", item->sectors[2]);
-
-    y += dy;
-
-    // HDD 1
-    new uiStaticLabel(mainFrame, "HDD 1", Point(x, y + oy));
-    HD1PathEdit = new uiTextEdit(mainFrame, item->disk[3], Point(60, y), Size(260, hh));
-    browseHD1Button = new uiButton(mainFrame, "...", Point(322, y), Size(20, hh));
-    browseHD1Button->onClick = [&]() { browseFilename(HD1PathEdit); };
-    HD1CylEdit  = new uiTextEdit(mainFrame, "", Point(350, y), Size(34, hh));
-    HD1CylEdit->setTextFmt("%hu", item->cylinders[3]);
-    HD1HdsEdit  = new uiTextEdit(mainFrame, "", Point(385, y), Size(34, hh));
-    HD1HdsEdit->setTextFmt("%hu", item->heads[3]);
-    HD1SecEdit  = new uiTextEdit(mainFrame, "", Point(420, y), Size(34, hh));
-    HD1SecEdit->setTextFmt("%hu", item->sectors[3]);
-
+    pathRow("Hard Disk D", item->disk[3], pathW, &HD1PathEdit, &browseHD1Button);
+    geometryRow(3, &HD1CylEdit, &HD1HdsEdit, &HD1SecEdit);
     y += dy;
 
     // boot drive selection
-    new uiStaticLabel(mainFrame, "Boot Drive", Point(x, y + oy));
-    bootDriveComboBox = new uiComboBox(mainFrame, Point(60, y), Size(60, hh), 50);
-    bootDriveComboBox->items().append("Floppy 0");
-    bootDriveComboBox->items().append("Floppy 1");
-    bootDriveComboBox->items().append("HDD 0");
-    bootDriveComboBox->items().append("HDD 1");
+    new uiStaticLabel(mainFrame, "Boot from", Point(lx, y + oy));
+    bootDriveComboBox = new uiComboBox(mainFrame, Point(ex, y), Size(130, hh), 96);
+    bootDriveComboBox->items().append("Floppy A");
+    bootDriveComboBox->items().append("Floppy B");
+    bootDriveComboBox->items().append("Hard Disk C");
+    bootDriveComboBox->items().append("Hard Disk D");
     bootDriveComboBox->selectItem(item->bootDrive);
+    new uiStaticLabel(mainFrame, "Leave geometry 0 to detect it", Point(ex + 140, y + oy + 2), true, Style::LabelDim);
 
-    // bottom buttons
-
-    y = mainFrame->clientSize().height - 8;
-
-    // Save Button
-    saveButton = new uiButton(mainFrame, "Save", Point(mainFrame->clientSize().width - 75, y), Size(70, hh));
-    saveButton->onClick = [&]() {
-      saveAndQuit();
-    };
-
-    // Cancel Button
-    cancelButton = new uiButton(mainFrame, "Cancel", Point(mainFrame->clientSize().width - 155, y), Size(70, hh));
-    cancelButton->onClick = [&]() {
-      justQuit();
-    };
+    // bottom buttons, in the dialog footer
+    constexpr int footerH = 44;
+    auto footer = new uiPanel(mainFrame, Point(cx - 1, cy + mainFrame->clientSize().height - footerH), Size(cw + 2, footerH), true, Style::DialogFooter);
+    const int by = (footerH - 28) / 2;
 
     // Create Disk Image Button
-    createImageButton = new uiButton(mainFrame, "Create Disk", Point(10, y), Size(90, hh));
+    createImageButton = new uiButton(footer, "Create Disk Image", Point(10, by), Size(130, 28));
     createImageButton->onClick = [&]() {
       createDiskImage();
     };
 
+    // Cancel Button
+    cancelButton = new uiButton(footer, "Cancel", Point(footer->size().width - 170, by), Size(76, 28));
+    cancelButton->onClick = [&]() {
+      justQuit();
+    };
+
+    // Save Button
+    saveButton = new uiButton(footer, "Save", Point(footer->size().width - 86, by), Size(76, 28), uiButtonKind::Button, true, Style::ButtonAccent);
+    saveButton->onClick = [&]() {
+      saveAndQuit();
+    };
+
     setActiveWindow(mainFrame);
+    setFocusedWindow(descEdit);
   }
 
 
@@ -532,9 +538,21 @@ void delConfigDialog(InputBox * ibox, MachineConf * mconf, int idx)
 
 void drawInfo(Canvas * canvas)
 {
-  canvas->setPenColor(RGB888(0, 255, 0));
-  canvas->drawText(120, 5, "E S P 3 2   P C   E M U L A T O R");
-  canvas->drawText(93, 25, "www.fabgl.com - by Fabrizio Di Vittorio");
+  using Ink = fabgl::uiThemeInk;
+  const int W = canvas->getWidth();
+  canvas->setGlyphOptions(GlyphOptions().FillBackground(false).Bold(false).Italic(false).Underline(false).Invert(0));
+  // title
+  canvas->setPenColor(theme.ink(Ink::White));
+  canvas->drawText(fabgl::uiDarkTheme::bigFont(), 12, 8, "PC Emulator");
+  canvas->setPenColor(theme.ink(Ink::Accent));
+  canvas->drawText(fabgl::uiDarkTheme::normalFont(), 150, 16, "8086");
+  // credits
+  canvas->setPenColor(theme.ink(Ink::TextDim));
+  constexpr char const * Credits = "www.fabgl.com - Fabrizio Di Vittorio";
+  canvas->drawText(fabgl::uiDarkTheme::smallFont(), W - canvas->textExtent(fabgl::uiDarkTheme::smallFont(), Credits) - 12, 18, Credits);
+  // line below
+  canvas->setPenColor(theme.ink(Ink::Accent));
+  canvas->drawLine(12, 44, W - 13, 44);
 }
 
 

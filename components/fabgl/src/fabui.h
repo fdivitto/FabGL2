@@ -400,6 +400,7 @@ struct uiWindowStyle {
   RGB888        focusedBorderColor = RGB888(0, 0, 255);                       /**< Border color when focused */
   uint8_t       borderSize         = 3;                                       /**< Border size in pixels. This determines also the resize grips area. */
   uint8_t       focusedBorderSize  = 1;                                       /**< Border size when focused */
+  uint8_t       cornerRadius       = 0;                                       /**< Radius of the rounded corners in pixels (0 = square corners). The area outside the corners takes the background of the nearest frame or panel ancestor (uiWindow::parentBackgroundColor()). The corners are drawn for borders of 0 or 1 pixel */
 
   void adaptToDisplayColors(int displayColors) {
     if (displayColors < 4) {
@@ -699,6 +700,17 @@ public:
    */
   void setParentProcessKbdEvents(bool value) { m_parentProcessKbdEvents = value; }
 
+  /**
+   * @brief Determines the background color behind this window
+   *
+   * This is the background color of the nearest ancestor that is a frame (uiFrame) or a panel (uiPanel).
+   * It is used to paint the area outside the rounded corners (uiWindowStyle.cornerRadius) and can be used by
+   * styles to give controls the background of their container.
+   *
+   * @return The background color of the nearest frame or panel ancestor, black if there isn't any
+   */
+  RGB888 parentBackgroundColor();
+
 
 protected:
 
@@ -719,9 +731,12 @@ protected:
 
   bool isFocusable();
 
+  virtual RGB888 currentBorderColor();
+
 private:
 
   void paintWindow();
+  void paintCorners(Rect const & paintRect);
 
   uiWindow * findChildWithFocusIndex(int focusIndex, int * maxIndex);
 
@@ -774,6 +789,10 @@ struct uiFrameStyle {
   RGB888              activeButtonColor              = RGB888(255, 255, 255);  /**< Color used to draw Close, Maximize and Minimize buttons when active */
   RGB888              mouseOverBackgroundButtonColor = RGB888(0, 0, 255);      /**< Background color of the Close, Maximize and Minimize buttons when the mouse is over them */
   RGB888              mouseOverButtonColor           = RGB888(255, 255, 255);  /**< Pen color of the Close, Maximize and Minimize buttons when the mouse is over them */
+  RGB888              titleSeparatorColor            = RGB888(128, 128, 128);  /**< Color of the line below the title bar (see titleSeparatorSize) */
+  RGB888              activeTitleSeparatorColor      = RGB888(128, 128, 255);  /**< Color of the line below the title bar when active */
+  uint8_t             titleSeparatorSize             = 0;                      /**< Height of the line below the title bar, in pixels (0 = no line). It increases the title bar height */
+  RGB888              sizeGripColor                  = RGB888(128, 128, 128);  /**< Color of the size grip (see uiFrameProps.hasSizeGrip) */
 
   void adaptToDisplayColors(int displayColors) {
     if (displayColors < 4) {
@@ -805,6 +824,7 @@ struct uiFrameProps {
   uint8_t hasMaximizeButton : 1; /**< Frame has maximize button. Make sure the window has a title bar setting window title */
   uint8_t hasMinimizeButton : 1; /**< Frame has minimize button. Make sure the window has a title bar setting window title */
   uint8_t fillBackground    : 1; /**< Frame has filled background */
+  uint8_t hasSizeGrip       : 1; /**< Frame shows a size grip (diagonal lines) in the bottom-right corner when it is resizable (color from uiFrameStyle.sizeGripColor) */
 
   uiFrameProps() :
     resizeable(true),
@@ -812,7 +832,8 @@ struct uiFrameProps {
     hasCloseButton(true),
     hasMaximizeButton(true),
     hasMinimizeButton(true),
-    fillBackground(true)
+    fillBackground(true),
+    hasSizeGrip(false)
   { }
 };
 
@@ -2483,6 +2504,31 @@ public:
   uiComboBoxProps & comboBoxProps() { return m_comboBoxProps; }
 
   /**
+   * @brief Gets the list control of the drop-down
+   *
+   * Useful to style the list (border, scroll bars) from a uiStyle.
+   *
+   * @return The list box (uiListBox, uiColorListBox or uiSimpleMenu)
+   */
+  uiCustomListBox * listBoxControl() { return listbox(); }
+
+  /**
+   * @brief Gets the edit control (left side)
+   *
+   * Useful to style it from a uiStyle.
+   *
+   * @return The edit control (uiTextEdit for uiComboBox, uiColorBox for uiColorComboBox, uiButton for uiSplitButton)
+   */
+  uiControl * editControl() { return editcontrol(); }
+
+  /**
+   * @brief Gets the window that contains the drop-down list
+   *
+   * @return The drop-down window (child of the root window)
+   */
+  uiWindow * dropDownWindow() { return m_listBoxParent; }
+
+  /**
    * @brief Represents currently selected item
    *
    * @return Index of the selected item or -1 if no item is selected
@@ -2691,6 +2737,9 @@ struct uiCheckBoxStyle {
   RGB888              mouseOverBackgroundColor = RGB888(128, 128, 255);  /**< Background color when mouse is over */
   RGB888              mouseOverForegroundColor = RGB888(0, 0, 0);        /**< Foreground color when mouse is over */
   RGB888              foregroundColor          = RGB888(0, 0, 0);        /**< Foreground color */
+  RGB888              mouseOverCheckedBackgroundColor = RGB888(128, 128, 255);  /**< Background color when checked and mouse is over (only with filledWhenChecked) */
+  bool                filledWhenChecked        = false;                  /**< When checked, the whole box (border included) takes checkedBackgroundColor (use it with a contrasting foregroundColor) */
+  bool                boldMark                 = false;                  /**< Thicker check mark (2 pixels) and bigger radio button dot */
 
   void adaptToDisplayColors(int displayColors) {
     if (displayColors < 4) {
@@ -2775,6 +2824,13 @@ public:
    */
   void setGroupIndex(int value)     { m_groupIndex = value; }
 
+  /**
+   * @brief Determines the kind of this control (checkbox or radio button)
+   *
+   * @return The kind specified at construction
+   */
+  uiCheckBoxKind kind()             { return m_kind; }
+
 
   // Delegates
 
@@ -2792,6 +2848,10 @@ public:
    */
   Delegate<> onClick;
 
+
+protected:
+
+  RGB888 currentBorderColor();
 
 private:
 
@@ -4258,6 +4318,15 @@ struct uiStyle {
    * @param styleClassID Style class ID specified when the element was created
    */
   virtual void setStyle(uiObject * object, uint32_t styleClassID) = 0;
+
+  /**
+   * @brief When true setStyle() is called also for the UI elements created without a style class (styleClassID = 0)
+   *
+   * This lets a style theme the whole interface by object type, controls created by the library included
+   * (combo box parts, file browser...). setStyle() is called by each constructor of the class hierarchy: while the
+   * base constructors run, objectType() has only the bits of the classes already constructed, the last call has all of them.
+   */
+  bool applyToUnstyled = false;
 };
 
 

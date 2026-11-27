@@ -55,6 +55,10 @@ static inline int randomInt(int min, int max) { return max > min ? min + (int) (
 fabgl::VGA16Controller DisplayController;
 fabgl::PS2Controller   PS2Controller;
 
+// dark theme of the library without setupPalette(): the palette keeps the 16 standard colors for the color test,
+// the theme colors are approximated by the display (the green accent becomes bright green)
+fabgl::uiDarkTheme     theme(fabgl::uiThemeAccent::Green);
+
 
 #define MCP_INT 36
 
@@ -92,10 +96,13 @@ struct TestApp : public uiApp {
 
   void init() {
 
-    rootWindow()->frameStyle().backgroundColor = Color::Cyan;
+    // the theme styles every window and control, message boxes included
+    theme.apply(this);
+
     frame = new uiFrame(rootWindow(), "Hardware test", UIWINDOW_PARENTCENTER, Size(555, 380));
 
-    int y = 20;
+    constexpr int x = 125;   // controls column (labels on the left)
+    int y = frame->clientPos().Y + 4;
 
     // colors
     static const char * COLORSL[8] = { "Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White" };
@@ -104,9 +111,9 @@ struct TestApp : public uiApp {
       int left = 60;
       int hspc = 60;
       int vspc = 30;
-      new uiStaticLabel(frame, COLORSL[i], Point(left + i * hspc, y));
+      new uiStaticLabel(frame, COLORSL[i], Point(left + i * hspc, y), true, fabgl::uiThemeStyle::LabelDim);
       new uiColorBox(frame, Point(left + i * hspc, y + 15), Size(50, 14), (Color)i);
-      new uiStaticLabel(frame, COLORSH[i], Point(left + i * hspc, y + vspc));
+      new uiStaticLabel(frame, COLORSH[i], Point(left + i * hspc, y + vspc), true, fabgl::uiThemeStyle::LabelDim);
       new uiColorBox(frame, Point(left + i * hspc, y + 15 + vspc), Size(50, 14), (Color)(i+ 8));
     }
 
@@ -114,14 +121,14 @@ struct TestApp : public uiApp {
 
     // keyboard test
     new uiStaticLabel(frame, "KEYBOARD TEST:", Point(10, y));
-    new uiTextEdit(frame, "Please type something", Point(110, y - 3), Size(435, 20));
+    new uiTextEdit(frame, "Please type something", Point(x, y - 3), Size(420, 22));
 
     y += 40;
 
     // sound test
     soundGenerator = new SoundGenerator;
     new uiStaticLabel(frame, "SOUND TEST:", Point(10, y));
-    soundButton = new uiButton(frame, "Start", Point(110, y - 3), Size(80, 20), uiButtonKind::Switch);
+    soundButton = new uiButton(frame, "Start", Point(x, y - 3), Size(80, 22), uiButtonKind::Switch);
     soundButton->onChange = [&]() {
       if (soundButton->down()) {
         soundButton->setText("Stop");
@@ -136,11 +143,11 @@ struct TestApp : public uiApp {
 
     // SD Card test
     new uiStaticLabel(frame, "SDCARD TEST:", Point(10, y));
-    sdButton = new uiButton(frame, "Start", Point(110, y - 3), Size(80, 20));
+    sdButton = new uiButton(frame, "Start", Point(x, y - 3), Size(80, 22));
     sdButton->onClick = [&]() {
       testSD();
     };
-    sdResultLabel = new uiStaticLabel(frame, "", Point(210, y));
+    sdResultLabel = new uiStaticLabel(frame, "", Point(x + 100, y));
 
     y += 44;
 
@@ -149,8 +156,8 @@ struct TestApp : public uiApp {
     static const int GPIOS_OUT[] = { 0, 1, 2, 3, 12, 13, 14, 16, 17, 18 };
     new uiStaticLabel(frame, "GPIO TEST:", Point(10, y));
 
-    new uiStaticLabel(frame, "In", Point(110, y - 18));
-    gpioInComboBox = new uiComboBox(frame, Point(110, y - 3), Size(34, 22), 60);
+    new uiStaticLabel(frame, "In", Point(x, y - 20), true, fabgl::uiThemeStyle::LabelDim);
+    gpioInComboBox = new uiComboBox(frame, Point(x, y - 3), Size(38, 22), 80);
     for (int i = 0; i < sizeof(GPIOS_IN) / sizeof(int); ++i)
       gpioInComboBox->items().appendFmt("%d", GPIOS_IN[i]);
     gpioInComboBox->onChange = [&]() {
@@ -160,12 +167,12 @@ struct TestApp : public uiApp {
     gpioIn = GPIOS_IN[10];
     fabgl::configureGPIO((gpio_num_t)(gpioIn), GPIO_MODE_INPUT);
     gpioInComboBox->selectItem(10);
-    new uiStaticLabel(frame, "State", Point(152, y - 18));
-    gpioInState = new uiButton(frame, "", Point(152, y - 3), Size(25, 22), uiButtonKind::Switch);
+    new uiStaticLabel(frame, "State", Point(x + 46, y - 20), true, fabgl::uiThemeStyle::LabelDim);
+    gpioInState = new uiButton(frame, "", Point(x + 46, y - 3), Size(25, 22), uiButtonKind::Switch);
     gpioInPrevState = 0;
 
-    new uiStaticLabel(frame, "Out", Point(220, y - 18));
-    gpioOutComboBox = new uiComboBox(frame, Point(220, y - 3), Size(34, 22), 60);
+    new uiStaticLabel(frame, "Out", Point(x + 110, y - 20), true, fabgl::uiThemeStyle::LabelDim);
+    gpioOutComboBox = new uiComboBox(frame, Point(x + 110, y - 3), Size(38, 22), 80);
     for (int i = 0; i < sizeof(GPIOS_OUT) / sizeof(int); ++i)
       gpioOutComboBox->items().appendFmt("%d", GPIOS_OUT[i]);
     gpioOutComboBox->onChange = [&]() {
@@ -176,8 +183,8 @@ struct TestApp : public uiApp {
     gpioOut = GPIOS_OUT[2];
     fabgl::configureGPIO((gpio_num_t)(gpioOut), GPIO_MODE_OUTPUT);
     gpioOutComboBox->selectItem(2);
-    new uiStaticLabel(frame, "State", Point(262, y - 18));
-    gpioOutState = new uiButton(frame, "", Point(262, y - 3), Size(25, 22), uiButtonKind::Switch);
+    new uiStaticLabel(frame, "State", Point(x + 156, y - 20), true, fabgl::uiThemeStyle::LabelDim);
+    gpioOutState = new uiButton(frame, "", Point(x + 156, y - 3), Size(25, 22), uiButtonKind::Switch);
     gpioOutState->setDown(false);
     gpioOutState->onChange = [&]() {
       updateGPIOOutState();
@@ -193,12 +200,13 @@ struct TestApp : public uiApp {
 
     if (initMCP()) {
       new uiStaticLabel(frame, "EXT GPIO TEST:", Point(10, y));
-      new uiStaticLabel(frame, "Outputs", Point(110, y - 13));
-      new uiStaticLabel(frame, "Inputs", Point(355, y - 13));
+      new uiStaticLabel(frame, "Outputs", Point(x, y - 12), true, fabgl::uiThemeStyle::LabelDim);
+      new uiStaticLabel(frame, "Inputs", Point(x + 11 * 22, y - 12), true, fabgl::uiThemeStyle::LabelDim);
       constexpr int w = 20;
       constexpr int h = 22;
       for (int i = 0; i < 16; ++i) {
-        extgpioLabel[i] = new uiLabel(frame, "", Point(110 + i * (w + 2), y + 3), Size(w, h));
+        extgpioLabel[i] = new uiLabel(frame, "", Point(x + i * (w + 2), y + 3), Size(w, h), true, fabgl::uiThemeStyle::LabelDim);
+        extgpioLabel[i]->labelStyle().textColor = theme.ink(fabgl::uiThemeInk::Black);
         extgpioLabel[i]->labelStyle().textAlign = uiHAlign::Center;
         extgpioLabel[i]->setTextFmt("%c%d", i < 8 ? 'A' : 'B', i & 7);
         if (i >= MCP_B3) {
@@ -219,14 +227,15 @@ struct TestApp : public uiApp {
       }
 
       // MCP_INT pin
-      extIntLabel = new uiLabel(frame, "INT", Point(462, y + 3), Size(25, h));
+      extIntLabel = new uiLabel(frame, "INT", Point(x + 16 * (w + 2), y + 3), Size(25, h), true, fabgl::uiThemeStyle::LabelDim);
+      extIntLabel->labelStyle().textColor = theme.ink(fabgl::uiThemeInk::Black);
       extIntLabel->labelStyle().textAlign = uiHAlign::Center;
       extIntLabel->labelStyle().backgroundColor = RGB888(64, 64, 0);
       mcp.enableINTMirroring(true); // INTA = INTB
       fabgl::configureGPIO((gpio_num_t)(MCP_INT), GPIO_MODE_INPUT);
 
       // play button
-      extgpioPlay = new uiButton(frame, "Play", Point(500, y + 3), Size(42, 22));
+      extgpioPlay = new uiButton(frame, "Play", Point(x + 16 * (w + 2) + 31, y + 3), Size(42, 22));
       extgpioPlay->onClick = [&]() { playExtGPIOS(); };
 
       y += 50;
@@ -235,11 +244,11 @@ struct TestApp : public uiApp {
 
     // wifi
     new uiStaticLabel(frame, "WIFI TEST:", Point(10, y));
-    wifiButton = new uiButton(frame, "Start", Point(110, y - 3), Size(80, 20));
+    wifiButton = new uiButton(frame, "Start", Point(x, y - 3), Size(80, 22));
     wifiButton->onClick = [&]() {
       testWifi();
     };
-    wifiResultLabel = new uiLabel(frame, "", Point(200, y));
+    wifiResultLabel = new uiLabel(frame, "", Point(x + 100, y));
 
 
     // timer
@@ -255,9 +264,9 @@ struct TestApp : public uiApp {
     };
 
 
-    y = frame->size().height - 40;
-    new uiStaticLabel(frame, "FabGL - Copyright 2019-2026 by Fabrizio Di Vittorio", Point(175, y));
-    new uiStaticLabel(frame, "WWW.FABGL.COM", Point(260, y + 17));
+    y = frame->size().height - 36;
+    new uiStaticLabel(frame, "FabGL - Copyright 2019-2026 by Fabrizio Di Vittorio", Point(175, y), true, fabgl::uiThemeStyle::LabelDim);
+    new uiStaticLabel(frame, "WWW.FABGL.COM", Point(240, y + 15), true, fabgl::uiThemeStyle::LabelDim);
 
   }
 

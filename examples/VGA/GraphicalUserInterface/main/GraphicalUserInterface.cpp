@@ -35,6 +35,7 @@ static inline int randomInt(int min, int max) { return max > min ? min + (int) (
 
 #include "fabui.h"
 
+#include "Theme.h"
 #include "App.h"
 
 
@@ -50,6 +51,7 @@ void setup()
 
   DisplayController.begin();
   DisplayController.setResolution(VGA_640x480_60Hz);
+  theme.setupPalette(&DisplayController);   // theme colors (see Theme.h)
 }
 
 

@@ -23,6 +23,8 @@ The GPIO lists contain only the pins not used by VGA, PS/2 and audio (inputs: 0,
 - A complete `uiApp` with frame, labels, color boxes, text edit, buttons, switch buttons, combo boxes and timers
 - `fabgl::SoundGenerator`, `fabgl::FileBrowser` (SD card mount), `fabgl::WiFiScanner`, `fabgl::MCP23S17`
 - Reducing `DisplayController.queueSize` to leave enough RAM for both WiFi and the SD card file system
+- The dark theme of the library (`fabgl::uiDarkTheme`, green accent) without `setupPalette()`: the palette keeps the
+  16 standard colors shown by the color test and the theme colors are approximated by the display
 
 ## Hardware
 

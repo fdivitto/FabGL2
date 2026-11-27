@@ -23,7 +23,7 @@ You can support the development by purchasing the [ESP32-SBC-FabGL](https://www.
 - **Graphics**: lines, rectangles, ellipses, paths, bitmaps, fixed and variable-width fonts, scrolling, double buffering and an unlimited number of sprites with collision detection
 - **Input**: PS/2 keyboard (with international layouts) and PS/2 mouse, handled by the ULP coprocessor
 - **Audio**: multi-channel sound engine with sine, square, triangle, sawtooth and noise generators and sampled sounds, mixed to a mono output through the DAC or sigma-delta modulation, plus a polyphonic synthesizer (ADSR envelope and resonant low-pass filter per voice)
-- **Graphical user interface**: overlapping windows, mouse support and a rich set of controls (buttons, text edits, check boxes, combo boxes, list boxes, sliders, progress bars, knobs, toggle switches, level and led bars, graphs, an on-screen piano keyboard, etc.), plus ready-made InputBox dialogs
+- **Graphical user interface**: overlapping windows, mouse support and a rich set of controls (buttons, text edits, check boxes, combo boxes, list boxes, sliders, progress bars, knobs, toggle switches, level and led bars, graphs, an on-screen piano keyboard, etc.), plus ready-made InputBox dialogs and a dark theme (`uiDarkTheme`)
 - **Terminal**: ANSI/VT100 compatible terminal with VT52, ADM-3A, ADM-31, Hazeltine 1500, Osborne I and Kaypro emulations, plus FabGL-specific sequences for graphics, sound and GPIO
 - **Emulation**: Intel 8080, Zilog Z80, MOS 6502 and Intel 8086 CPU cores and several peripheral chips, used by the Altair 8800, VIC-20 and IBM PC examples
 - **Utilities**: serial port, UART stream, I2C, DS3231 real-time clock, MCP23S17 GPIO expander, file browser (SPIFFS and SD card), NVS preferences, WiFi, HTTP, TCP and ICMP helpers
@@ -164,15 +164,15 @@ how to use it (commands, keys, disk images...):
 |---|---|
 | [Altair8800](examples/VGA/Altair8800) | Altair 8800 emulator (i8080/Z80) running CP/M 1.4, 2.2, 3, Altair BASIC and DOS from the included disk images |
 | [AnsiTerminal](examples/VGA/AnsiTerminal) | Serial VT/ANSI terminal with on-screen configuration (emulations, fonts, resolutions, serial parameters) |
-| [Audio](examples/VGA/Audio) | Multi-channel sound mixer GUI: waveform generators and sampled sounds |
+| [Audio](examples/VGA/Audio) | Multi-channel sound mixer GUI (dark theme): waveform generators and sampled sounds |
 | [ClassicRacer](examples/VGA/ClassicRacer) | Two-player retro racing game (keyboard, mouse or joystick) |
 | [CollisionDetection](examples/VGA/CollisionDetection) | Sprites and pixel-precise collision detection with `Scene` |
 | [DirectVGA](examples/VGA/DirectVGA) | Minimal direct scanline rendering with `VGADirectController` |
 | [DirectVGA_ElMuro](examples/VGA/DirectVGA_ElMuro) | Brick-breaker game rendered line by line with `VGADirectController` |
 | [DoubleBuffer](examples/VGA/DoubleBuffer) | Double-buffered animation benchmark (balls, polygons, sprites, FPS) |
-| [FileBrowser](examples/VGA/FileBrowser) | File manager for SPIFFS and SD card, with WiFi setup and HTTP/HTTPS downloads |
-| [GraphicalUserInterface](examples/VGA/GraphicalUserInterface) | Tour of the GUI: windows, controls, modal dialogs, message boxes, timers |
-| [HardwareTest](examples/VGA/HardwareTest) | Board test: colors, keyboard, sound, SD card, GPIOs, MCP23S17, WiFi |
+| [FileBrowser](examples/VGA/FileBrowser) | File manager for SPIFFS and SD card (dark theme), with WiFi setup and HTTP/HTTPS downloads |
+| [GraphicalUserInterface](examples/VGA/GraphicalUserInterface) | Tour of the GUI with a modern dark flat theme: windows, all the controls (knobs, switches, graph, piano...), dialogs, timers |
+| [HardwareTest](examples/VGA/HardwareTest) | Board test (dark theme): colors, keyboard, sound, SD card, GPIOs, MCP23S17, WiFi |
 | [InputBox](examples/VGA/InputBox) | Ready-made dialogs: messages, menus, text input, progress bars, file selector, WiFi wizard |
 | [LoopbackTerminal](examples/VGA/LoopbackTerminal) | Terminal connected to itself, to try the escape sequences from the keyboard |
 | [ModelineStudio](examples/VGA/ModelineStudio) | Find and tune VGA modelines from the serial console |

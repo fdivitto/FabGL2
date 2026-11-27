@@ -190,6 +190,10 @@ void newConfigDialog(InputBox * ibox, MachineConf * mconf, int idx);
 
 void delConfigDialog(InputBox * ibox, MachineConf * mconf, int idx);
 
+// theme of the user interface (launcher, dialogs, configuration editor), defined in PCEmulator.cpp
+extern fabgl::uiDarkTheme theme;
+
+// header of the screens (title, line below)
 void drawInfo(Canvas * canvas);
  
 bool createFATFloppyImage(InputBox * ibox, int diskType, char const * directory, char const * filename);

@@ -19,8 +19,8 @@ Watch it on [YouTube](https://www.youtube.com/watch?v=3I1U2nEoxIQ).
 2. If the date and time are not known yet (cold boot) the emulator asks to configure the WiFi: choose a network and
    type the password. The time is taken from an NTP server (`pool.ntp.org`) and the board restarts.
    Without WiFi the date is set to 14 August 1984.
-3. The **Machine Configurations** list appears. Choose a machine and press **Run** (if you do nothing, the last
-   used machine starts after 6 seconds).
+3. The **launcher** appears. Choose a machine and press **Run** (if you do nothing, the last used machine starts
+   after 6 seconds).
 4. If the disk images of the machine are not on the SD card yet, they are downloaded from www.fabglib.org (a
    progress bar shows the progress; big images take some minutes, dropped connections are resumed
    automatically). An image is downloaded as `<name>.part` and renamed only when complete: a download that
@@ -48,26 +48,40 @@ Watch it on [YouTube](https://www.youtube.com/watch?v=3I1U2nEoxIQ).
 All the images are downloaded from the `downloads` folder of www.fabglib.org into the root of the SD card.
 You can also download them with a PC and copy them to the SD card.
 
-## Machine Configurations screen
+## Launcher
 
-| Button | Action |
-|---|---|
-| **Run** | Starts the selected machine |
-| **Files** | Browses the files and directories on the SD card |
-| **Machine** > **Edit** | Edits the selected configuration |
-| **Machine** > **New** | Creates a new configuration |
-| **Machine** > **Remove** | Removes the selected configuration |
+The start screen (dark theme of the library, `fabgl::uiDarkTheme`, at 512x384 with 16 colors) lists the machine
+configurations on the left. Each one shows the boot drive (floppy or hard disk icon) and the state of its disk
+images: **Ready** (all on the SD card), **Download needed**, **Download incomplete** (a `.part` file is resumed) or
+**Disk image missing** (a local file that is not on the SD card). On the right the details of the selected machine:
+boot drive and, for each drive, the image, where it is (size on the SD card, or downloaded at start) and the hard disk
+geometry.
+
+The selected machine starts by itself after 6 seconds when the board is switched on: a key or the mouse stops the
+countdown.
+
+| Button | Key | Action |
+|---|---|---|
+| **Run** | `Enter`, double click | Starts the selected machine (downloading its missing disk images) |
+| **Edit** | `F2` | Edits the selected configuration |
+| **New** | `Ins` | Creates a new configuration |
+| **Remove** | `Del` | Removes the selected configuration |
+| **Files** | `F3` | Browses the files and directories on the SD card |
+| **WiFi** | `F4` | Selects the WiFi network and saves its password (used when an image must be downloaded) |
 
 The configuration editor has these fields:
 
 | Field | Meaning |
 |---|---|
 | Description | Name shown in the list |
-| Floppy 0 / Floppy 1 | Image of drive A: / B: (a file on the SD card, or an HTTP / HTTPS URL to download it) |
-| HDD 0 / HDD 1 | Image of the first / second hard disk (C: / D:), with its geometry (Cylinders, Heads, Sectors; leave 0 to compute it from the file size) |
-| Boot Drive | Floppy 0, Floppy 1, HDD 0 or HDD 1 |
+| Floppy A / Floppy B | Image of drive A: / B: (a file on the SD card, or an HTTP / HTTPS URL to download it) |
+| Hard Disk C / Hard Disk D | Image of the first / second hard disk, with its geometry (Cylinders, Heads, Sectors; leave 0 to compute it from the file size) |
+| Boot from | Floppy A, Floppy B, Hard Disk C or Hard Disk D |
 | **...** | Selects an image file from the SD card |
-| **Create Disk** | Creates a new empty disk image: formatted floppy (320K, 360K, 720K, 1.2M, 1.44M, 2.88M, FAT12) or unformatted hard disk of the given size in MB (partition and format it from DOS with `FDISK` and `FORMAT`) |
+| **Create Disk Image** | Creates a new empty disk image: formatted floppy (320K, 360K, 720K, 1.2M, 1.44M, 2.88M, FAT12) or unformatted hard disk of the given size in MB (partition and format it from DOS with `FDISK` and `FORMAT`) |
+
+`Enter` saves, `Esc` cancels. All the dialogs (WiFi, downloads, file browser, messages) use the same theme
+(`InputBox::onInitApp`).
 
 The configurations are saved in `mconfs.txt` in the root of the SD card. It is a text file, one machine per line,
 that can also be edited on a PC:

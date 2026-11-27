@@ -74,6 +74,34 @@ Preferences   preferences;
 InputBox      ibox;
 Machine     * machine;
 
+// theme of the user interface (launcher, dialogs, configuration editor)
+fabgl::uiDarkTheme theme(fabgl::uiThemeAccent::Orange);
+
+
+// user interface resolution. 16 colors need 96 KB of RAM for the frame buffer. The menu shown while the emulator
+// runs (SYSREQ) uses 4 colors: the machine needs the memory
+#define UI_WIDTH      512
+#define UI_HEIGHT     384
+#define UI_COLORS     16
+#define SYSREQ_WIDTH  500
+#define SYSREQ_HEIGHT 400
+#define SYSREQ_COLORS 4
+
+
+#include "launcher.h"
+
+
+// starts the display used by the user interface and sets the theme palette
+static void beginUI(int width, int height, int colors)
+{
+  ibox.begin(VGA_640x480_60Hz, width, height, colors);
+  if (colors == 16)
+    theme.setupPalette(static_cast<fabgl::VGA16Controller *>(ibox.getDisplayController()));
+  else
+    theme.setupPalette(static_cast<fabgl::VGA4Controller *>(ibox.getDisplayController()));
+  ibox.setBackgroundColor(theme.ink(fabgl::uiThemeInk::Desktop));
+}
+
 
 // noinit! Used to maintain datetime between reboots
 __NOINIT_ATTR static timeval savedTimeValue;
@@ -112,63 +140,60 @@ bool tryToConnect()
 }
 
 
+// scans the WiFi networks, asks to select one and its password, then connects. Repeats until connected or canceled
+bool configureWiFi()
+{
+  bool connected = false;
+  do {
+
+    // scan for networks showing a progress dialog box
+    int networksCount = 0;
+    fabgl::WiFiScanner scanner;
+    ibox.progressBox("", nullptr, false, 200, [&](fabgl::ProgressForm * form) {
+      form->update(0, "Scanning WiFi networks...");
+      if (scanner.scan(16))
+        networksCount = scanner.count();
+    });
+
+    // there is no WiFi
+    if (networksCount == 0) {
+      ibox.message("WiFi Configuration", "No WiFi network found!");
+      break;
+    }
+
+    // show a selectable list
+    StringList list;
+    for (int i = 0; i < networksCount; ++i)
+      list.appendFmt("%s (%d dBm)", (char const *) scanner.get(i)->ssid, scanner.get(i)->rssi);
+    int s = ibox.menu("WiFi Configuration", "Please select a WiFi network", &list);
+    if (s < 0)
+      break;
+
+    // ask for WiFi password
+    char psw[32] = "";
+    if (ibox.textInput("WiFi Configuration", "Insert WiFi password", psw, 31, "Cancel", "OK", true) != InputResult::Enter)
+      break;
+
+    // connect to WiFi...
+    preferences.putString("SSID", (char const *) scanner.get(s)->ssid);
+    preferences.putString("WiFiPsw", psw);
+    connected = tryToConnect();
+    // show to user the connection state
+    if (connected)
+      ibox.message("WiFi Configuration", "Connection succeeded!");
+
+  } while (!connected);
+
+  return connected;
+}
+
+
 bool checkWiFi()
 {
   wifiConnected = tryToConnect();
-  if (!wifiConnected) {
-
-    // configure WiFi?
-    if (ibox.message("WiFi Configuration", "Configure WiFi?", "No", "Yes") == InputResult::Enter) {
-
-      // repeat until connected or until user cancels
-      do {
-
-        // yes, scan for networks showing a progress dialog box
-        int networksCount = 0;
-        fabgl::WiFiScanner scanner;
-        ibox.progressBox("", nullptr, false, 200, [&](fabgl::ProgressForm * form) {
-          form->update(0, "Scanning WiFi networks...");
-          if (scanner.scan(16))
-            networksCount = scanner.count();
-        });
-
-        // are there available WiFi?
-        if (networksCount > 0) {
-
-          // yes, show a selectable list
-          StringList list;
-          for (int i = 0; i < networksCount; ++i)
-            list.appendFmt("%s (%d dBm)", (char const *) scanner.get(i)->ssid, scanner.get(i)->rssi);
-          int s = ibox.menu("WiFi Configuration", "Please select a WiFi network", &list);
-
-          // user selected something?
-          if (s > -1) {
-            // yes, ask for WiFi password
-            char psw[32] = "";
-            if (ibox.textInput("WiFi Configuration", "Insert WiFi password", psw, 31, "Cancel", "OK", true) == InputResult::Enter) {
-              // user pressed OK, connect to WiFi...
-              preferences.putString("SSID", (char const *) scanner.get(s)->ssid);
-              preferences.putString("WiFiPsw", psw);
-              wifiConnected = tryToConnect();
-              // show to user the connection state
-              if (wifiConnected)
-                ibox.message("", "Connection succeeded!");
-            } else
-              break;
-          } else
-            break;
-        } else {
-          // there is no WiFi
-          ibox.message("", "No WiFi network found!");
-          break;
-        }
-
-      } while (!wifiConnected);
-
-    }
-
-  }
-
+  // configure WiFi?
+  if (!wifiConnected && ibox.message("WiFi Configuration", "Configure WiFi?", "No", "Yes") == InputResult::Enter)
+    wifiConnected = configureWiFi();
   return wifiConnected;
 }
 
@@ -439,6 +464,7 @@ bool downloadURL(char const * URL, FILE * file, char const * * errorMsg)
 
   vSemaphoreDelete(job.done);
   *errorMsg = job.error;
+  ESP_LOGI("download", "%s, minimum free heap %d bytes", downloadOK ? "completed" : "failed", (int) heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
   return downloadOK;
 }
 
@@ -497,7 +523,7 @@ char const * getDisk(char const * url)
 void sysReqCallback()
 {
   machine->graphicsAdapter()->enableVideo(false);
-  ibox.begin(VGA_640x480_60Hz, 500, 400, 4);
+  beginUI(SYSREQ_WIDTH, SYSREQ_HEIGHT, SYSREQ_COLORS);
 
   int s = ibox.menu("", "Select a command", "Restart Emulator;Restart Machine;Mount Disk;Continue");
   switch (s) {
@@ -554,10 +580,11 @@ void setup()
   // save some space reducing UI queue
   fabgl::BitmappedDisplayController::queueSize = 128;
 
-  ibox.begin(VGA_640x480_60Hz, 500, 400, 4);
-  ibox.setBackgroundColor(RGB888(0, 0, 0));
+  beginUI(UI_WIDTH, UI_HEIGHT, UI_COLORS);
 
-  ibox.onPaint = [&](Canvas * canvas) { drawInfo(canvas); };
+  // every InputBox dialog gets the theme, with the header on top
+  ibox.onInitApp = [&](uiApp * app) { theme.apply(app); };
+  ibox.onPaint   = [&](Canvas * canvas) { drawInfo(canvas); };
 
   // This app requires PSRAM. PSRAM is just mapped into the address space (CONFIG_SPIRAM_USE_MEMMAP=y) at SOC_EXTRAM_DATA_LOW,
   // and it is directly accessed by the app. Compiler workaround for PSRAM bug (CONFIG_SPIRAM_CACHE_WORKAROUND)
@@ -579,58 +606,41 @@ void setup()
   // machine configurations
   MachineConf mconf;
 
-  // show a list of machine configurations
+  // the launcher: select a machine configuration, edit them, browse files, configure WiFi
+  int idx     = preferences.getInt("dconf", 0);
+  int autoRun = 6;    // seconds, only the first time
 
-  ibox.setAutoOK(6);
-  int idx = preferences.getInt("dconf", 0);
-
-  for (bool showDialog = true; showDialog; ) {
+  for (bool showLauncher = true; showLauncher; ) {
 
     loadMachineConfiguration(&mconf);
 
-    StringList dconfs;
-    for (auto conf = mconf.getFirstItem(); conf; conf = conf->next)
-      dconfs.append(conf->desc);
-    dconfs.select(idx, true);
+    LauncherApp launcher(&mconf, idx, autoRun);
+    launcher.run(ibox.getDisplayController());
+    idx     = launcher.selected;
+    autoRun = 0;
 
-    ibox.setupButton(0, "Files");
-    ibox.setupButton(1, "Machine", "Edit;New;Remove", 52);
-    auto r = ibox.select("Machine Configurations", "Please select a machine configuration", &dconfs, nullptr, "Run");
-
-    idx = dconfs.getFirstSelected();
-
-    switch (r) {
-      case InputResult::ButtonExt0:
-        // Browse Files
+    switch (launcher.action) {
+      case LauncherAction::Run:
+        showLauncher = false;
+        break;
+      case LauncherAction::Edit:
+        editConfigDialog(&ibox, &mconf, idx);
+        break;
+      case LauncherAction::New:
+        newConfigDialog(&ibox, &mconf, imax(idx, 0));
+        break;
+      case LauncherAction::Remove:
+        delConfigDialog(&ibox, &mconf, idx);
+        break;
+      case LauncherAction::Files:
         ibox.folderBrowser("Browse Files", SD_MOUNT_PATH);
         break;
-      case InputResult::ButtonExt1:
-        // Machine
-        switch (ibox.selectedSubItem()) {
-          // Edit
-          case 0:
-            editConfigDialog(&ibox, &mconf, idx);
-            break;
-          // New
-          case 1:
-            newConfigDialog(&ibox, &mconf, idx);
-            break;
-          // Remove
-          case 2:
-            delConfigDialog(&ibox, &mconf, idx);
-            break;
-        };
-        break;
-      case InputResult::Enter:
-        // Run
-        showDialog = false;
-        break;
-      default:
+      case LauncherAction::WiFi:
+        // only to save the credentials: the network is used when a disk must be downloaded
+        configureWiFi();
+        wifi.disconnect();
         break;
     }
-
-    // next selection will not have timeout
-    ibox.setAutoOK(0);
   }
 
   idx = imax(idx, 0);

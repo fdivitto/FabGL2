@@ -55,8 +55,11 @@
 Preferences preferences;
 fabgl::WiFiConnection wifi;
 
-fabgl::VGAController DisplayController;
-fabgl::PS2Controller PS2Controller;
+fabgl::VGA16Controller DisplayController;   // 16 colors: half the memory of VGAController, palette for the theme
+fabgl::PS2Controller   PS2Controller;
+
+// dark theme of the library: palette, windows and controls (uitheme.h)
+fabgl::uiDarkTheme     theme;
 
 
 class MyApp : public uiApp {
@@ -66,20 +69,29 @@ class MyApp : public uiApp {
   uiLabel *       freeSpaceLbl;
 
   void init() {
-    rootWindow()->frameStyle().backgroundColor = RGB888(0, 0, 64);
+    // the theme styles every window and control, message boxes and input boxes included
+    theme.apply(this);
 
-    auto frame = new uiFrame(rootWindow(), "FileBrowser Example", Point(15, 10), Size(375, 275));
+    auto frame = new uiFrame(rootWindow(), "FileBrowser Example", Point(4, 12), Size(392, 276));
     frame->frameProps().hasCloseButton = false;
 
+    int cx = frame->clientPos().X;
+    int cy = frame->clientPos().Y;
+
+    // buttons column on the right of the browser
+    constexpr int BtnW = 142, BtnH = 24, BtnStep = 28;
+    int bx = cx + 236;
+    int by = cy + 8;
+
     // file browser
-    fileBrowser = new uiFileBrowser(frame, Point(10, 25), Size(140, 180));
+    fileBrowser = new uiFileBrowser(frame, Point(cx + 8, cy + 8), Size(220, 7 * BtnStep - 4));
     fileBrowser->setDirectory("/");
     fileBrowser->onChange = [&]() {
       updateFreeSpaceLabel();
     };
 
     // create directory button
-    auto createDirBtn = new uiButton(frame, "Create Dir", Point(160, 25), Size(90, 20));
+    auto createDirBtn = new uiButton(frame, "Create Dir", Point(bx, by + 0 * BtnStep), Size(BtnW, BtnH));
     createDirBtn->onClick = [&]() {
       constexpr int MAXSTRLEN = 16;
       char dirname[MAXSTRLEN + 1] = "";
@@ -90,7 +102,7 @@ class MyApp : public uiApp {
     };
 
     // create empty file button
-    auto createEmptyFile = new uiButton(frame, "Create Empty File", Point(160, 50), Size(90, 20));
+    auto createEmptyFile = new uiButton(frame, "Create Empty File", Point(bx, by + 1 * BtnStep), Size(BtnW, BtnH));
     createEmptyFile->onClick = [&]() {
       constexpr int MAXSTRLEN = 16;
       char filename[MAXSTRLEN + 1] = "";
@@ -105,7 +117,7 @@ class MyApp : public uiApp {
     };
 
     // rename button
-    auto renameBtn = new uiButton(frame, "Rename", Point(160, 75), Size(90, 20));
+    auto renameBtn = new uiButton(frame, "Rename", Point(bx, by + 2 * BtnStep), Size(BtnW, BtnH));
     renameBtn->onClick = [&]() {
       int maxlen = fabgl::imax(16, (int) strlen(fileBrowser->filename()));
       char filename[maxlen + 1];
@@ -117,7 +129,7 @@ class MyApp : public uiApp {
     };
 
     // delete button
-    auto deleteBtn = new uiButton(frame, "Delete", Point(160, 100), Size(90, 20));
+    auto deleteBtn = new uiButton(frame, "Delete", Point(bx, by + 3 * BtnStep), Size(BtnW, BtnH));
     deleteBtn->onClick = [&]() {
       if (messageBox("Delete file/directory", "Are you sure?", "Yes", "Cancel") == uiMessageBoxResult::Button1) {
         fileBrowser->content().remove( fileBrowser->filename() );
@@ -126,7 +138,7 @@ class MyApp : public uiApp {
     };
 
     // format button
-    auto formatBtn = new uiButton(frame, "Format", Point(160, 125), Size(90, 20));
+    auto formatBtn = new uiButton(frame, "Format", Point(bx, by + 4 * BtnStep), Size(BtnW, BtnH));
     formatBtn->onClick = [&]() {
       // inside a drive format that drive, in the root directory format the selected drive
       auto driveType = fileBrowser->content().getCurrentDriveType();
@@ -144,13 +156,13 @@ class MyApp : public uiApp {
       sprintf(title, "Format %s", driveName);
       if (messageBox(title, "All data will be lost. Are you sure?", "Yes", "Cancel") == uiMessageBoxResult::Button1) {
         // show "Formatting..." while formatting (format() blocks the UI)
-        auto waitFrame = new uiFrame(rootWindow(), title, UIWINDOW_PARENTCENTER, Size(200, 60), false);
+        auto waitFrame = new uiFrame(rootWindow(), title, UIWINDOW_PARENTCENTER, Size(240, 70), false);
         waitFrame->frameProps().resizeable        = false;
         waitFrame->frameProps().moveable          = false;
         waitFrame->frameProps().hasCloseButton    = false;
         waitFrame->frameProps().hasMaximizeButton = false;
         waitFrame->frameProps().hasMinimizeButton = false;
-        new uiLabel(waitFrame, "Formatting, please wait...", Point(20, 30));
+        new uiLabel(waitFrame, "Formatting, please wait...", Point(waitFrame->clientPos().X + 16, waitFrame->clientPos().Y + 14));
         auto modalState = initModalWindow(waitFrame);
         processModalWindowEvents(modalState, 50);  // processes pending events (paints the dialog)
         canvas()->waitCompletion();
@@ -164,7 +176,7 @@ class MyApp : public uiApp {
     };
 
     // setup wifi button
-    auto setupWifiBtn = new uiButton(frame, "Setup WiFi", Point(260, 25), Size(90, 20));
+    auto setupWifiBtn = new uiButton(frame, "Setup WiFi", Point(bx, by + 5 * BtnStep), Size(BtnW, BtnH));
     setupWifiBtn->onClick = [=, this]() {
       char SSID[32] = "";
       char psw[32]  = "";
@@ -177,7 +189,7 @@ class MyApp : public uiApp {
     };
 
     // download file button
-    auto downloadBtn = new uiButton(frame, "Download", Point(260, 50), Size(90, 20));
+    auto downloadBtn = new uiButton(frame, "Download", Point(bx, by + 6 * BtnStep), Size(BtnW, BtnH));
     downloadBtn->onClick = [=, this]() {
       char URL[128] = "https://";
       if (inputBox("Download File", "URL", URL, sizeof(URL), "OK", "Cancel") == uiMessageBoxResult::Button1) {
@@ -187,11 +199,11 @@ class MyApp : public uiApp {
     };
 
     // free space label
-    freeSpaceLbl = new uiLabel(frame, "", Point(10, 235));
+    freeSpaceLbl = new uiLabel(frame, "", Point(cx + 8, cy + 212));
     updateFreeSpaceLabel();
 
     // wifi status label
-    WiFiStatusLbl = new uiLabel(frame, "", Point(10, 255));
+    WiFiStatusLbl = new uiLabel(frame, "", Point(cx + 8, cy + 232));
     connectWiFi();
 
     setFocusedWindow(fileBrowser);
@@ -207,13 +219,13 @@ class MyApp : public uiApp {
   void connectWiFi()
   {
     WiFiStatusLbl->setText("WiFi Not Connected");
-    WiFiStatusLbl->labelStyle().textColor = RGB888(255, 0, 0);
+    WiFiStatusLbl->labelStyle().textColor = theme.ink(fabgl::uiThemeInk::Red);
     char SSID[32], psw[32];
     if (preferences.getString("SSID", SSID, sizeof(SSID)) && preferences.getString("WiFiPsw", psw, sizeof(psw))) {
       wifi.disconnect();
       if (wifi.connect(SSID, psw, 16000) == fabgl::WiFiConnectionState::Connected) {
         WiFiStatusLbl->setTextFmt("Connected to %s, IP is %s", wifi.SSID(), wifi.IPString());
-        WiFiStatusLbl->labelStyle().textColor = RGB888(0, 128, 0);
+        WiFiStatusLbl->labelStyle().textColor = theme.ink(fabgl::uiThemeInk::Green);
       }
     }
     WiFiStatusLbl->update();
@@ -274,6 +286,7 @@ void setup()
 
   // keep LOW!!! otherwise there isn't enough memory for WiFi!!!
   DisplayController.setResolution(VGA_400x300_60Hz);
+  theme.setupPalette(&DisplayController);
 
   // adjust this to center screen in your monitor
   //DisplayController.moveScreen(-6, 0);

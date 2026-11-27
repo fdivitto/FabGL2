@@ -1,33 +1,43 @@
 #pragma once
 
 
+// modal window with a form: the rest of the UI is blocked until Close is pressed
 struct TestModalDialog : public uiFrame {
   uiTextEdit * textEdit1, * textEdit2, * textEdit3, * textEdit4;
   uiButton * button1, * button2;
-  uiPanel * panel;
+  uiPanel * card, * footer;
+
+  static constexpr int W = 340;
+  static constexpr int H = 262;
 
   TestModalDialog(uiFrame * parent)
-    : uiFrame(parent, "Test Modal Dialog", Point(150, 10), Size(300, 210)) {
+    : uiFrame(parent, "Modal Dialog", Point((640 - W) / 2, 70), Size(W, H), true, uiThemeStyle::Dialog) {
     frameProps().resizeable        = false;
     frameProps().hasCloseButton    = false;
     frameProps().hasMaximizeButton = false;
     frameProps().hasMinimizeButton = false;
 
-    new uiStaticLabel(this, "This is a Modal Window: click on Close to continue", Point(5, 30));
+    int x = clientPos().X;
+    int y = clientPos().Y;
+    int w = clientSize().width;
 
-    panel = new uiPanel(this, Point(5, 50), Size(290, 125));
-    panel->panelStyle().backgroundColor = RGB888(255, 255, 255);
+    new uiStaticLabel(this, "New contact", Point(x + 14, y + 6), true, uiThemeStyle::LabelTitle);
+    new uiStaticLabel(this, "This is a modal window: click Close to continue", Point(x + 14, y + 28), true, uiThemeStyle::LabelDim);
 
-    new uiStaticLabel(panel, "First Name:",  Point(10,  5));
-    textEdit1 = new uiTextEdit(panel, "",    Point(80,  5), Size(200, 20));
-    new uiStaticLabel(panel, "Last Name:",   Point(10, 35));
-    textEdit2 = new uiTextEdit(panel, "",    Point(80, 35), Size(200, 20));
-    new uiStaticLabel(panel, "Address:",     Point(10, 65));
-    textEdit3 = new uiTextEdit(panel, "",    Point(80, 65), Size(200, 20));
-    new uiStaticLabel(panel, "Phone:",       Point(10, 95));
-    textEdit4 = new uiTextEdit(panel, "",    Point(80, 95), Size(200, 20));
+    card = new uiPanel(this, Point(x + 12, y + 48), Size(w - 24, 132), true, uiThemeStyle::Card);
 
-    button1 = new uiButton(this, "Add Item", Point(5, 180), Size(80, 20));
+    char const * Labels[4] = { "First name", "Last name", "Address", "Phone" };
+    uiTextEdit * * edits[4] = { &textEdit1, &textEdit2, &textEdit3, &textEdit4 };
+    for (int i = 0; i < 4; ++i) {
+      new uiStaticLabel(card, Labels[i], Point(10, 12 + i * 30), true, uiThemeStyle::Label);
+      *edits[i] = new uiTextEdit(card, "", Point(90, 8 + i * 30), Size(card->size().width - 100, 24), true, uiThemeStyle::Edit);
+    }
+
+    // footer with the buttons (right aligned)
+    int fh = 44;
+    footer = new uiPanel(this, Point(x - 1, y + clientSize().height - fh), Size(w + 2, fh), true, uiThemeStyle::DialogFooter);
+
+    button1 = new uiButton(footer, "Add Item", Point(footer->size().width - 192, 9), Size(86, 26), uiButtonKind::Button, true, uiThemeStyle::ButtonAccent);
     button1->onClick = [&]() {
       app()->messageBox("New Item", "Item added correctly", "OK", nullptr, nullptr, uiMessageBoxIcon::Info);
       textEdit1->setText("");
@@ -36,11 +46,9 @@ struct TestModalDialog : public uiFrame {
       textEdit4->setText("");
     };
 
-    button2 = new uiButton(this, "Close", Point(90, 180), Size(80, 20));
+    button2 = new uiButton(footer, "Close", Point(footer->size().width - 98, 9), Size(86, 26), uiButtonKind::Button, true, uiThemeStyle::Button);
     button2->onClick = [&]() {
       exitModal(0);
     };
   }
 };
-
-

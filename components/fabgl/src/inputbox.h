@@ -125,7 +125,7 @@ struct InputForm {
 
 struct InputApp : public uiApp {
   InputApp(InputForm * form_)      { form = form_; }
-  virtual void init()              { form->init(this, false); }
+  virtual void init();
 
   InputForm * form;
 };
@@ -682,6 +682,18 @@ public:
    * @brief Paint event delegate
    */
   Delegate<Canvas *> onPaint;
+
+  /**
+   * @brief Application init delegate
+   *
+   * Called when the InputBox creates the application of a dialog, before creating the dialog windows. Use it to set
+   * a style or a theme (the dialogs created with InputBox(uiApp *) use the style of that application).
+   *
+   * Example:
+   *
+   *     inputBox.onInitApp = [&](uiApp * app) { theme.apply(app); };
+   */
+  Delegate<uiApp *> onInitApp;
   
 
 

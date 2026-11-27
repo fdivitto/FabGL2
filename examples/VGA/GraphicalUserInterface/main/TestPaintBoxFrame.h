@@ -20,13 +20,14 @@ struct TestPaintBoxFrame : public uiFrame {
   int8_t * values = nullptr;
 
   TestPaintBoxFrame(uiFrame * parent)
-    : uiFrame(parent, "Test Paint Box", Point(130, 10), Size(300, 210), false) {
+    : uiFrame(parent, "Paint Box", Point(150, 40), Size(340, 220), false, uiThemeStyle::Frame) {
 
     values = new int8_t[count];
     for (int i = 0; i < count; ++i)
       values[i] = randomInt(-50, 50);
 
-    paintBox = new uiPaintBox(this, clientPos(), clientSize());
+    // the bottom strip shows the size grip of the frame
+    paintBox = new uiPaintBox(this, clientPos(), Size(clientSize().width, clientSize().height - 12), true, uiThemeStyle::PaintBox);
     paintBox->anchors().right = true;
     paintBox->anchors().bottom = true;
     paintBox->setScrollBar(uiOrientation::Horizontal, 0, paintBox->clientSize().width, count);
@@ -43,18 +44,19 @@ struct TestPaintBoxFrame : public uiFrame {
     // paint occurs even on resize, so we need to make sure it has the right "width" (w)
     paintBox->setScrollBar(uiOrientation::Horizontal, paintBox->HScrollBarPos(), w, count, true);
 
-    cv->setPenColor(Color::BrightYellow);
-    cv->selectFont(&fabgl::FONT_std_12);
+    cv->setGlyphOptions(GlyphOptions().FillBackground(false).Bold(false).Italic(false).Underline(false).Invert(0));
+    cv->selectFont(SmallFont);
     for (int i = paintBox->HScrollBarPos(), x = 1; i < paintBox->HScrollBarPos() + paintBox->HScrollBarVisible(); ++i, ++x) {
+      cv->setPenColor(values[i] < 0 ? ink(Ink::AccentDark) : ink(Ink::Accent));
       cv->drawLine(x, midY, x, midY + values[i]);
       if (i % 50 == 0) {
-        cv->setPenColor(Color::BrightBlue);
+        cv->setPenColor(ink(Ink::Border));
         cv->drawLine(x, midY - 15, x, midY + 15);
-        cv->drawTextFmt(x, h - 25, "%d", i);
-        cv->setPenColor(Color::BrightYellow);
+        cv->setPenColor(ink(Ink::TextDim));
+        cv->drawTextFmt(x + 2, h - 18, "%d", i);
       }
     }
-    cv->setPenColor(Color::BrightBlue);
+    cv->setPenColor(ink(Ink::Border));
     cv->drawLine(0, midY, w - 1, midY);
   }
 

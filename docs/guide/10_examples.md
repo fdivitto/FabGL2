@@ -54,15 +54,15 @@ The "default pins" mentioned in the example pages are the ones of this table.
 |---|---|
 | @subpage example_Altair8800 "Altair8800" | Altair 8800 emulator (i8080/Z80) running CP/M 1.4, 2.2, 3, Altair BASIC and DOS from the included disk images |
 | @subpage example_AnsiTerminal "AnsiTerminal" | Serial VT/ANSI terminal with on-screen configuration (emulations, fonts, resolutions, serial parameters) |
-| @subpage example_Audio "Audio" | Multi-channel sound mixer GUI: waveform generators and sampled sounds |
+| @subpage example_Audio "Audio" | Multi-channel sound mixer GUI (dark theme): waveform generators and sampled sounds |
 | @subpage example_ClassicRacer "ClassicRacer" | Two-player retro racing game (keyboard, mouse or joystick) |
 | @subpage example_CollisionDetection "CollisionDetection" | Sprites and pixel-precise collision detection with `Scene` |
 | @subpage example_DirectVGA "DirectVGA" | Minimal direct scanline rendering with `VGADirectController` |
 | @subpage example_DirectVGA_ElMuro "DirectVGA_ElMuro" | Brick-breaker game rendered line by line with `VGADirectController` |
 | @subpage example_DoubleBuffer "DoubleBuffer" | Double-buffered animation benchmark (balls, polygons, sprites, FPS) |
-| @subpage example_FileBrowser "FileBrowser" | File manager for SPIFFS and SD card, with WiFi setup and HTTP/HTTPS downloads |
-| @subpage example_GraphicalUserInterface "GraphicalUserInterface" | Tour of the GUI: windows, controls, modal dialogs, message boxes, timers |
-| @subpage example_HardwareTest "HardwareTest" | Board test: colors, keyboard, sound, SD card, GPIOs, MCP23S17, WiFi |
+| @subpage example_FileBrowser "FileBrowser" | File manager for SPIFFS and SD card (dark theme), with WiFi setup and HTTP/HTTPS downloads |
+| @subpage example_GraphicalUserInterface "GraphicalUserInterface" | Tour of the GUI with a modern dark flat theme: windows, all the controls (knobs, switches, graph, piano...), dialogs, timers |
+| @subpage example_HardwareTest "HardwareTest" | Board test (dark theme): colors, keyboard, sound, SD card, GPIOs, MCP23S17, WiFi |
 | @subpage example_InputBox "InputBox" | Ready-made dialogs: messages, menus, text input, progress bars, file selector, WiFi wizard |
 | @subpage example_LoopbackTerminal "LoopbackTerminal" | Terminal connected to itself, to try the escape sequences from the keyboard |
 | @subpage example_ModelineStudio "ModelineStudio" | Find and tune VGA modelines from the serial console |

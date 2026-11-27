@@ -3,8 +3,8 @@
 A small **file manager** with a graphical user interface. It browses the internal flash (SPIFFS) and the SD card,
 manages files and directories and **downloads files from the Internet** (HTTP and HTTPS).
 
-The window (400x300, 64 colors) contains the file browser on the left, the command buttons on the right and, at
-the bottom, the used/free space of the current drive and the WiFi status.
+The window (400x300, 16 colors, dark theme) contains the file browser on the left, the command buttons on the
+right and, at the bottom, the used/free space of the current drive and the WiFi status.
 
 ## Usage
 
@@ -30,6 +30,9 @@ Both drives are formatted automatically if they cannot be mounted.
 - `fabgl::WiFiConnection`, `fabgl::Preferences` (NVS) and `fabgl::HTTPRequest` (HTTPS with the certificate
   bundle, redirects)
 - Memory tuning to run VGA, WiFi, TLS and the SD card together (see `sdkconfig.defaults`)
+- The dark theme of the library (`fabgl::uiDarkTheme`) on a `VGA16Controller`: `setupPalette()` after
+  `setResolution()` and `apply()` in `init()`. Every control, message box and input box gets the theme by type.
+  16 colors also halve the frame buffer (60 KB instead of 120 KB with `VGAController`)
 
 ## Hardware
 

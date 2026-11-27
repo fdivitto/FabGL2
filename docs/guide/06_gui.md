@@ -32,6 +32,8 @@ extern "C" void app_main()
 ```
 
 InputBox can also use an existing display controller (`ib.begin(&DisplayController)`) or run inside a uiApp.
+InputBox::onInitApp is called when InputBox creates the application of a dialog: set a style or a theme there
+(`ib.onInitApp = [&](uiApp * app) { theme.apply(app); };`, see @ref gui_dark_theme and @ref example_PCEmulator).
 
 
 # Structure of a uiApp application {#gui_structure}
@@ -193,8 +195,65 @@ appProps().dialogStyleClasses.label  = STYLE_DIALOG_LABEL;
 appProps().dialogStyleClasses.button = STYLE_BUTTON;
 ```
 
-The @ref example_VIC20 example themes its whole interface this way (custom painted program list, tile selectors,
-dialogs).
+The parts of combo boxes and split buttons are separate controls: style them from the combo box with
+uiCustomComboBox::listBoxControl() (the drop-down list, its border and scroll bars) and uiCustomComboBox::editControl()
+(the text edit of uiComboBox, the button of uiSplitButton).
+
+A few style fields give a more modern look (all off by default):
+
+- uiWindowStyle::cornerRadius: rounded corners for any window with a border of 0 or 1 pixel (buttons, check boxes,
+  edits, panels, popup frames...). A radio button with a radius of half its size is round. The area outside the
+  corners takes the background of the nearest frame or panel ancestor (uiWindow::parentBackgroundColor(), also
+  useful to give labels and controls the background of their container)
+- uiFrameStyle::titleSeparatorSize (with titleSeparatorColor / activeTitleSeparatorColor): a line below the title bar
+- uiFrameProps::hasSizeGrip (with uiFrameStyle::sizeGripColor): diagonal lines in the bottom-right corner of a
+  resizable frame. They are painted on the frame background: leave that corner free of child controls
+- uiCheckBoxStyle::filledWhenChecked: a checked box is filled with checkedBackgroundColor (border included,
+  mouseOverCheckedBackgroundColor under the mouse). uiCheckBoxStyle::boldMark: thicker check mark, bigger radio dot
+
+On paletted displays (e.g. VGA16Controller) a theme can reprogram the palette with setPaletteItem(). Canvas colors
+are mapped to a palette slot through a table built from the default palette, so a reprogrammed slot is selected
+with the default color of that slot (`RGB888((Color) slot)`).
+
+With uiStyle::applyToUnstyled set, setStyle() is called also for the elements created without style class
+(styleClassID = 0), so a style can theme a whole interface by object type, controls created by the library included.
+
+The @ref example_VIC20 example themes its whole interface with its own style (custom painted program list, tile
+selectors, dialogs).
+
+
+# Dark theme {#gui_dark_theme}
+
+fabgl::uiDarkTheme (`uitheme.h`) is a ready to use dark flat theme: near black surfaces, thin gray lines and an
+accent color (fabgl::uiThemeAccent: orange, cyan, violet, green). It is made for 16 color displays
+(VGA16Controller, CVBS16Controller): uiDarkTheme::setupPalette() reprograms the palette, keeping black, white and the
+colors of the message box icons in their slots. The colors are on the grid of the VGA output (2 bits per channel:
+0, 85, 170, 255). Without setupPalette() the palette keeps its colors and the theme colors are approximated by the
+display (@ref example_HardwareTest keeps the 16 standard colors for its color test). On 4 color displays
+(VGA4Controller) setupPalette() uses black, gray, the accent and white. Every control gets the theme by type, so an existing application
+changes look with two calls:
+
+```cpp
+fabgl::uiDarkTheme theme;                    // or theme(fabgl::uiThemeAccent::Violet)
+
+class MyApp : public uiApp {
+  void init() {
+    theme.apply(this);                       // application style, message boxes, desktop
+    new uiButton(rootWindow(), "OK", Point(10, 10), Size(80, 24));   // themed by type
+  }
+} app;
+
+DisplayController.setResolution(VGA_640x480_60Hz);
+theme.setupPalette(&DisplayController);      // before the application creates its windows
+app.run(&DisplayController);
+```
+
+The style classes of fabgl::uiThemeStyle select the variants: accent and flat buttons (`ButtonAccent`,
+`ButtonFlat`), titles (`LabelTitle`, `LabelBig`), secondary text (`LabelDim`), cards (`Card`), dialogs, popups and
+taskbars. Paint with the theme colors through uiDarkTheme::ink() (fabgl::uiThemeInk). The theme uses font sizes 12-24
+and 1-3 pixel borders: layouts made for the default look may need more room (place controls relative to
+uiWindow::clientPos()). A derived theme can add its classes (lower than `uiThemeStyle::First`) and call
+uiDarkTheme::setStyle() for the others. See @ref example_GraphicalUserInterface, @ref example_Audio, @ref example_FileBrowser and @ref example_HardwareTest.
 
 
 # Synth and instrument controls {#gui_synth_controls}

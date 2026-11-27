@@ -4,3 +4,5 @@
 /examples/VGA/PCEmulator/Disks
 docs/index.html
 docs/doxygen_warnings.log
+*.log
+build_examples/all_build.txt
