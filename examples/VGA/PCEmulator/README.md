@@ -22,8 +22,10 @@ Watch it on [YouTube](https://www.youtube.com/watch?v=3I1U2nEoxIQ).
 3. The **Machine Configurations** list appears. Choose a machine and press **Run** (if you do nothing, the last
    used machine starts after 6 seconds).
 4. If the disk images of the machine are not on the SD card yet, they are downloaded from www.fabglib.org (a
-   progress bar shows the progress; big images take some minutes, interrupted downloads are resumed
-   automatically). After the download the board restarts and boots the machine.
+   progress bar shows the progress; big images take some minutes, dropped connections are resumed
+   automatically). An image is downloaded as `<name>.part` and renamed only when complete: a download that
+   fails, is aborted or is interrupted by a reset or a power loss is resumed from the `.part` file the next
+   time the machine is selected. After the download the board restarts and boots the machine.
 
 ### Predefined machines
 
