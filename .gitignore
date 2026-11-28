@@ -6,3 +6,6 @@ docs/index.html
 docs/doxygen_warnings.log
 *.log
 build_examples/all_build.txt
+/examples/VGA/PCEmulator/build
+*.lock
+examples/VGA/PCEmulator/sdkconfig

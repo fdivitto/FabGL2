@@ -260,7 +260,8 @@ void updateDateTime()
 // state shared between downloadURL() and downloadTask()
 struct DownloadJob {
   char const *      URL;
-  FILE *            file;       // partial file (".part"), positioned at its end
+  char const *      path;       // full path of the partial file (to reopen it after an SD card error)
+  FILE *            file;       // partial file (".part"), positioned at its end. Replaced when reopened
   volatile int64_t  received;   // bytes in the file (initially the size of a previous partial download)
   volatile int64_t  total;      // -1 = unknown
   volatile int      retries;    // reconnections done
@@ -276,18 +277,55 @@ struct DownloadJob {
 // The download starts at job->received (a previous partial download is resumed with HTTP Range). A connection that
 // stalls or drops is reopened and the download continues from the received bytes.
 // The file is synced periodically, so after a reset or a power loss the next download resumes from the last sync.
+// An SD card write error (seen after some MB, the card stops answering until it is initialized again) remounts the
+// card, reopens the file and continues from its size.
 static void downloadTask(void * arg)
 {
   constexpr int     MAXRETRIES = 10;              // consecutive reconnections without receiving data
+  constexpr int     MAXSDRECOVERIES = 8;          // SD card remounts after write errors
   constexpr int64_t SYNCEVERY  = 1024 * 1024;     // flush data and file size to the SD card every 1 MB
 
   auto job = (DownloadJob *) arg;
-  auto buf = (uint8_t*) SOC_EXTRAM_DATA_LOW; // use PSRAM as buffer (the machine isn't running yet)
+  // Receive buffer in internal DMA-capable RAM, allocated once. The SD card is written through SPI DMA: from a PSRAM
+  // buffer the SPI driver allocates a temporary internal DMA buffer for every transaction, and with WiFi and TLS
+  // using most of the internal RAM that allocation failed ("SD card write failed"). PSRAM is the fallback.
+  constexpr int BUFSIZE = 8192;
+  auto buf = (uint8_t *) heap_caps_malloc(BUFSIZE, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
+  ESP_LOGI("download", "receive buffer in %s RAM, free heap %d bytes", buf ? "internal" : "PSRAM", (int) heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  bool bufInternal = (buf != nullptr);
+  if (!bufInternal)
+    buf = (uint8_t*) SOC_EXTRAM_DATA_LOW; // the machine isn't running yet
   bool fatal     = false;
   bool fromStart = false;   // request the whole file even if there is a partial one
   bool spaceOK   = false;   // free space already checked
   int  failures  = 0;
+  int  sdRecoveries = 0;
+  bool sdError   = false;   // an SD card write failed: recover before continuing
   int64_t lastSync = job->received;
+
+  // the SD card stopped working: remount it (initializes the card again), reopen the partial file and continue from
+  // its size (the data after the last sync may be lost: it is downloaded again)
+  auto recoverSD = [&]() {
+    fclose(job->file);
+    job->file = nullptr;
+    if (!FileBrowser::remountSDCard())
+      return false;
+    job->file = fopen(job->path, "r+b");
+    if (!job->file)
+      return false;
+    setvbuf(job->file, nullptr, _IONBF, 0);
+    if (fseek(job->file, 0, SEEK_END) != 0)
+      return false;
+    int64_t size = ftell(job->file);
+    if (size < 0)
+      return false;
+    if (size < job->received)
+      job->received = size;
+    if (fseek(job->file, job->received, SEEK_SET) != 0)
+      return false;
+    lastSync = job->received;
+    return true;
+  };
 
   // discard the partial file and start again from the beginning
   auto truncateFile = [&]() {
@@ -307,8 +345,22 @@ static void downloadTask(void * arg)
   esp_wifi_get_ps(&savedPS);
   esp_wifi_set_ps(WIFI_PS_NONE);
 
+  // no stdio buffer: fwrite() passes buf to FatFs as it is
+  setvbuf(job->file, nullptr, _IONBF, 0);
+
   fabgl::HTTPRequest http;
   while (!job->abort && !fatal) {
+    if (sdError) {
+      sdError = false;
+      job->retries = job->retries + 1;
+      ESP_LOGW("download", "SD card error at %lld: remounting the card", (long long) job->received);
+      if (++sdRecoveries > MAXSDRECOVERIES || !recoverSD()) {
+        ESP_LOGE("download", "SD card recovery failed");
+        job->error = "SD card write failed";
+        break;
+      }
+      ESP_LOGI("download", "SD card remounted, continuing from %lld", (long long) job->received);
+    }
     if (failures > MAXRETRIES) {
       job->error = "Connection lost";
       break;
@@ -370,49 +422,71 @@ static void downloadTask(void * arg)
       }
       spaceOK = true;
     }
-    // read until the connection fails or ends
+    // read until the connection fails or ends. Data is collected in buf and written in blocks that end on a sector
+    // boundary of the file: FatFs then writes whole sectors straight from buf (aligned, internal RAM), without
+    // temporary DMA buffers in the SD driver
     bool cleanEnd = false;
-    while (!job->abort) {
-      int c = http.read(buf, 16384);
-      if (c <= 0) {
-        cleanEnd = (c == 0);
-        if (c < 0 || (job->total >= 0 && job->received < job->total))
-          ESP_LOGW("download", "read returned %d at %lld", c, (long long) job->received);
-        break;
+    int  fill     = 0;      // bytes in buf, not written yet
+    auto writeBuf = [&]() {
+      if (fill > 0 && fwrite(buf, 1, fill, job->file) != fill) {
+        ESP_LOGE("download", "SD card write failed at %lld (errno %d, free heap %d, largest %d)", (long long) job->received, errno,
+                 (int) heap_caps_get_free_size(MALLOC_CAP_8BIT), (int) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+        sdError = true;
+        fill    = 0;      // downloaded again after the recovery
+        return false;
       }
-      if (job->total >= 0 && job->received + c > job->total)
-        c = job->total - job->received;   // never write more than the declared size
-      if (fwrite(buf, 1, c, job->file) != c) {
-        ESP_LOGE("download", "SD card write failed at %lld (errno %d)", (long long) job->received, errno);
-        job->error = "SD card write failed";
-        fatal = true;
-        break;
-      }
-      job->received = job->received + c;
-      failures = 0;
+      job->received = job->received + fill;
+      fill = 0;
       if (job->received - lastSync >= SYNCEVERY) {
         fflush(job->file);
         fsync(fileno(job->file));
         lastSync = job->received;
       }
-      if (job->total >= 0 && job->received >= job->total)
+      return true;
+    };
+    while (!job->abort) {
+      int target = BUFSIZE - (int) (job->received % 512);   // the block ends on a sector boundary
+      int c = http.read(buf + fill, target - fill);
+      if (c <= 0) {
+        cleanEnd = (c == 0);
+        if (c < 0 || (job->total >= 0 && job->received + fill < job->total))
+          ESP_LOGW("download", "read returned %d at %lld", c, (long long) (job->received + fill));
+        break;
+      }
+      if (job->total >= 0 && job->received + fill + c > job->total)
+        c = job->total - job->received - fill;   // never write more than the declared size
+      fill += c;
+      failures = 0;
+      bool complete = job->total >= 0 && job->received + fill >= job->total;
+      if ((fill == target || complete) && !writeBuf())
+        break;
+      if (complete)
         break;
     }
+    // data received before the connection ended
+    if (!sdError)
+      writeBuf();
     http.close();
+    if (sdError)
+      continue;   // recover the SD card, then reconnect from the received bytes
     if (fatal || job->abort)
       break;
     // complete only when the declared size has been received. With an unknown size (no Content-Length) a clean end
     // of the content is the only indication available.
     if (job->total >= 0 ? job->received >= job->total : (cleanEnd && job->received > 0)) {
-      if (fflush(job->file) != 0 || fsync(fileno(job->file)) != 0)
-        job->error = "SD card write failed";
-      else
-        job->success = true;
+      if (fflush(job->file) != 0 || fsync(fileno(job->file)) != 0) {
+        ESP_LOGE("download", "SD card sync failed at %lld", (long long) job->received);
+        sdError = true;
+        continue;
+      }
+      job->success = true;
       break;
     }
     ++failures;
   }
 
+  if (bufInternal)
+    heap_caps_free(buf);
   esp_wifi_set_ps(savedPS);
   xSemaphoreGive(job->done);
   vTaskDelete(nullptr);
@@ -421,7 +495,7 @@ static void downloadTask(void * arg)
 
 // download URL into file (opened for writing and positioned at its end: a not empty file is a partial download
 // to resume). On failure errorMsg points to the reason (nullptr when aborted by the user).
-bool downloadURL(char const * URL, FILE * file, char const * * errorMsg)
+bool downloadURL(char const * URL, char const * path, FILE * & file, char const * * errorMsg)
 {
   downloadOK = false;
   *errorMsg  = nullptr;
@@ -434,12 +508,15 @@ bool downloadURL(char const * URL, FILE * file, char const * * errorMsg)
 
   DownloadJob job = { };
   job.URL      = URL;
+  job.path     = path;
+  int64_t startTime = esp_timer_get_time();
   job.file     = file;
   job.received = ftell(file);
   job.total    = -1;
   job.done     = xSemaphoreCreateBinary();
   if (job.received < 0)
     job.received = 0;
+  const int64_t startReceived = job.received;
 
   ibox.progressBox("", "Abort", true, 380, [&](fabgl::ProgressForm * form) {
     form->update(0, job.received > 0 ? "Resuming download of %s" : "Preparing to download %s", filename);
@@ -463,8 +540,12 @@ bool downloadURL(char const * URL, FILE * file, char const * * errorMsg)
   });
 
   vSemaphoreDelete(job.done);
+  file      = job.file;     // reopened after an SD card error (nullptr if that failed)
   *errorMsg = job.error;
-  ESP_LOGI("download", "%s, minimum free heap %d bytes", downloadOK ? "completed" : "failed", (int) heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
+  double secs = (esp_timer_get_time() - startTime) / 1000000.0;
+  ESP_LOGI("download", "%s: %lld bytes in %.1f s (%.1f KB/s), minimum free heap %d bytes", downloadOK ? "completed" : "failed",
+           (long long) (job.received - startReceived), secs, secs > 0 ? (job.received - startReceived) / 1024.0 / secs : 0.0,
+           (int) heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT));
   return downloadOK;
 }
 
@@ -492,7 +573,9 @@ char const * getDisk(char const * url)
         if (file && resume)
           fseek(file, 0, SEEK_END);
         char const * errorMsg;
-        bool success = downloadURL(url, file, &errorMsg);
+        char partpath[strlen(SD_MOUNT_PATH) + 1 + strlen(partname) + 1];
+        sprintf(partpath, "%s/%s", SD_MOUNT_PATH, partname);
+        bool success = downloadURL(url, partpath, file, &errorMsg);
         if (file)
           fclose(file);
         if (success) {

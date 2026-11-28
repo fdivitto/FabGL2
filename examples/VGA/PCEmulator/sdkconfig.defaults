@@ -36,3 +36,15 @@ CONFIG_SPIRAM_IGNORE_NOTFOUND=y
 # FAT fast seek (in-memory cluster map) for disk images, opened read-only for reads (see Machine::diskRead())
 CONFIG_FATFS_USE_FASTSEEK=y
 CONFIG_FATFS_FAST_SEEK_BUFFER_SIZE=128
+
+# HTTPS downloads: the frame buffer of the user interface leaves little RAM, so reduce the memory used by TLS and
+# WiFi (without these, the minimum free heap during a download was ~3 KB)
+CONFIG_MBEDTLS_DYNAMIC_BUFFER=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CONFIG_DATA=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CA_CERT=y
+# fabgl::HTTPRequest keeps a TLS record buffer reserved (16 KB records with fragmented heap)
+CONFIG_MBEDTLS_CUSTOM_MEM_ALLOC=y
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=4
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=16
+CONFIG_ESP_WIFI_DYNAMIC_TX_BUFFER_NUM=16
+CONFIG_ESP_WIFI_RX_BA_WIN=4
